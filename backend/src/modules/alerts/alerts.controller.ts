@@ -83,6 +83,12 @@ export class AlertsController {
     return this.clinicalAiSuggestionService.suggestDoctorMessage(body);
   }
 
+  // GET /alerts/patient/:patientId  → toutes les alertes pour un patient donné
+  @Get('patient/:patientId')
+  getByPatient(@Param('patientId') patientId: string, @Query('status') status?: string) {
+    return this.alertsService.getByPatient(patientId, status);
+  }
+
   @Get('stats/open-count')
   async openCount(
     @Query('doctorId') doctorId?: string,
@@ -111,4 +117,8 @@ export class AlertsController {
       body?.doctorUserId,
     );
   }
+
+
+
+
 }

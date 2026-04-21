@@ -1,0 +1,7 @@
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\admin-dashboard\admin-dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\auditor\auditor-dashboard\auditor-dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\coordinator\coordinator-dashboard\coordinator-dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\doctor\dashboard\doctor-dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\nurse\dashboard\nurse-dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\patient\dashboard\dashboard.component.html
+C:\Users\Lenovo\Esprit-PIFullstackJS-4TWIN8-2026-JsInnovators\frontend\src\app\pages\super-admin\superadmin-dashboard\superadmin-dashboard.component.html

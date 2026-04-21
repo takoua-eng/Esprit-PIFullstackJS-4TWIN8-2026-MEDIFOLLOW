@@ -1,6 +1,7 @@
-import { Injectable } from '@angular/core';
+﻿import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 export interface VitalEntry {
   _id?: string;
@@ -35,7 +36,7 @@ export interface AlertEntry {
   parameter: string;
   value?: number;
   message: string;
-  status: 'pending' | 'resolved';
+  status: 'pending' | 'resolved' | 'acknowledged';
   createdAt?: string;
 }
 
@@ -50,18 +51,38 @@ export class PatientService {
 
   constructor(private http: HttpClient) {}
 
-  /** Retourne le patientId stocké en localStorage après connexion */
-  getCurrentPatientId(): string {
-    const raw = localStorage.getItem('medi_follow_user_data');
-    if (!raw) return '';
+
+
+  
+  /** Retourne le patientId depuis localStorage ou JWT */
+getCurrentPatientId(): string {
+  // 1️⃣ Vérifie userId direct
+  const direct = localStorage.getItem('userId');
+  if (direct) return direct;
+
+  // 2️⃣ Vérifie medi_follow_user_data
+  const raw = localStorage.getItem('medi_follow_user_data');
+  if (raw) {
     try {
       const user = JSON.parse(raw);
-      // Check both _id (MongoDB) and id (standard JSON)
-      return user._id || user.id || '';
-    } catch (e) {
-      return '';
-    }
+      if (user._id || user.id) return user._id || user.id;
+    } catch {}
   }
+
+  // 3️⃣ Vérifie JWT accessToken
+  const token = localStorage.getItem('accessToken');
+  if (token) {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      return payload.sub ?? payload._id ?? payload.id ?? '';
+    } catch {}
+  }
+
+  return ''; // Aucun ID trouvé
+}
+
+
+
 
   // â”€â”€â”€ VITAL PARAMETERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -122,6 +143,9 @@ export class PatientService {
     );
   }
 
+
+
+
   // â”€â”€â”€ ALERTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   getMyAlerts(): Observable<AlertEntry[]> {
@@ -130,6 +154,42 @@ export class PatientService {
       `${this.API}/auto-alerts/patient/${patientId}`,
     );
   }
+
+  /** Fetch clinical alerts (collection `alerts`) for a specific patient */
+  getPatientAlerts(patientId: string, status?: string): Observable<AlertEntry[]> {
+    let url = `${this.API}/alerts/patient/${patientId}`;
+    if (status) url += `?status=${encodeURIComponent(status)}`;
+    return this.http.get<any[]>(url).pipe(
+      // Map backend Alert -> AlertEntry shape
+      map(arr => (arr || []).map(a => ({
+        _id: a._id,
+        patientId: a.patientId,
+        type: a.type || 'vital',
+        parameter: a.parameter || '',
+        value: a.value,
+        message: a.message,
+        status: a.status === 'open' ? 'pending' : 'resolved',
+        createdAt: a.createdAt ? new Date(a.createdAt).toISOString() : undefined,
+      })))
+    );
+  }
+
+  acknowledgeClinicalAlert(alertId: string): Observable<AlertEntry> {
+  return this.http.patch<any>(`${this.API}/alerts/${alertId}/acknowledge`, {}).pipe(
+    map(a => ({
+      _id: a._id,
+      patientId: a.patientId,
+      type: a.type || 'vital',
+      parameter: a.parameter || '',
+      value: a.value,
+      message: a.message,
+      status: a.status, // <-- garder le vrai status backend
+      createdAt: a.createdAt ? new Date(a.createdAt).toISOString() : undefined,
+    }))
+  );
+}
+
+
 
   getRecentAlerts(): Observable<AlertEntry[]> {
     const patientId = this.getCurrentPatientId();
@@ -151,6 +211,8 @@ export class PatientService {
       {},
     );
   }
+
+
 
   // â”€â”€â”€ QUESTIONNAIRES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -222,13 +284,5 @@ export class PatientService {
     });
   }
 
-  sendNote(toUserId: string, message: string): Observable<any> {
-    const fromUserId = this.getCurrentPatientId();
-    return this.http.post(`${this.API}/patient-notes`, { fromUserId, toUserId, message });
-  }
 
-  getMySentNotes(): Observable<any[]> {
-    const fromUserId = this.getCurrentPatientId();
-    return this.http.get<any[]>(`${this.API}/patient-notes/from/${fromUserId}`);
-  }
 }

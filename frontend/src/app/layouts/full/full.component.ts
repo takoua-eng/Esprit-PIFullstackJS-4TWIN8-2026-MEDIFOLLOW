@@ -17,6 +17,10 @@ import { nurseNavItems } from './sidebar/nurse-sidebar-data';
 import { doctorNavItems } from './sidebar/doctor-sidebar-data';
 import { NavItem } from './sidebar/nav-item/nav-item';
 import { normalizeRoleKey } from 'src/app/core/post-login-route';
+import { VoiceAssistantComponent } from 'src/app/components/voice-assistant/voice-assistant.component';
+
+
+
 import { KeyboardGuideComponent } from 'src/app/pages/patient/keyboard-guide/keyboard-guide.component';
 import { KeyboardAccessibilityService } from 'src/app/services/keyboard-accessibility.service';
 
@@ -35,6 +39,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     TablerIconsModule,
     HeaderComponent,
     AppTopstripComponent,
+    VoiceAssistantComponent,
     KeyboardGuideComponent,
   ],
   templateUrl: './full.component.html',
@@ -43,6 +48,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
 })
 export class FullComponent implements OnInit {
   navItems: NavItem[] = [];
+  isPatientRoute = false;
 
   @ViewChild('leftsidenav')
   public sidenav: MatSidenav;
@@ -94,6 +100,9 @@ export class FullComponent implements OnInit {
       });
   }
 
+
+  
+  // ✅ LOGIQUE FIX
   private updateSidebar(url: string) {
     const role = normalizeRoleKey(
       typeof localStorage !== 'undefined'
@@ -101,11 +110,11 @@ export class FullComponent implements OnInit {
         : null,
     );
 
-    if (url.startsWith('/super-admin')) {
-      this.navItems = superAdminNavItems;
-    } else if (url.startsWith('/auditor')) {
-      this.navItems = auditorNavItems;
-    } else if (url.startsWith('/dashboard/admin')) {
+
+
+    this.isPatientRoute = url.startsWith('/dashboard/patient');
+
+    if (url.startsWith('/dashboard/admin')) {
       this.navItems = adminNavItems;
     } else if (url.startsWith('/dashboard/nurse')) {
       this.navItems = nurseNavItems;
@@ -120,6 +129,8 @@ export class FullComponent implements OnInit {
       else this.navItems = adminNavItems;
     } else if (url.startsWith('/admin/coordinator')) {
       this.navItems = coordinatorNavItems;
+    } else if (url.startsWith('/dashboard/patient')) {   // <-- AJOUTÉ
+    this.navItems = patientNavItems;
     } else {
       // Fallback by role
       if (role === 'superadmin')                          this.navItems = superAdminNavItems;

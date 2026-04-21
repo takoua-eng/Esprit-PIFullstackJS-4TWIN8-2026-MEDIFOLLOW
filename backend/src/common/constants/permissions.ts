@@ -1,34 +1,40 @@
 export const ALL_PERMISSIONS = [
   // Users
-  'users:read', 'users:create', 'users:update', 'users:delete', 'users:manage',
+  //'users:read', 'users:create', 'users:update', 'users:delete', 'users:manage',
 
   // Patients
-  'patients:read', 'patients:create', 'patients:update', 'patients:delete', 'patients:*',
+ // 'patients:read', 'patients:create', 'patients:update', 'patients:delete',
+   'patients:*',
 
   // Doctors / Physicians
-  'doctors:read', 'doctors:create', 'doctors:update', 'doctors:delete', 'doctors:*',
-  'physicians:read',
+  //'doctors:read', 'doctors:create', 'doctors:update', 'doctors:delete', 
+  'doctors:*',
+  //'physicians:read',
 
   // Nurses
-  'nurses:read', 'nurses:create', 'nurses:update', 'nurses:delete', 'nurses:*', 'nurses:manage',
+  //'nurses:read', 'nurses:create', 'nurses:update', 'nurses:delete', 
+  'nurses:*',
+  // 'nurses:manage',
 
   // Coordinators
-  'coordinators:read', 'coordinators:create', 'coordinators:update', 'coordinators:delete', 'coordinators:*',
+  //'coordinators:read', 'coordinators:create', 'coordinators:update', 'coordinators:delete', 
+  'coordinators:*',
 
   // Auditors
-  'auditors:read', 'auditors:create', 'auditors:update', 'auditors:delete', 'auditors:*',
+  //'auditors:read', 'auditors:create', 'auditors:update', 'auditors:delete',
+   'auditors:*',
 
   // Alerts
-  'alerts:read', 'alerts:validate', 'alerts:manage',
+  //'alerts:read', 'alerts:validate', 'alerts:manage',
 
   // Vitals
-  'vitals:read', 'vitals:create',
+ // 'vitals:read', 'vitals:create',
 
   // Services
-  'services:read', 'services:manage',
+  //'services:read', 'services:manage',
 
   // Questionnaires
-  'questionnaires:read', 'questionnaires:submit', 'questionnaires:manage',
+  /*'questionnaires:read', 'questionnaires:submit', 'questionnaires:manage',
 
   // Dashboard
   'dashboard:read', 'dashboard:view',
@@ -47,5 +53,5 @@ export const ALL_PERMISSIONS = [
   'profile:read', 'profile:update',
 
   // Notifications
-  'notifications:read',
+  'notifications:read',*/
 ];

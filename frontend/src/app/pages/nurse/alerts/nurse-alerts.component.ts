@@ -9,6 +9,7 @@ import {
   AlertDto,
   AlertsApiService,
 } from 'src/app/services/alerts-api.service';
+import { UserListRow, UsersApiService } from 'src/app/services/users-api.service';
 
 @Component({
   selector: 'app-nurse-alerts',
@@ -28,6 +29,9 @@ export class NurseAlertsComponent implements OnInit {
   error: string | null = null;
   alerts: AlertDto[] = [];
   filter: 'all' | 'open' = 'open';
+  
+  patients: UserListRow[] = [];
+  selectedPatientId = '';
 
   displayedColumns: string[] = [
     'createdAt',
@@ -38,16 +42,26 @@ export class NurseAlertsComponent implements OnInit {
     'status',
   ];
 
-  constructor(private readonly alertsApi: AlertsApiService) {}
+  constructor(
+    private readonly alertsApi: AlertsApiService,
+    private readonly usersApi: UsersApiService
+  ) {}
 
   ngOnInit(): void {
+    this.usersApi.getPatients().subscribe({
+      next: (rows: UserListRow[]) => {
+        this.patients = rows;
+      }
+    });
     this.load();
   }
 
   load(): void {
     this.loading = true;
     this.error = null;
-    this.alertsApi.getAlerts().subscribe({
+    this.alertsApi.getAlerts({ 
+      patientId: this.selectedPatientId || undefined 
+    }).subscribe({
       next: (rows) => {
         this.alerts = rows;
         this.loading = false;

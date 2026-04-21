@@ -30,6 +30,57 @@ import { FaceRecognitionService } from 'src/app/services/face-recognition';
     HttpClientModule,
   ],
   templateUrl: './side-login.component.html',
+  styles: [`
+    .face-id-scanner {
+      display: flex; flex-direction: column; align-items: center;
+      background: rgba(93, 135, 255, 0.05); /* very light primary */
+      border: 2px dashed rgba(93, 135, 255, 0.6);
+      border-radius: 16px;
+      padding: 16px;
+      margin-top: 20px; margin-bottom: 10px;
+      position: relative;
+      transition: all 0.3s ease;
+    }
+    .face-id-scanner.scanning {
+      border-color: #5d87ff;
+      border-style: solid;
+      box-shadow: 0 0 20px rgba(93, 135, 255, 0.2);
+    }
+    .video-wrapper {
+      position: relative;
+      width: 100%; max-width: 320px;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #000;
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+    .video-wrapper video {
+      width: 100%; height: auto; display: block;
+      transform: scaleX(-1); /* mirror effect */
+    }
+    .scan-overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, transparent 0%, rgba(19, 222, 185, 0.4) 50%, transparent 100%);
+      animation: scanLine 2s infinite linear;
+      pointer-events: none; z-index: 10;
+    }
+    @keyframes scanLine {
+      0% { transform: translateY(-100%); }
+      100% { transform: translateY(100%); }
+    }
+    .camera-controls {
+      display: flex; flex-wrap: wrap; gap: 10px; margin-top: 16px; justify-content: center; width: 100%;
+    }
+    .camera-controls button {
+      flex: 1 1 auto; min-width: 140px;
+    }
+    .message-box {
+      margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; text-align: center; width: 100%;
+      background: rgba(93, 135, 255, 0.1); color: #5d87ff;
+    }
+    .message-box.error { background: rgba(250, 137, 107, 0.1); color: #fa896b; }
+    .message-box.success { background: rgba(19, 222, 185, 0.1); color: #13deb9; }
+  `]
 })
 export class AppSideLoginComponent implements OnInit {
 
@@ -69,6 +120,14 @@ export class AppSideLoginComponent implements OnInit {
     return this.form.controls;
   }
 
+  // UI Helper
+  getMessageClass() {
+    if (!this.faceMessage) return '';
+    if (this.faceMessage.includes('❌')) return 'error';
+    if (this.faceMessage.includes('✅') || this.faceMessage.includes('🎉')) return 'success';
+    return '';
+  }
+
   // ================= ERROR HANDLING =================
   private messageFromHttpError(err: HttpErrorResponse): string {
     const e = err.error as
@@ -98,7 +157,7 @@ export class AppSideLoginComponent implements OnInit {
     const { email, password } = this.form.value;
 
     this.http
-      .post<{ accessToken: string; role: string; user: any }>(
+      .post<{ accessToken: string; role: string; user: any; permissions?: string[] }>(
         `${API_BASE_URL}/auth/login`,
         { email, password }
       )
@@ -113,15 +172,14 @@ export class AppSideLoginComponent implements OnInit {
         this.loading = false;
         localStorage.setItem('accessToken', res.accessToken);
         this.core.setUserFromLogin(res.user);
-        // Save permissions from login response
-        if ((res as any).permissions) {
-          this.core.setPermissions((res as any).permissions);
+        if (res.permissions) {
+          this.core.setPermissions(res.permissions);
         }
         this.router.navigateByUrl(getPostLoginPath(res.role));
       });
   }
 
-  // ================= FACE LOGIN =================
+
   async startFaceLogin() {
     try {
       this.showCamera = true;
@@ -180,11 +238,43 @@ stopCamera() {
         this.loadingFace = false;
         localStorage.setItem('accessToken', res.token);
         this.core.setUserFromLogin(res.user);
+        if (res.permissions) {
+          this.core.setPermissions(res.permissions);
+        }
         this.stopCamera();
-        this.router.navigateByUrl(getPostLoginPath(res.user?.role));
+        this.router.navigateByUrl(getPostLoginPath(res.role));
       },
       error: () => {
         this.faceMessage = '❌ Face not recognized';
+        this.loadingFace = false;
+      }
+    });
+  }
+
+  async enrollFace() {
+    const email = this.form.value.email;
+    if (!email) {
+      this.faceMessage = '❌ Error: Veuillez taper votre email dans le formulaire ci-dessous d\'abord.';
+      return;
+    }
+    
+    this.loadingFace = true;
+    this.faceMessage = '⏳ Scanning face to save...';
+
+    const descriptor = await this.captureFace();
+    if (!descriptor) {
+      this.faceMessage = '❌ Aucun visage détecté pour l\'enregistrement.';
+      this.loadingFace = false;
+      return;
+    }
+
+    this.http.post<any>(`${API_BASE_URL}/auth/enroll-face`, { email, faceDescriptor: descriptor }).subscribe({
+      next: () => {
+        this.faceMessage = `✅ Visage enregistré avec succès pour ${email} ! Vous pouvez maintenant faire "Capture & Login".`;
+        this.loadingFace = false;
+      },
+      error: () => {
+        this.faceMessage = '❌ Erreur : Email introuvable ou invalide.';
         this.loadingFace = false;
       }
     });
@@ -229,8 +319,14 @@ stopCamera() {
     const descriptor = await this.captureFace();
     if (!descriptor) return;
 
-    this.http.post('/api/auth/register-face', { faceDescriptor: descriptor }).subscribe(() => {
-      console.log('✅ Face saved');
+    this.http.post(`${API_BASE_URL}/auth/register-face`, { faceDescriptor: descriptor }).subscribe({
+      next: () => {
+        this.faceMessage = '✅ Face successfully saved to your profile!';
+        setTimeout(() => this.closeCamera(), 2000);
+      },
+      error: (err) => {
+        this.faceMessage = '❌ Failed to save face: ' + (err.error?.message || 'Unknown error');
+      }
     });
   }
 

@@ -5,6 +5,7 @@ import {
   DestroyRef,
   inject,
   OnInit,
+  AfterViewInit,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
@@ -21,12 +22,14 @@ import {
   finalize,
   switchMap,
 } from 'rxjs';
+import { DashboardService } from 'src/app/services/dashboard.service';
 import {
   AdminApiService,
   AdminStats,
   TrafficStatsResponse,
   TrafficViewMode,
 } from 'src/app/services/admin-api.service';
+import { Chart } from 'chart.js/auto';
 
 interface AdminUserRow {
   name: string;
@@ -48,18 +51,26 @@ interface AdminUserRow {
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss',
 })
-export class AdminDashboardComponent implements OnInit {
+export class AdminDashboardComponent implements OnInit, AfterViewInit {
   private readonly adminApi = inject(AdminApiService);
+  private readonly dashboardService = inject(DashboardService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly cdr = inject(ChangeDetectorRef);
   /** Émet à chaque changement de période traffic (day / month / year). */
   private readonly viewMode$ = new BehaviorSubject<TrafficViewMode>('month');
 
-  stats: AdminStats | null = null;
+  stats: any = null;
   statsLoading = true;
   /** Message affiché si l’appel GET /api/admin/stats échoue. */
   statsError: string | null = null;
+
+  currentPeriod: string = 'Aujourd\'hui';
+
+  setPeriod(period: string) {
+    this.currentPeriod = period;
+    this.loadDashboardData();
+  }
 
   /** Résultat de GET /admin/traffic-stats pour le mode courant. */
   trafficStats: TrafficStatsResponse | null = null;
@@ -89,6 +100,29 @@ export class AdminDashboardComponent implements OnInit {
     { name: 'Coordinator Anis', email: 'anis.coordinator@hospital.tn', role: 'Coordinator', service: 'Cardiology', status: 'Inactive' },
     { name: 'Auditor Sameh', email: 'sameh.audit@hospital.tn', role: 'Auditor', service: 'Quality', status: 'Active' },
   ];
+
+  alerts: { id: string; message: string; date: Date; severity: string }[] = [];
+
+  recentActivity = [
+    { user: 'Super Admin', action: 'Logged in', service: 'Global', role: 'Admin', time: new Date() },
+    { user: 'Dr. Ben Salah', action: 'Updated record', service: 'Cardiology', role: 'Physician', time: new Date() },
+    { user: 'Nurse Amira', action: 'Added notes', service: 'Oncology', role: 'Nurse', time: new Date() },
+    { user: 'Auditor Sameh', action: 'Exported report', service: 'Quality', role: 'Auditor', time: new Date() },
+  ];
+
+  departmentOccupancy = [
+    { name: 'Cardiology', percentage: 85, color: 'primary' },
+    { name: 'Oncology', percentage: 60, color: 'accent' },
+    { name: 'Surgery', percentage: 90, color: 'warn' }
+  ];
+
+  kpiTrends = {
+    patients: { value: 5, isUp: true, period: 'this week' },
+    doctors: { value: 2, isUp: true, period: 'this week' },
+    nurses: { value: 1, isUp: true, period: 'this week' },
+    coordinators: { value: 0, isUp: true, period: 'this week' },
+    auditors: { value: 0, isUp: true, period: 'this week' },
+  };
 
   get totalUsers(): number {
     return this.users.length;
@@ -214,10 +248,11 @@ export class AdminDashboardComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (data) => {
+        next: (data: any) => {
           this.trafficError = null;
           this.trafficStats = data;
           this.triggerTrafficMetricsFlash();
+          setTimeout(() => this.initTrafficChart(), 0);
         },
       });
   }
@@ -259,16 +294,21 @@ export class AdminDashboardComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadDashboardData();
+  }
+
+  loadDashboardData(): void {
     this.statsLoading = true;
     this.statsError = null;
-    this.adminApi
-      .getAdminStats()
+    this.dashboardService
+      .getDashboardStats()
       .pipe(finalize(() => (this.statsLoading = false)))
       .subscribe({
         next: (data) => {
           this.statsError = null;
           this.stats = data ?? {};
           this.triggerKpiFlash();
+          setTimeout(() => this.initTrafficChart(), 0);
         },
         error: (err: unknown) => {
           this.statsError = this.resolveStatsErrorMessage(err);
@@ -296,5 +336,46 @@ export class AdminDashboardComponent implements OnInit {
       }
     }
     return 'Impossible de mettre à jour les statistiques. Les valeurs affichées restent celles du dernier chargement réussi.';
+  }
+
+  chartInstance: Chart | null = null;
+
+  initTrafficChart(): void {
+    if (this.chartInstance) {
+      this.chartInstance.destroy();
+    }
+    const canvas = document.getElementById('trafficChart') as HTMLCanvasElement;
+    if (canvas) {
+      const chartData = this.trafficStats?.chartData || [];
+      const labels = chartData.length ? chartData.map(d => d.label) : ['8h', '10h', '12h', '14h', '16h', '18h'];
+      const dataVisites = chartData.length ? chartData.map(d => d.value) : [120, 190, 300, 250, 220, 310];
+      const dataNouveaux = chartData.length ? chartData.map(d => d.newPatients || 0) : [10, 25, 30, 28, 40, 47];
+
+      this.chartInstance = new Chart(canvas, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Visites',
+              data: dataVisites,
+              borderColor: '#378ADD',
+            },
+            {
+              label: 'Nouveaux patients',
+              data: dataNouveaux,
+              borderColor: '#1D9E75',
+            },
+          ],
+        },
+        options: {
+          animation: false
+        }
+      });
+    }
+  }
+
+  ngAfterViewInit(): void {
+    // Moved to initTrafficChart as it requires ngIf elements to be rendered first.
   }
 }

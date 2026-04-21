@@ -17,6 +17,7 @@ export type TrafficViewMode = 'day' | 'month' | 'year';
 export interface TrafficChartPoint {
   label: string;
   value: number;
+  newPatients?: number;
 }
 
 /** Réponse de GET /admin/traffic-stats — alignée sur le backend. */

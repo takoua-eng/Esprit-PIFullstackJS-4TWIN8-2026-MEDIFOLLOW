@@ -1,0 +1,79 @@
+﻿
+﻿<div class="profile-page">
+  <div class="profile-wrapper">
+    <mat-card class="profile-card cardWithShadow">
+      <mat-card-content>
+
+        <!-- Header -->
+        <div class="profile-header">
+          <div class="avatar-wrapper">
+            <img [src]="profile.avatar" [alt]="profile.name" class="profile-avatar" />
+            <div class="role-dot"></div>
+          </div>
+          <div class="profile-identity">
+            <h2 class="profile-name">{{ profile?.name }}</h2>
+            <div class="profile-role-badge">{{ profile?.role }}</div>
+            <div class="profile-hospital">{{ profile?.hospital }}</div>
+          </div>
+        </div>
+
+        <mat-divider class="m-t-16 m-b-24"></mat-divider>
+
+        <!-- Fields -->
+        <div class="profile-fields">
+
+          <div class="profile-field">
+            <div class="field-icon-wrap">
+              <i-tabler name="mail" class="field-icon"></i-tabler>
+            </div>
+            <div class="field-content">
+              <div class="field-label">{{ 'EMAIL' | translate }}</div>
+              <div class="field-value">{{ profile.email }}</div>
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <div class="field-icon-wrap">
+              <i-tabler name="phone" class="field-icon"></i-tabler>
+            </div>
+            <div class="field-content">
+              <div class="field-label">{{ 'PHONE' | translate }}</div>
+              <div class="field-value">{{ profile.phone || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <div class="field-icon-wrap">
+              <i-tabler name="building-hospital" class="field-icon"></i-tabler>
+            </div>
+            <div class="field-content">
+              <div class="field-label">{{ 'SERVICE_UNIT' | translate }}</div>
+              <div class="field-value">{{ profile.service || '—' }}</div>
+            </div>
+          </div>
+
+          <div class="profile-field">
+            <div class="field-icon-wrap">
+              <i-tabler name="shield-check" class="field-icon"></i-tabler>
+            </div>
+            <div class="field-content">
+              <div class="field-label">{{ 'STATUS' | translate }}</div>
+              <div class="field-value">
+                <span class="active-badge">{{ 'ACTIVE' | translate }}</span>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="profile-actions">
+          <button mat-flat-button color="primary">
+            <i-tabler name="edit" class="icon-16"></i-tabler>
+            {{ 'EDIT_PROFILE' | translate }}
+          </button>
+        </div>
+
+      </mat-card-content>
+    </mat-card>
+  </div>
+</div>

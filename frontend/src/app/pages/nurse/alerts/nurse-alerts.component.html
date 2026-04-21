@@ -12,12 +12,27 @@
 </div>
 
 <div class="row m-b-16">
-  <div class="col-12 d-flex flex-wrap align-items-center gap-2">
-    <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_ALERTS_FILTER' | translate }}</span>
-    <mat-button-toggle-group [(ngModel)]="filter" name="alertFilter">
-      <mat-button-toggle value="open">{{ 'NURSE_ALERTS_FILTER_OPEN' | translate }}</mat-button-toggle>
-      <mat-button-toggle value="all">{{ 'NURSE_ALERTS_FILTER_ALL' | translate }}</mat-button-toggle>
-    </mat-button-toggle-group>
+  <div class="col-12 d-flex flex-wrap align-items-center gap-3">
+    <div class="d-flex align-items-center">
+      <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_SELECT_PATIENT' | translate }}</span>
+      <mat-form-field appearance="outline" class="hide-hint rounded-select" style="min-width: 240px;">
+        <mat-select [(ngModel)]="selectedPatientId" (selectionChange)="load()">
+          <mat-option value="">{{ 'ALL_PATIENTS' | translate }}</mat-option>
+          @for (p of patients; track p._id) {
+            <mat-option [value]="p._id">{{ p.firstName }} {{ p.lastName }}</mat-option>
+          }
+        </mat-select>
+      </mat-form-field>
+    </div>
+
+    <div class="d-flex align-items-center">
+      <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_ALERTS_FILTER' | translate }}</span>
+      <mat-button-toggle-group [(ngModel)]="filter" name="alertFilter">
+        <mat-button-toggle value="open">{{ 'NURSE_ALERTS_FILTER_OPEN' | translate }}</mat-button-toggle>
+        <mat-button-toggle value="all">{{ 'NURSE_ALERTS_FILTER_ALL' | translate }}</mat-button-toggle>
+      </mat-button-toggle-group>
+    </div>
+
     <button mat-icon-button type="button" (click)="load()" [disabled]="loading" [attr.aria-label]="'NURSE_ALERTS_REFRESH' | translate">
       <i-tabler name="refresh"></i-tabler>
     </button>

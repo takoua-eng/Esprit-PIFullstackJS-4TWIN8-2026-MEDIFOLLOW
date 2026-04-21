@@ -1,0 +1,208 @@
+﻿:host { display: block; }
+
+.chat-page {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - 90px);
+  padding: 20px 24px;
+  box-sizing: border-box;
+}
+
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+  mat-icon { font-size: 28px; width: 28px; height: 28px; color: #2e7d32; }
+  h2 { margin: 0; font-size: 1.4rem; font-weight: 700; }
+  p  { margin: 2px 0 0; color: #888; font-size: 0.85rem; }
+}
+
+.chat-layout {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  border-radius: 14px;
+  border: 1px solid #e0e0e0;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+}
+
+.contacts-panel {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #ebebeb;
+  background: #f9f9f9;
+}
+
+.contacts-label {
+  padding: 14px 16px 8px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #b0b0b0;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.badge {
+  background: #c8e6c9;
+  color: #2e7d32;
+  border-radius: 10px;
+  padding: 1px 7px;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.contacts-list { flex: 1; overflow-y: auto; }
+
+.contact-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.18s;
+  &:hover { background: #f0f0f0; }
+  &.active { background: #e8f5e9; }
+}
+
+.conv-panel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.conv-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 20px;
+  border-bottom: 1px solid #ebebeb;
+  background: #fff;
+}
+.conv-header-name { font-size: 1rem; font-weight: 600; }
+
+.messages-area {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  background: #f5f7fb;
+}
+
+.bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 62%;
+
+  &.bubble-sent {
+    align-self: flex-end;
+    align-items: flex-end;
+    .bubble-text { background: #2e7d32; color: #fff; border-radius: 18px 18px 4px 18px; }
+  }
+  &.bubble-recv {
+    align-self: flex-start;
+    align-items: flex-start;
+    .bubble-text { background: #fff; color: #222; border-radius: 18px 18px 18px 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+  }
+}
+
+.bubble-text { padding: 10px 14px; font-size: 0.9rem; line-height: 1.45; word-break: break-word; }
+.bubble-time  { font-size: 0.7rem; color: #b0b0b0; margin-top: 3px; padding: 0 4px; }
+
+.input-bar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-top: 1px solid #ebebeb;
+  background: #fff;
+
+  input {
+    flex: 1;
+    border: 1px solid #e0e0e0;
+    border-radius: 24px;
+    padding: 10px 18px;
+    font-size: 0.9rem;
+    outline: none;
+    background: #fafafa;
+    transition: border-color 0.2s;
+    &:focus { border-color: #2e7d32; background: #fff; }
+  }
+}
+
+.send-btn {
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  background: #2e7d32;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: background 0.2s;
+  mat-icon { font-size: 20px; width: 20px; height: 20px; }
+  &:hover:not([disabled]) { background: #1b5e20; }
+  &[disabled] { opacity: 0.45; cursor: default; }
+}
+
+.avatar {
+  width: 40px; height: 40px;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.avatar-green { background: #c8e6c9; color: #2e7d32; }
+
+.contact-info {
+  flex: 1; min-width: 0;
+  .contact-name { font-size: 0.88rem; font-weight: 500; display: block; }
+  .contact-last { font-size: 0.78rem; color: #aaa; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 160px; display: block; }
+}
+
+.unread-badge {
+  background: #d32f2f;
+  color: #fff;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  margin-left: 8px;
+}
+
+.nothing-msg {
+  padding: 20px 16px;
+  font-size: 0.84rem;
+  color: #bbb;
+  line-height: 1.5;
+  &.center { text-align: center; padding: 40px; }
+}
+
+.msg-loading { text-align: center; color: #bbb; padding: 16px; font-size: 0.88rem; }
+
+.no-selection {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: #ccc;
+  mat-icon { font-size: 60px; width: 60px; height: 60px; }
+  p { font-size: 1rem; margin: 0; }
+}

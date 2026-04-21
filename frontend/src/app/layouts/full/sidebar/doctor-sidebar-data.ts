@@ -30,6 +30,12 @@ export const doctorNavItems: NavItem[] = [
     bgcolor: 'secondary',
   },
   {
+    displayName: 'Messages',
+    iconName: 'message',
+    route: '/dashboard/doctor/messages',
+    bgcolor: 'primary',
+  },
+  {
     displayName: 'PROFILE',
     iconName: 'user',
     route: '/dashboard/profile',

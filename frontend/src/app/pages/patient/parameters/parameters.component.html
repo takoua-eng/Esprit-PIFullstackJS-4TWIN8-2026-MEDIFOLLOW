@@ -18,12 +18,24 @@
     </mat-card-header>
 
     <mat-card-content>
-      <form
-        id="parameters-form"
-        [formGroup]="parametersForm"
-        (ngSubmit)="onSubmit()"
-        aria-labelledby="page-title"
-        novalidate>
+
+      <div *ngIf="submittedToday" class="already-submitted">
+  <mat-card>
+    <mat-card-content>
+      <p>
+        You have already submitted your vital parameters today. You can submit again tomorrow.
+      </p>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<form
+  *ngIf="!submittedToday"
+  id="parameters-form"
+  [formGroup]="parametersForm"
+  (ngSubmit)="onSubmit()"
+  aria-labelledby="page-title"
+  novalidate>
 
         <div class="form-row">
           <mat-form-field appearance="outline">

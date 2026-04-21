@@ -37,46 +37,60 @@
     <mat-card class="cardWithShadow h-100">
       <mat-card-content class="p-20">
         <div class="f-w-600 m-b-12">{{ 'DOCTOR_VALIDATION_TITLE' | translate }}</div>
-        @if (pendingValidationVitals.length === 0 && pendingValidationSymptoms.length === 0 && unreviewedResponses.length === 0) {
+        @if (allValidationItems.length === 0) {
           <p class="text-muted m-b-0">{{ 'DOCTOR_VALIDATION_EMPTY' | translate }}</p>
         } @else {
           <div class="d-flex flex-column gap-8">
-            @for (v of pendingValidationVitals; track v._id) {
-              <div class="validation-row">
-                <div class="text-muted f-s-12">{{ v.recordedAt | date: 'short' }} · {{ 'NURSE_RECORDS_TAB_VITALS' | translate }}</div>
-                <div class="f-s-13 m-b-6">{{ v.patientName }} — {{ v.temperature ?? '—' }}°C / {{ v.heartRate ?? '—' }} bpm</div>
-                <div class="d-flex flex-wrap gap-2">
-                  <button mat-stroked-button color="primary" type="button" (click)="validateVital(v)">{{ 'DOCTOR_VALIDATE_ACTION' | translate }}</button>
-                  <button mat-flat-button color="warn" type="button" (click)="openUrgentClinicFromVital(v)">
-                    {{ 'DOCTOR_URGENT_CLINIC_CTA' | translate }}
-                  </button>
+            @for (item of paginatedValidationItems; track item.data._id) {
+              @if (item.type === 'vital') {
+                <div class="validation-row">
+                  <div class="text-muted f-s-12">{{ item.data.recordedAt | date: 'short' }} · {{ 'NURSE_RECORDS_TAB_VITALS' | translate }}</div>
+                  <div class="f-s-13 m-b-6">{{ item.data.patientName }} — {{ item.data.temperature ?? '—' }}°C / {{ item.data.heartRate ?? '—' }} bpm</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button mat-stroked-button color="primary" type="button" (click)="validateVital(item.data)">{{ 'DOCTOR_VALIDATE_ACTION' | translate }}</button>
+                    <button mat-flat-button color="warn" type="button" (click)="openUrgentClinicFromVital(item.data)">
+                      {{ 'DOCTOR_URGENT_CLINIC_CTA' | translate }}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            }
-            @for (s of pendingValidationSymptoms; track s._id) {
-              <div class="validation-row">
-                <div class="text-muted f-s-12">{{ s.reportedAt | date: 'short' }} · {{ 'NURSE_RECORDS_TAB_SYMPTOMS' | translate }}</div>
-                <div class="f-s-13 m-b-6">{{ s.patientName }} — {{ s.symptoms.length ? s.symptoms.join(', ') : (s.description || '—') }}</div>
-                <div class="d-flex flex-wrap gap-2">
-                  <button mat-stroked-button color="primary" type="button" (click)="validateSymptom(s)">{{ 'DOCTOR_VALIDATE_ACTION' | translate }}</button>
-                  <button mat-flat-button color="warn" type="button" (click)="openUrgentClinicFromSymptom(s)">
-                    {{ 'DOCTOR_URGENT_CLINIC_CTA' | translate }}
-                  </button>
+              } @else if (item.type === 'symptom') {
+                <div class="validation-row">
+                  <div class="text-muted f-s-12">{{ item.data.reportedAt | date: 'short' }} · {{ 'NURSE_RECORDS_TAB_SYMPTOMS' | translate }}</div>
+                  <div class="f-s-13 m-b-6">{{ item.data.patientName }} — {{ item.data.symptoms.length ? item.data.symptoms.join(', ') : (item.data.description || '—') }}</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button mat-stroked-button color="primary" type="button" (click)="validateSymptom(item.data)">{{ 'DOCTOR_VALIDATE_ACTION' | translate }}</button>
+                    <button mat-flat-button color="warn" type="button" (click)="openUrgentClinicFromSymptom(item.data)">
+                      {{ 'DOCTOR_URGENT_CLINIC_CTA' | translate }}
+                    </button>
+                  </div>
                 </div>
-              </div>
-            }
-            @for (r of unreviewedResponses; track r._id) {
-              <div class="validation-row questionnaire-row">
-                <div class="text-muted f-s-12">{{ r.createdAt | date: 'short' }} · {{ 'QUESTIONNAIRE_RESPONSE' | translate }}</div>
-                <div class="f-s-13 m-b-6">{{ 'QUESTIONNAIRE' | translate }} — {{ "WAITING_REVIEW" | translate }}</div>
-                <div class="d-flex flex-wrap gap-2">
-                  <button mat-stroked-button color="accent" type="button" (click)="openReviewDialog(r)">
-                    <mat-icon class="m-r-4">rate_review</mat-icon>
-                    {{ 'REVIEW_ACTION' | translate }}
-                  </button>
+              } @else if (item.type === 'questionnaire') {
+                <div class="validation-row questionnaire-row">
+                  <div class="text-muted f-s-12">{{ item.data.createdAt | date: 'short' }} · {{ 'QUESTIONNAIRE_RESPONSE' | translate }}</div>
+                  <div class="f-s-13 m-b-6">{{ 'QUESTIONNAIRE' | translate }} — {{ "WAITING_REVIEW" | translate }}</div>
+                  <div class="d-flex flex-wrap gap-2">
+                    <button mat-stroked-button color="accent" type="button" (click)="openReviewDialog(item.data)">
+                      <mat-icon class="m-r-4">rate_review</mat-icon>
+                      {{ 'REVIEW_ACTION' | translate }}
+                    </button>
+                  </div>
                 </div>
-              </div>
+              }
             }
+          </div>
+
+          <div class="d-flex align-items-center justify-content-between m-t-16">
+            <div class="f-s-12 text-muted">
+              Page {{ vPage }} of {{ totalVPages }} ({{ allValidationItems.length }} items)
+            </div>
+            <div class="d-flex gap-2">
+              <button mat-icon-button [disabled]="vPage === 1" (click)="prevVPage()">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="vPage === totalVPages" (click)="nextVPage()">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
           </div>
         }
       </mat-card-content>
@@ -94,7 +108,7 @@
           <p class="text-muted m-b-0">{{ 'DOCTOR_URGENT_SENT_EMPTY' | translate }}</p>
         } @else {
           <div class="d-flex flex-column gap-8">
-            @for (a of alertsForSelectedPatient; track a._id) {
+            @for (a of paginatedAlerts; track a._id) {
               <div class="validation-row" [class.urgent-open]="a.status === 'open'">
                 <div class="text-muted f-s-12">
                   {{ a.createdAt | date: 'short' }} · {{ a.severity }}
@@ -108,6 +122,20 @@
               </div>
             }
           </div>
+
+          <div class="d-flex align-items-center justify-content-between m-t-16">
+            <div class="f-s-12 text-muted">
+              Page {{ aPage }} of {{ totalAPages }} ({{ alertsForSelectedPatient.length }} items)
+            </div>
+            <div class="d-flex gap-2">
+              <button mat-icon-button [disabled]="aPage === 1" (click)="prevAPage()">
+                <mat-icon>chevron_left</mat-icon>
+              </button>
+              <button mat-icon-button [disabled]="aPage === totalAPages" (click)="nextAPage()">
+                <mat-icon>chevron_right</mat-icon>
+              </button>
+            </div>
+          </div>
         }
       </mat-card-content>
     </mat-card>
@@ -115,45 +143,61 @@
 </div>
 
 <mat-card class="cardWithShadow">
-  <mat-card-content class="p-0">
+  <mat-card-content class="p-24">
+    <div class="f-w-600 m-b-20">{{ 'DOCTOR_PATIENT_HISTORY_TITLE' | translate }}</div>
+
     @if (loading) {
       <mat-progress-bar mode="indeterminate"></mat-progress-bar>
     } @else {
-      <div class="table-responsive">
-        <table mat-table [dataSource]="historyRows" class="w-100">
-          <ng-container matColumnDef="when">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_TIME' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.when | date: 'short' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="patient">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.patientName }}</td>
-          </ng-container>
-          <ng-container matColumnDef="source">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_RECORDS_COL_SOURCE' | translate }}</th>
-            <td mat-cell *matCellDef="let row">
-              @if (row.source === 'vital') {
-                {{ 'NURSE_RECORDS_TAB_VITALS' | translate }}
-              } @else if (row.source === 'symptom') {
-                {{ 'NURSE_RECORDS_TAB_SYMPTOMS' | translate }}
-              } @else if (row.source === 'questionnaire') {
-                {{ 'QUESTIONNAIRE' | translate }}
-              }
-            </td>
-          </ng-container>
-          <ng-container matColumnDef="summary">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_RECORDS_COL_SUMMARY' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.summary }}</td>
-          </ng-container>
+      @if (historyRows.length === 0) {
+        <p class="text-muted m-b-0">{{ 'DOCTOR_HISTORY_EMPTY' | translate }}</p>
+      } @else {
+        <div class="table-responsive">
+          <table mat-table [dataSource]="paginatedHistoryRows" class="w-100">
+            <ng-container matColumnDef="when">
+              <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_TIME' | translate }}</th>
+              <td mat-cell *matCellDef="let row">{{ row.when | date: 'short' }}</td>
+            </ng-container>
+            <ng-container matColumnDef="patient">
+              <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
+              <td mat-cell *matCellDef="let row">{{ row.patientName }}</td>
+            </ng-container>
+            <ng-container matColumnDef="source">
+              <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_RECORDS_COL_SOURCE' | translate }}</th>
+              <td mat-cell *matCellDef="let row">
+                @if (row.source === 'vital') {
+                  {{ 'NURSE_RECORDS_TAB_VITALS' | translate }}
+                } @else if (row.source === 'symptom') {
+                  {{ 'NURSE_RECORDS_TAB_SYMPTOMS' | translate }}
+                } @else if (row.source === 'questionnaire') {
+                  {{ 'QUESTIONNAIRE' | translate }}
+                }
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="summary">
+              <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_RECORDS_COL_SUMMARY' | translate }}</th>
+              <td mat-cell *matCellDef="let row">{{ row.summary }}</td>
+            </ng-container>
 
-          <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
-        </table>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          </table>
+        </div>
 
-        @if (historyRows.length === 0) {
-          <div class="p-24 text-center text-muted">{{ 'DOCTOR_HISTORY_EMPTY' | translate }}</div>
-        }
-      </div>
+        <div class="d-flex align-items-center justify-content-between m-t-16">
+          <div class="f-s-12 text-muted">
+            Page {{ hPage }} of {{ totalHPages }} ({{ historyRows.length }} items)
+          </div>
+          <div class="d-flex gap-2">
+            <button mat-icon-button [disabled]="hPage === 1" (click)="prevHPage()">
+              <mat-icon>chevron_left</mat-icon>
+            </button>
+            <button mat-icon-button [disabled]="hPage === totalHPages" (click)="nextHPage()">
+              <mat-icon>chevron_right</mat-icon>
+            </button>
+          </div>
+        </div>
+      }
     }
   </mat-card-content>
 </mat-card>

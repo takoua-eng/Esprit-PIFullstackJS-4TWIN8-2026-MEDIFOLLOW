@@ -1,21 +1,23 @@
-﻿import { Component, OnInit } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { PatientService, VitalEntry, SymptomEntry, AlertEntry } from 'src/app/services/patient.service';
 import { forkJoin } from 'rxjs';
 import { Router, RouterModule } from '@angular/router';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { TranslateModule } from '@ngx-translate/core';
 import { KeyboardAccessibilityService } from 'src/app/services/keyboard-accessibility.service';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [MaterialModule, CommonModule, RouterModule, NgApexchartsModule],
+  imports: [MaterialModule, CommonModule, RouterModule, NgApexchartsModule, TranslateModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   isLoading = true;
   todayDate = new Date();
+  todayDateStr = new Date().toDateString();
   vitalsEnteredToday = false;
   symptomsEnteredToday = false;
   questionnaireAnsweredToday = false;
@@ -23,6 +25,7 @@ export class DashboardComponent implements OnInit {
   recentAlerts: AlertEntry[] = [];
   pendingAlertsCount = 0;
   usageChartOptions: any;
+  private dayCheckInterval: any;
 
   constructor(
     private patientService: PatientService,
@@ -31,6 +34,7 @@ export class DashboardComponent implements OnInit {
   ) {}
 
   ngOnInit() {
+    this.todayDateStr = new Date().toDateString();
     const patientId = this.patientService.getCurrentPatientId();
     if (!patientId) {
       this.buildUsageChart([], [], []);
@@ -53,7 +57,7 @@ export class DashboardComponent implements OnInit {
         this.symptomsEnteredToday = data.symptomsToday;
         this.questionnaireAnsweredToday = data.questionnaireToday;
         this.latestVital = data.latestVital;
-        this.recentAlerts = data.recentAlerts;
+        this.recentAlerts = this.filterAlertsForToday(data.recentAlerts || []);
         this.pendingAlertsCount = data.pendingCount;
         this.buildUsageChart(data.allVitals, data.allSymptoms, data.allQuestionnaires as any[]);
         this.isLoading = false;
@@ -63,6 +67,54 @@ export class DashboardComponent implements OnInit {
         this.isLoading = false;
       },
     });
+
+    // Periodically check if the day has changed and clear recent alerts when it does
+    this.dayCheckInterval = setInterval(() => {
+      const today = new Date().toDateString();
+      if (today !== this.todayDateStr) {
+        this.todayDateStr = today;
+        this.recentAlerts = [];
+      }
+    }, 60_000);
+  }
+
+  ngOnDestroy(): void {
+    if (this.dayCheckInterval) {
+      clearInterval(this.dayCheckInterval);
+    }
+  }
+
+  private filterAlertsForToday(alerts: AlertEntry[]): AlertEntry[] {
+    const today = this.todayDateStr;
+    return ((alerts || [])
+      .map(a => ({ ...a, message: this.decodeMessage(a.message) }))
+      .filter(a => {
+        try {
+          const d = new Date((a as any).createdAt || (a as any).timestamp || null);
+          return d.toDateString() === today;
+        } catch (e) {
+          return false;
+        }
+      })) as AlertEntry[];
+  }
+
+  private decodeMessage(msg?: string): string {
+    if (!msg) return '';
+    try {
+      // Try to fix common UTF-8/Latin1 mojibake (e.g. "TempÃ©rature" -> "Température")
+      // This pattern is a pragmatic browser-side fix for double-encoded strings.
+      // Using `escape`/`decodeURIComponent` is a common workaround.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      return decodeURIComponent((escape as any)(msg));
+    } catch (e) {
+      try {
+        const ta = document.createElement('textarea');
+        ta.innerHTML = msg;
+        return ta.value || msg;
+      } catch (err) {
+        return msg;
+      }
+    }
   }
 
   buildUsageChart(vitals: VitalEntry[], symptoms: SymptomEntry[], questionnaires: any[]) {
@@ -101,9 +153,30 @@ export class DashboardComponent implements OnInit {
   }
 
   resolveAlert(alertId: string) {
-    this.patientService.resolveAlert(alertId).subscribe(() => {
-      this.recentAlerts = this.recentAlerts.filter(a => a._id !== alertId);
+    // Optimistically mark as acknowledged locally so it turns green in the UI
+    const idx = this.recentAlerts.findIndex(a => a._id === alertId);
+    if (idx !== -1) {
+      this.recentAlerts[idx] = { ...this.recentAlerts[idx], status: 'acknowledged' };
       this.pendingAlertsCount = Math.max(0, this.pendingAlertsCount - 1);
+    }
+
+    // Persist on server; on success update the local entry with server data
+    this.patientService.resolveAlert(alertId).subscribe({
+      next: (updated) => {
+        const i = this.recentAlerts.findIndex(a => a._id === alertId);
+        const decodedMsg = this.decodeMessage((updated as any).message);
+        if (i !== -1) {
+          this.recentAlerts[i] = { ...this.recentAlerts[i], ...updated, message: decodedMsg };
+        }
+      },
+      error: () => {
+        // revert optimistic change on error
+        const i = this.recentAlerts.findIndex(a => a._id === alertId);
+        if (i !== -1) {
+          this.recentAlerts[i] = { ...this.recentAlerts[i], status: 'pending' };
+          this.pendingAlertsCount = this.pendingAlertsCount + 1;
+        }
+      }
     });
   }
 

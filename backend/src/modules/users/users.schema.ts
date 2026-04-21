@@ -136,6 +136,12 @@ export class User {
   // ── FACE RECOGNITION ─────────────────────────────────────
   @Prop({ type: [Number], default: [] })
   faceDescriptor: number[];
+  // ── RESET PASSWORD ───────────────────────────────────────
+  @Prop()
+  resetToken: string;
+
+  @Prop()
+  resetTokenExpiry: number;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

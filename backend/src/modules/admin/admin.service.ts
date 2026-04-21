@@ -386,7 +386,7 @@ export class AdminService {
           { $count: 'n' },
         ])
         .exec(),
-      this.aggregateTrafficChartSeries(this.trafficEventModel, start, end, mode),
+      this.aggregateTrafficChartSeries(this.trafficEventModel, start, end, mode, { newPatients: true, start, end, mode }),
     ]);
 
     const sessionCount = sessionsAgg[0]?.n ?? 0;
@@ -429,6 +429,7 @@ export class AdminService {
         start,
         end,
         mode,
+        { newPatients: true, start, end, mode }
       ),
     ]);
 
@@ -450,6 +451,7 @@ export class AdminService {
     start: Date,
     end: Date,
     mode: TrafficStatsMode,
+    options?: { newPatients?: boolean; start: Date; end: Date; mode: TrafficStatsMode }
   ): Promise<TrafficChartPointDto[]> {
     const groupStage: PipelineStage =
       mode === 'day'
@@ -457,6 +459,17 @@ export class AdminService {
         : mode === 'month'
           ? { $group: { _id: { $dayOfMonth: '$createdAt' }, value: { $sum: 1 } } }
           : { $group: { _id: { $month: '$createdAt' }, value: { $sum: 1 } } };
+
+    let newPatientRows: { _id: unknown; value: number }[] = [];
+    if (options?.newPatients) {
+      const patientRoleId = await this.resolvePatientRoleId();
+      if (patientRoleId) {
+        newPatientRows = await this.patientModel.aggregate<{ _id: number; value: number }>([
+          { $match: { createdAt: { $gte: options.start, $lte: options.end }, role: patientRoleId, isArchived: { $ne: true } } },
+          groupStage,
+        ]).exec();
+      }
+    }
 
     const rows = await model
       .aggregate<{ _id: number; value: number }>([
@@ -466,21 +479,25 @@ export class AdminService {
       ])
       .exec();
 
-    return this.formatChartFromAggregation(mode, rows);
+    return this.formatChartFromAggregation(mode, rows, newPatientRows);
   }
 
   private formatChartFromAggregation(
     mode: TrafficStatsMode,
     rows: { _id: unknown; value: number }[],
+    newPatientRows?: { _id: unknown; value: number }[],
   ): TrafficChartPointDto[] {
     const bucketKey = (id: unknown) => Number(id);
     const valueFor = (key: number) =>
       rows.find((r) => bucketKey(r._id) === key)?.value ?? 0;
+    const newPatientsFor = (key: number) =>
+      newPatientRows?.find((r) => bucketKey(r._id) === key)?.value ?? 0;
 
     if (mode === 'day') {
       return Array.from({ length: 24 }, (_, h) => ({
         label: `${h}h`,
         value: valueFor(h),
+        newPatients: newPatientsFor(h)
       }));
     }
 
@@ -489,13 +506,14 @@ export class AdminService {
       const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
       return Array.from({ length: lastDay }, (_, i) => {
         const d = i + 1;
-        return { label: String(d), value: valueFor(d) };
+        return { label: String(d), value: valueFor(d), newPatients: newPatientsFor(d) };
       });
     }
 
     return MONTH_SHORT_LABELS.map((label, i) => ({
       label,
       value: valueFor(i + 1),
+      newPatients: newPatientsFor(i + 1)
     }));
   }
 }

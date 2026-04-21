@@ -1,253 +1,334 @@
-<div
-  class="row m-b-24 admin-dashboard-stats-loading"
-  *ngIf="statsLoading"
-  aria-busy="true"
-  aria-live="polite"
->
-  <div class="col-12 d-flex flex-column align-items-center justify-content-center py-5">
-    <mat-spinner diameter="48" aria-hidden="true"></mat-spinner>
-    <span class="m-t-16 text-muted f-s-14">Chargement des statistiques…</span>
-  </div>
-</div>
+<div class="db-wrap" role="main" aria-label="Admin Dashboard">
 
-<div class="row m-b-24" *ngIf="statsError" role="alert">
-  <div class="col-12">
-    <mat-card class="cardWithShadow admin-dashboard-stats-error">
-      <mat-card-content class="p-16 d-flex align-items-start">
-        <mat-icon color="warn" class="flex-shrink-0 m-r-12">error_outline</mat-icon>
-        <div>
-          <div class="f-w-600 m-b-4">Statistiques indisponibles</div>
-          <p class="m-0 f-s-14 text-muted">{{ statsError }}</p>
-        </div>
-      </mat-card-content>
-    </mat-card>
+  <!-- 1️⃣ Top bar -->
+  <div class="db-hero" role="banner" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+    <div class="hero-left">
+      <h1 class="hero-name m-0" style="font-size: 24px; font-weight: 600;">{{ 'ADMIN_DASHBOARD' | translate }}</h1>
+      <p class="hero-greeting m-0 text-muted">Overview of platform statistics</p>
+    </div>
+    <!-- 2️⃣ Filter bar -->
+    <div class="hero-right admin-filter-bar d-flex align-items-center">
+      <div class="btn-group m-r-16">
+        <button mat-stroked-button [ngClass]="{'bg-primary text-white': currentPeriod === 'Aujourd\'hui'}" (click)="setPeriod('Aujourd\'hui')">Aujourd'hui</button>
+        <button mat-stroked-button [ngClass]="{'bg-primary text-white': currentPeriod === 'Semaine'}" (click)="setPeriod('Semaine')">Semaine</button>
+        <button mat-stroked-button [ngClass]="{'bg-primary text-white': currentPeriod === 'Mois'}" (click)="setPeriod('Mois')">Mois</button>
+        <button mat-stroked-button [ngClass]="{'bg-primary text-white': currentPeriod === 'Année'}" (click)="setPeriod('Année')">Année</button>
+      </div>
+      <button mat-flat-button color="primary"><mat-icon>download</mat-icon> {{ 'EXPORT' | translate }}</button>
+    </div>
   </div>
-</div>
 
-<!-- Top KPI cards -->
-<div
-  class="row m-b-24"
-  *ngIf="!statsLoading && stats"
-  [class.kpi-row--flash]="kpiStatsFlash"
->
-  <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-    <mat-card class="cardWithShadow kpi-card">
-      <mat-card-content class="p-16">
-        <i-tabler name="users-group" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-        <h3 class="kpi-card__title">Patients</h3>
-        <p class="m-0 d-flex align-items-baseline flex-wrap">
-          <span class="kpi-value kpi-value--patients">{{ stats?.totalPatients }}</span>
-          <span class="kpi-value-suffix">Patients</span>
-        </p>
-        <div class="kpi-trends">
-          <span class="kpi-trend kpi-trend--up">+5 this week</span>
-          <span class="kpi-trend kpi-trend--down">-2 this month</span>
-        </div>
-        <div class="kpi-card__footer">{{ 'REGISTERED_PATIENTS' | translate }}</div>
-      </mat-card-content>
-    </mat-card>
+  <!-- Loading -->
+  <div
+    class="row m-b-24 admin-dashboard-stats-loading"
+    *ngIf="statsLoading"
+    aria-busy="true"
+    aria-live="polite"
+  >
+    <div class="col-12 d-flex flex-column align-items-center justify-content-center py-5">
+      <mat-spinner diameter="48" aria-hidden="true"></mat-spinner>
+      <span class="m-t-16 text-muted f-s-14">Chargement des statistiques…</span>
+    </div>
   </div>
-  <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-    <mat-card class="cardWithShadow kpi-card">
-      <mat-card-content class="p-16">
-        <i-tabler name="stethoscope" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-        <h3 class="kpi-card__title">Doctors</h3>
-        <p class="m-0 d-flex align-items-baseline flex-wrap">
-          <span class="kpi-value kpi-value--doctors">{{ stats?.totalPhysicians }}</span>
-          <span class="kpi-value-suffix">Doctors</span>
-        </p>
-        <div class="kpi-trends">
-          <span class="kpi-trend kpi-trend--up">+5 this week</span>
-          <span class="kpi-trend kpi-trend--down">-2 this month</span>
-        </div>
-        <div class="kpi-card__footer">{{ 'SPECIALIST_DOCTORS' | translate }}</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-    <mat-card class="cardWithShadow kpi-card">
-      <mat-card-content class="p-16">
-        <i-tabler name="nurse" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-        <h3 class="kpi-card__title">Nurses</h3>
-        <p class="m-0 d-flex align-items-baseline flex-wrap">
-          <span class="kpi-value kpi-value--nurses">{{ stats?.totalNurses }}</span>
-          <span class="kpi-value-suffix">Nurses</span>
-        </p>
-        <div class="kpi-trends">
-          <span class="kpi-trend kpi-trend--up">+5 this week</span>
-          <span class="kpi-trend kpi-trend--down">-2 this month</span>
-        </div>
-        <div class="kpi-card__footer">{{ 'NURSING_STAFF' | translate }}</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-    <mat-card class="cardWithShadow kpi-card">
-      <mat-card-content class="p-16">
-        <i-tabler name="users" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-        <h3 class="kpi-card__title">Coordinators</h3>
-        <p class="m-0 d-flex align-items-baseline flex-wrap">
-          <span class="kpi-value kpi-value--coordinators">{{ stats?.totalCoordinators }}</span>
-          <span class="kpi-value-suffix">Coordinators</span>
-        </p>
-        <div class="kpi-trends">
-          <span class="kpi-trend kpi-trend--up">+5 this week</span>
-          <span class="kpi-trend kpi-trend--down">-2 this month</span>
-        </div>
-        <div class="kpi-card__footer">{{ 'COORDINATORS' | translate }}</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-  <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-    <mat-card class="cardWithShadow kpi-card">
-      <mat-card-content class="p-16">
-        <i-tabler name="shield-check" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-        <h3 class="kpi-card__title">Auditors</h3>
-        <p class="m-0 d-flex align-items-baseline flex-wrap">
-          <span class="kpi-value kpi-value--auditors">{{ stats?.totalAuditors }}</span>
-          <span class="kpi-value-suffix">Auditors</span>
-        </p>
-        <div class="kpi-trends">
-          <span class="kpi-trend kpi-trend--up">+5 this week</span>
-          <span class="kpi-trend kpi-trend--down">-2 this month</span>
-        </div>
-        <div class="kpi-card__footer">{{ 'AUDITORS' | translate }}</div>
-      </mat-card-content>
-    </mat-card>
-  </div>
-</div>
 
-<!-- Traffic chart -->
-<div class="row">
-  <div class="col-12">
-    <mat-card class="cardWithShadow">
-      <mat-card-content>
-        <div class="d-flex justify-content-between align-items-center">
+  <div class="row m-b-24" *ngIf="statsError" role="alert">
+    <div class="col-12">
+      <mat-card class="cardWithShadow admin-dashboard-stats-error">
+        <mat-card-content class="p-16 d-flex align-items-start">
+          <mat-icon color="warn" class="flex-shrink-0 m-r-12">error_outline</mat-icon>
           <div>
-            <mat-card-title>{{ 'TRAFFIC' | translate }}</mat-card-title>
-            <mat-card-subtitle class="f-s-13 text-muted">
-              {{ trafficPeriodLabel }}
-            </mat-card-subtitle>
+            <div class="f-w-600 m-b-4">Statistiques indisponibles</div>
+            <p class="m-0 f-s-14 text-muted">{{ statsError }}</p>
           </div>
-          <div class="btn-group">
-            <button
-              mat-stroked-button
-              class="m-r-4"
-              type="button"
-              [disabled]="trafficLoading"
-              [ngClass]="{'bg-primary text-white': viewMode === 'day'}"
-              (click)="viewMode = 'day'"
-            >
-              {{ 'DAY' | translate }}
-            </button>
-            <button
-              mat-stroked-button
-              class="m-r-4"
-              type="button"
-              [disabled]="trafficLoading"
-              [ngClass]="{'bg-primary text-white': viewMode === 'month'}"
-              (click)="viewMode = 'month'"
-            >
-              {{ 'MONTH' | translate }}
-            </button>
-            <button
-              mat-stroked-button
-              type="button"
-              [disabled]="trafficLoading"
-              [ngClass]="{'bg-primary text-white': viewMode === 'year'}"
-              (click)="viewMode = 'year'"
-            >
-              {{ 'YEAR' | translate }}
-            </button>
-          </div>
-        </div>
-
-        <div
-          *ngIf="trafficError"
-          class="traffic-inline-error m-t-12 p-12 d-flex align-items-start"
-          role="status"
-        >
-          <mat-icon class="traffic-inline-error__icon flex-shrink-0 m-r-12" color="warn"
-            >warning_amber</mat-icon
-          >
-          <span class="f-s-13">{{ trafficError }}</span>
-        </div>
-
-        <div class="traffic-chart-wrap m-t-16 position-relative">
-          <div
-            class="traffic-chart-overlay"
-            *ngIf="trafficLoading"
-            aria-busy="true"
-            aria-live="polite"
-          >
-            <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
-            <span class="f-s-13 text-muted m-t-8">Chargement du traffic…</span>
-          </div>
-          <app-profit-expenses
-            [mode]="viewMode"
-            [chartData]="trafficStats?.chartData ?? null"
-          ></app-profit-expenses>
-        </div>
-
-        <!-- Metrics row — liées à trafficStats ; % = (valeur / total) * 100 -->
-        <div
-          class="row m-t-16"
-          [class.traffic-metrics--flash]="trafficMetricsFlash"
-        >
-          <div class="col-md-2 m-b-8">
-            <div class="f-s-12 text-muted">{{ 'VISITS' | translate }}</div>
-            <div class="f-w-600 f-s-14">
-              <ng-container *ngIf="trafficStats; else trafficMetricDash">
-                {{ trafficStats.visits | number }}
-                {{ 'SESSIONS' | translate }}
-                ({{ trafficShare(trafficStats.visits) | number: '1.0-1' }}%)
-              </ng-container>
-            </div>
-          </div>
-          <div class="col-md-2 m-b-8">
-            <div class="f-s-12 text-muted">{{ 'UNIQUE_USERS' | translate }}</div>
-            <div class="f-w-600 f-s-14">
-              <ng-container *ngIf="trafficStats; else trafficMetricDash">
-                {{ trafficStats.uniqueUsers | number }}
-                {{ 'USERS' | translate }}
-                ({{ trafficShare(trafficStats.uniqueUsers) | number: '1.0-1' }}%)
-              </ng-container>
-            </div>
-          </div>
-          <div class="col-md-2 m-b-8">
-            <div class="f-s-12 text-muted">{{ 'PAGE_VIEWS' | translate }}</div>
-            <div class="f-w-600 f-s-14">
-              <ng-container *ngIf="trafficStats; else trafficMetricDash">
-                {{ trafficStats.pageViews | number }}
-                {{ 'VIEWS' | translate }}
-                ({{ trafficShare(trafficStats.pageViews) | number: '1.0-1' }}%)
-              </ng-container>
-            </div>
-          </div>
-          <div class="col-md-2 m-b-8">
-            <div class="f-s-12 text-muted">{{ 'NEW_PATIENTS' | translate }}</div>
-            <div class="f-w-600 f-s-14">
-              <ng-container *ngIf="trafficStats; else trafficMetricDash">
-                {{ trafficStats.newPatients | number }}
-                {{ 'PATIENTS' | translate }}
-                ({{ trafficShare(trafficStats.newPatients) | number: '1.0-1' }}%)
-              </ng-container>
-            </div>
-          </div>
-          <div class="col-md-2 m-b-8">
-            <div class="f-s-12 text-muted">{{ 'FOLLOWUP_RATE' | translate }}</div>
-            <div class="f-w-600 f-s-14">
-              <ng-container *ngIf="trafficStats; else trafficMetricDash">
-                {{ 'AVERAGE_RATE' | translate }}
-                {{ trafficStats.followUpRate | number: '1.0-2' }}%
-              </ng-container>
-            </div>
-          </div>
-        </div>
-        <ng-template #trafficMetricDash>
-          <span class="text-muted">—</span>
-        </ng-template>
-      </mat-card-content>
-    </mat-card>
+        </mat-card-content>
+      </mat-card>
+    </div>
   </div>
+
+  <ng-container *ngIf="!statsLoading && stats">
+    
+    <!-- 3️⃣ KPI cards -->
+    <div
+      class="row m-b-24"
+      [class.kpi-row--flash]="kpiStatsFlash"
+    >
+      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
+        <mat-card class="cardWithShadow kpi-card">
+          <mat-card-content class="p-16">
+            <i-tabler name="users-group" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
+            <h3 class="kpi-card__title">Patients</h3>
+            <p class="m-0 d-flex align-items-baseline flex-wrap">
+              <span class="kpi-value kpi-value--patients">{{ stats?.patients }}</span>
+              <span class="kpi-value-suffix">Patients</span>
+            </p>
+            <div class="kpi-trends">
+              <span class="kpi-trend" [ngClass]="kpiTrends.patients.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
+                {{ kpiTrends.patients.isUp ? '+' : '-' }}{{ kpiTrends.patients.value }} {{ kpiTrends.patients.period }}
+              </span>
+            </div>
+            <div class="kpi-card__footer">{{ 'REGISTERED_PATIENTS' | translate }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
+        <mat-card class="cardWithShadow kpi-card">
+          <mat-card-content class="p-16">
+            <i-tabler name="stethoscope" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
+            <h3 class="kpi-card__title">Doctors</h3>
+            <p class="m-0 d-flex align-items-baseline flex-wrap">
+              <span class="kpi-value kpi-value--doctors">{{ stats?.doctors }}</span>
+              <span class="kpi-value-suffix">Doctors</span>
+            </p>
+            <div class="kpi-trends">
+              <span class="kpi-trend" [ngClass]="kpiTrends.doctors.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
+                {{ kpiTrends.doctors.isUp ? '+' : '-' }}{{ kpiTrends.doctors.value }} {{ kpiTrends.doctors.period }}
+              </span>
+            </div>
+            <div class="kpi-card__footer">{{ 'SPECIALIST_DOCTORS' | translate }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
+        <mat-card class="cardWithShadow kpi-card">
+          <mat-card-content class="p-16">
+            <i-tabler name="nurse" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
+            <h3 class="kpi-card__title">Nurses</h3>
+            <p class="m-0 d-flex align-items-baseline flex-wrap">
+              <span class="kpi-value kpi-value--nurses">{{ stats?.nurses }}</span>
+              <span class="kpi-value-suffix">Nurses</span>
+            </p>
+            <div class="kpi-trends">
+              <span class="kpi-trend" [ngClass]="kpiTrends.nurses.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
+                {{ kpiTrends.nurses.isUp ? '+' : '-' }}{{ kpiTrends.nurses.value }} {{ kpiTrends.nurses.period }}
+              </span>
+            </div>
+            <div class="kpi-card__footer">{{ 'NURSING_STAFF' | translate }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
+        <mat-card class="cardWithShadow kpi-card">
+          <mat-card-content class="p-16">
+            <i-tabler name="users" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
+            <h3 class="kpi-card__title">Coordinators</h3>
+            <p class="m-0 d-flex align-items-baseline flex-wrap">
+              <span class="kpi-value kpi-value--coordinators">{{ stats?.coordinators }}</span>
+              <span class="kpi-value-suffix">Coordinators</span>
+            </p>
+            <div class="kpi-trends">
+              <span class="kpi-trend" [ngClass]="kpiTrends.coordinators.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
+                {{ kpiTrends.coordinators.isUp ? '+' : '-' }}{{ kpiTrends.coordinators.value }} {{ kpiTrends.coordinators.period }}
+              </span>
+            </div>
+            <div class="kpi-card__footer">{{ 'COORDINATORS' | translate }}</div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- 4️⃣ Traffic chart -->
+    <div class="row m-b-24">
+      <div class="col-12">
+        <mat-card class="cardWithShadow mb-0">
+          <mat-card-content>
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <mat-card-title>{{ 'TRAFFIC' | translate }}</mat-card-title>
+                <mat-card-subtitle class="f-s-13 text-muted">
+                  {{ trafficPeriodLabel }}
+                </mat-card-subtitle>
+              </div>
+              <div class="btn-group">
+                <button
+                  mat-stroked-button
+                  class="m-r-4"
+                  type="button"
+                  [disabled]="trafficLoading"
+                  [ngClass]="{'bg-primary text-white': viewMode === 'day'}"
+                  (click)="viewMode = 'day'"
+                >
+                  {{ 'DAY' | translate }}
+                </button>
+                <button
+                  mat-stroked-button
+                  class="m-r-4"
+                  type="button"
+                  [disabled]="trafficLoading"
+                  [ngClass]="{'bg-primary text-white': viewMode === 'month'}"
+                  (click)="viewMode = 'month'"
+                >
+                  {{ 'MONTH' | translate }}
+                </button>
+                <button
+                  mat-stroked-button
+                  type="button"
+                  [disabled]="trafficLoading"
+                  [ngClass]="{'bg-primary text-white': viewMode === 'year'}"
+                  (click)="viewMode = 'year'"
+                >
+                  {{ 'YEAR' | translate }}
+                </button>
+              </div>
+            </div>
+
+            <div
+              *ngIf="trafficError"
+              class="traffic-inline-error m-t-12 p-12 d-flex align-items-start"
+              role="status"
+            >
+              <mat-icon class="traffic-inline-error__icon flex-shrink-0 m-r-12" color="warn"
+                >warning_amber</mat-icon
+              >
+              <span class="f-s-13">{{ trafficError }}</span>
+            </div>
+
+            <div class="traffic-chart-wrap m-t-16 position-relative">
+              <div
+                class="traffic-chart-overlay"
+                *ngIf="trafficLoading"
+                aria-busy="true"
+                aria-live="polite"
+              >
+                <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
+                <span class="f-s-13 text-muted m-t-8">Chargement du traffic…</span>
+              </div>
+              <canvas id="trafficChart" height="100"></canvas>
+            </div>
+
+            <!-- Metrics row — liées à trafficStats ; % = (valeur / total) * 100 -->
+            <div
+              class="row m-t-16"
+              [class.traffic-metrics--flash]="trafficMetricsFlash"
+            >
+              <div class="col-md-2 m-b-8">
+                <div class="f-s-12 text-muted">{{ 'VISITS' | translate }}</div>
+                <div class="f-w-600 f-s-14">
+                  <ng-container *ngIf="trafficStats; else trafficMetricDash">
+                    {{ trafficStats.visits | number }}
+                    {{ 'SESSIONS' | translate }}
+                    ({{ trafficShare(trafficStats.visits) | number: '1.0-1' }}%)
+                  </ng-container>
+                </div>
+              </div>
+              <div class="col-md-2 m-b-8">
+                <div class="f-s-12 text-muted">{{ 'UNIQUE_USERS' | translate }}</div>
+                <div class="f-w-600 f-s-14">
+                  <ng-container *ngIf="trafficStats; else trafficMetricDash">
+                    {{ trafficStats.uniqueUsers | number }}
+                    {{ 'USERS' | translate }}
+                    ({{ trafficShare(trafficStats.uniqueUsers) | number: '1.0-1' }}%)
+                  </ng-container>
+                </div>
+              </div>
+              <div class="col-md-2 m-b-8">
+                <div class="f-s-12 text-muted">{{ 'PAGE_VIEWS' | translate }}</div>
+                <div class="f-w-600 f-s-14">
+                  <ng-container *ngIf="trafficStats; else trafficMetricDash">
+                    {{ trafficStats.pageViews | number }}
+                    {{ 'VIEWS' | translate }}
+                    ({{ trafficShare(trafficStats.pageViews) | number: '1.0-1' }}%)
+                  </ng-container>
+                </div>
+              </div>
+              <div class="col-md-2 m-b-8">
+                <div class="f-s-12 text-muted">{{ 'NEW_PATIENTS' | translate }}</div>
+                <div class="f-w-600 f-s-14">
+                  <ng-container *ngIf="trafficStats; else trafficMetricDash">
+                    {{ trafficStats.newPatients | number }}
+                    {{ 'PATIENTS' | translate }}
+                    ({{ trafficShare(trafficStats.newPatients) | number: '1.0-1' }}%)
+                  </ng-container>
+                </div>
+              </div>
+              <div class="col-md-2 m-b-8">
+                <div class="f-s-12 text-muted">{{ 'FOLLOWUP_RATE' | translate }}</div>
+                <div class="f-w-600 f-s-14">
+                  <ng-container *ngIf="trafficStats; else trafficMetricDash">
+                    {{ 'AVERAGE_RATE' | translate }}
+                    {{ trafficStats.followUpRate | number: '1.0-2' }}%
+                  </ng-container>
+                </div>
+              </div>
+            </div>
+            <ng-template #trafficMetricDash>
+              <span class="text-muted">—</span>
+            </ng-template>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <!-- 5️⃣ Alerts -->
+    <div class="row m-b-24">
+      <div class="col-12">
+        <mat-card class="cardWithShadow mb-0 border-warn" style="border-top: 3px solid #f44336;">
+          <mat-card-content>
+            <mat-card-title class="d-flex align-items-center">
+              <mat-icon color="warn" class="m-r-8">warning</mat-icon> Alerts
+            </mat-card-title>
+            
+            <div *ngIf="alerts.length === 0" class="empty-box-sm d-flex flex-column align-items-center py-4 text-muted">
+              <mat-icon class="icon-32 m-b-8">notifications_none</mat-icon>
+              <p class="m-b-0">No active alerts at the moment.</p>
+            </div>
+
+            <div *ngIf="alerts.length > 0" class="m-t-16">
+              <div *ngFor="let alert of alerts" class="d-flex align-items-center m-b-16 p-12" style="background: rgba(244, 67, 54, 0.05); border-radius: 8px;">
+                <mat-icon color="warn" class="m-r-16">error</mat-icon>
+                <div>
+                  <h6 class="m-0 f-s-14">{{ alert.message }}</h6>
+                  <span class="f-s-12 text-muted">{{ alert.date | date:'short' }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+    <div class="row mb-5">
+      <!-- 6️⃣ Recent activity -->
+      <div class="col-lg-6 m-b-24">
+        <mat-card class="cardWithShadow h-100 mb-0">
+          <mat-card-content>
+            <mat-card-title class="m-b-16 d-flex align-items-center">
+              <mat-icon color="primary" class="m-r-8">history</mat-icon> Recent Activity
+            </mat-card-title>
+            <div class="m-t-16">
+              <div *ngFor="let act of recentActivity" class="d-flex align-items-center m-b-16">
+                <div class="bg-light-primary text-primary rounded-circle p-12 m-r-16">
+                  <i-tabler name="activity" class="icon-18"></i-tabler>
+                </div>
+                <div>
+                   <h6 class="m-0 f-s-14">{{ act.user }} - {{ act.action }}</h6>
+                   <span class="f-s-12 text-muted">via {{ act.service }} ({{ act.role }}) at {{ act.time | date:'shortTime' }}</span>
+                </div>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <!-- 7️⃣ Department occupancy -->
+      <div class="col-lg-6 m-b-24">
+        <mat-card class="cardWithShadow h-100 mb-0">
+          <mat-card-content>
+            <mat-card-title class="m-b-16 d-flex align-items-center">
+              <mat-icon color="accent" class="m-r-8">business</mat-icon> Department Occupancy
+            </mat-card-title>
+            <div class="m-t-16">
+               <div *ngFor="let dep of departmentOccupancy" class="m-b-16">
+                 <div class="d-flex justify-content-between m-b-4">
+                   <span class="f-w-600 f-s-14">{{ dep.name }}</span>
+                   <span class="text-muted f-s-14">{{ dep.percentage }}%</span>
+                 </div>
+                 <mat-progress-bar mode="determinate" [value]="dep.percentage" [color]="dep.color"></mat-progress-bar>
+               </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+  </ng-container>
 </div>

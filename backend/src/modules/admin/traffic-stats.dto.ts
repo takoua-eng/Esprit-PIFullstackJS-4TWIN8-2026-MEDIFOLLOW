@@ -3,6 +3,7 @@ export type TrafficStatsMode = 'day' | 'month' | 'year';
 export interface TrafficChartPointDto {
   label: string;
   value: number;
+  newPatients?: number;
 }
 
 export interface TrafficStatsResponseDto {

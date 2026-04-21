@@ -14,6 +14,7 @@ import { clearAuthLocalStorage } from 'src/app/core/app-storage';
 import { NotificationBellService, AppNotification } from 'src/app/services/notification-bell.service';
 import { interval, Subscription } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
+import { UserService } from 'src/app/services/users.service';
 import { of } from 'rxjs';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE_URL } from 'src/app/core/api.config';
@@ -39,6 +40,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   notifications: AppNotification[] = [];
   unreadCount = 0;
   private notifSub?: Subscription;
+  currentUser: any = null;
 
   constructor(
     private router: Router,
@@ -47,8 +49,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private patientService: PatientService,
     private notifService: NotificationBellService,
     private http: HttpClient,
+    private userService: UserService
   ) {}
 
+
+
+  
   ngOnInit(): void {
     this.core.initUserRole();
 
@@ -59,6 +65,21 @@ export class HeaderComponent implements OnInit, OnDestroy {
         error: () => {},
       });
     }
+
+    this.userService.getProfile().subscribe({
+      next: (user) => {
+        this.currentUser = { ...user };
+        if (this.currentUser.photo && typeof this.currentUser.photo === 'string' && this.currentUser.photo !== 'null' && this.currentUser.photo !== 'undefined' && this.currentUser.photo !== '') {
+          const photoPath = this.currentUser.photo.replace(/\\/g, '/');
+          this.currentUser.photoUrl = photoPath.startsWith('uploads/') || photoPath.startsWith('http')
+            ? `http://localhost:3000/${photoPath}`
+            : `http://localhost:3000/uploads/${photoPath}`;
+        } else {
+          this.currentUser.photoUrl = '/assets/images/profile/user-1.jpg';
+        }
+      },
+      error: () => {}
+    });
 
     const token = localStorage.getItem('accessToken');
     if (token) {
@@ -112,6 +133,34 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return `${days}d ago`;
   }
 
+
+
+
+  /** Return true when current role has an alerts page we can navigate to */
+  canNavigateToAlerts(): boolean {
+    const r = (localStorage.getItem('user_role') || '').toLowerCase();
+    return r === 'patient' || r === 'nurse' || r === 'physician' || r === 'doctor';
+  }
+
+
+
+  goToAlerts(): void {
+    const r = (localStorage.getItem('user_role') || '').toLowerCase();
+    if (r === 'patient') {
+      this.router.navigate(['/dashboard/patient/alerts']);
+    } else if (r === 'nurse') {
+      this.router.navigate(['/dashboard/nurse/alerts']);
+    } else if (r === 'physician' || r === 'doctor') {
+      this.router.navigate(['/dashboard/doctor/alerts']);
+    } else {
+      // fallback to generic alerts page
+      this.router.navigate(['/dashboard/alerts']);
+    }
+  }
+
+
+
+
   goToProfile(): void {
     const r = (localStorage.getItem('user_role') || '').toLowerCase();
     if (r === 'patient') {
@@ -120,6 +169,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.router.navigate(['/dashboard/profile']);
     }
   }
+
+
+
+
 
   logout(): void {
     // Call backend to log the LOGOUT event in audit

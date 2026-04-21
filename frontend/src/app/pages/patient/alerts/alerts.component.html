@@ -1,41 +1,64 @@
 <div class="container">
-  <div class="page-header">
-    <h2>My Alerts</h2>
-    <p class="subtitle">Automatic alerts generated from your vital parameters and symptoms</p>
-  </div>
-
   <div *ngIf="isLoading" class="loading-state">
     <mat-spinner diameter="40"></mat-spinner>
     <p>Loading alerts...</p>
   </div>
 
-  <div *ngIf="!isLoading && alerts.length === 0" class="empty-state">
+  <div *ngIf="!isLoading && openAlerts.length + historyAlerts.length === 0" class="empty-state">
     <mat-icon>notifications_none</mat-icon>
     <p>No alerts found. Keep tracking your health data!</p>
   </div>
 
-  <mat-card *ngFor="let alert of alerts" class="alert-card" [class.pending]="alert.status === 'pending'">
-    <mat-card-content>
-      <div class="alert-row">
-        <div class="alert-icon-wrap">
-          <mat-icon [class.warn]="alert.status === 'pending'" [class.ok]="alert.status !== 'pending'">
-            {{ alert.status === 'pending' ? 'warning' : 'check_circle' }}
-          </mat-icon>
-        </div>
-        <div class="alert-body">
-          <p class="alert-msg">{{ alert.message }}</p>
-          <span class="alert-meta">
-            {{ alert.createdAt | date:'MMM d, y HH:mm' }}
-            &nbsp;&bull;&nbsp;
-            <span [class.badge-pending]="alert.status === 'pending'" [class.badge-ok]="alert.status !== 'pending'">
-              {{ alert.status === 'pending' ? 'Pending' : 'Resolved' }}
+  <div *ngIf="!isLoading && openAlerts.length > 0" class="open-section">
+    <div class="page-header">
+    <h3>My Alerts</h3>
+    <p class="subtitle">Unresolved alerts for you</p>
+    </div>
+    <mat-card *ngFor="let alert of openAlerts" class="alert-card" [class.pending]="alert.status === 'pending'">
+      <mat-card-content>
+        <div class="alert-row">
+          <div class="alert-icon-wrap">
+            <mat-icon [class.warn]="alert.status === 'pending'">warning</mat-icon>
+            <mat-icon *ngIf="alert.status !== 'pending'" class="ok">check_circle</mat-icon>
+          </div>
+          <div class="alert-body">
+            <p class="alert-msg">{{ alert.message }}</p>
+            <span class="alert-meta">
+              {{ alert.createdAt | date:'MMM d, y HH:mm' }}
+              &nbsp;&bull;&nbsp;
+              <span class="badge-pending" *ngIf="alert.status === 'pending'">Pending</span>
+              <span class="badge-ok" *ngIf="alert.status !== 'pending'">Resolved</span>
+              
             </span>
-          </span>
+          </div>
+          <button class="resolve-btn" [class.resolved]="alert.status !== 'pending'" [disabled]="alert.status !== 'pending'" (click)="resolve(alert._id!)">
+            <mat-icon>{{ alert.status === 'pending' ? 'done' : 'check' }}</mat-icon>
+            <span>{{ alert.status === 'pending' ? 'Mark resolved' : 'Resolved' }}</span>
+          </button>
         </div>
-        <button mat-stroked-button color="primary" *ngIf="alert.status === 'pending'" (click)="resolve(alert._id!)">
-          <mat-icon>done</mat-icon> Mark resolved
-        </button>
-      </div>
-    </mat-card-content>
-  </mat-card>
+      </mat-card-content>
+    </mat-card>
+  </div>
+
+  <div *ngIf="!isLoading && historyAlerts.length > 0" class="history-section">
+    <h3>Alerts History</h3>
+    <p class="subtitle">Previously resolved alerts</p>
+    <mat-card *ngFor="let alert of historyAlerts" class="alert-card resolved">
+      <mat-card-content>
+        <div class="alert-row">
+          <div class="alert-icon-wrap">
+            <mat-icon class="ok">check_circle</mat-icon>
+          </div>
+          <div class="alert-body">
+            <p class="alert-msg">{{ alert.message }}</p>
+            <span class="alert-meta">
+              {{ alert.createdAt | date:'MMM d, y HH:mm' }}
+              &nbsp;&bull;&nbsp;
+              <span class="badge-ok">Resolved</span>
+            </span>
+          </div>
+        </div>
+      </mat-card-content>
+    </mat-card>
+  </div>
 </div>

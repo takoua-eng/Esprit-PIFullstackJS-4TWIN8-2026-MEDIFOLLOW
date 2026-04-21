@@ -1,0 +1,37 @@
+<h2 mat-dialog-title>Modifier le profil</h2>
+
+<form #form="ngForm" (ngSubmit)="save(form)">
+  <mat-dialog-content>
+    <p class="muted-text">Mettez à jour vos informations. Les champs marqués * sont obligatoires.</p>
+
+    <div style="display:flex;flex-direction:column;gap:12px;">
+      <mat-form-field appearance="outline" style="width:100%">
+        <mat-label>Prénom *</mat-label>
+        <input matInput [(ngModel)]="firstName" name="firstName" #firstNameCtrl="ngModel" required placeholder="Ex: Ranim" />
+        <mat-error *ngIf="firstNameCtrl?.invalid && (firstNameCtrl?.dirty || firstNameCtrl?.touched)">Le prénom est requis</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%">
+        <mat-label>Nom *</mat-label>
+        <input matInput [(ngModel)]="lastName" name="lastName" #lastNameCtrl="ngModel" required placeholder="Ex: Boumessouer" />
+        <mat-error *ngIf="lastNameCtrl?.invalid && (lastNameCtrl?.dirty || lastNameCtrl?.touched)">Le nom est requis</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" style="width:100%;">
+        <mat-label>Téléphone</mat-label>
+        <input matInput [(ngModel)]="phone" name="phone" #phoneCtrl="ngModel" placeholder="Ex: +216 98 567 006" pattern="^[0-9+ ()-]{6,20}$" />
+        <mat-hint>Format accepté : chiffres, +, espaces, parenthèses</mat-hint>
+        <mat-error *ngIf="phoneCtrl?.invalid && (phoneCtrl?.dirty || phoneCtrl?.touched)">Numéro invalide (6-20 caractères)</mat-error>
+      </mat-form-field>
+    </div>
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" (click)="cancel()" [disabled]="isSaving">Annuler</button>
+    <button mat-raised-button color="primary" type="submit" [disabled]="isSaving || !(form?.valid)" style="min-width:140px;display:flex;align-items:center;justify-content:center;gap:8px;">
+      <mat-progress-spinner *ngIf="isSaving" diameter="18" mode="indeterminate" [strokeWidth]="2"></mat-progress-spinner>
+      <span>{{ isSaving ? 'Enregistrement...' : 'Enregistrer' }}</span>
+    </button>
+  </mat-dialog-actions>
+</form>

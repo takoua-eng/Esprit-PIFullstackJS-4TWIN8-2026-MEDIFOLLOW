@@ -11,57 +11,65 @@ export const adminNavItems: NavItem[] = [
     chip: true,
     chipClass: 'bg-primary text-white',
     chipContent: 'NEW',
-  
+
   },
   {
     displayName: 'USERS',
     iconName: 'users',
     route: '/dashboard/admin',
     bgcolor: 'secondary',
-  
+
     children: [
       {
         displayName: 'PATIENTS',
         iconName: 'notes',
         route: '/dashboard/admin/patients',
         bgcolor: 'transparent',
-     
+
       },
       {
         displayName: 'DOCTORS',
         iconName: 'stethoscope',
         route: '/dashboard/admin/physicians',
         bgcolor: 'transparent',
-       
+
       },
       {
         displayName: 'NURSES',
         iconName: 'nurse',
         route: '/dashboard/admin/nurses',
         bgcolor: 'transparent',
-       
+
       },
       {
         displayName: 'COORDINATORS',
         iconName: 'users-group',
         route: '/dashboard/admin/coordinators',
         bgcolor: 'transparent',
-        
+
       },
       {
         displayName: 'AUDITORS',
         iconName: 'check',
         route: '/dashboard/admin/auditors',
         bgcolor: 'transparent',
-        
+
       },
     ],
+
   },
   {
     displayName: 'QUESTIONNAIRE ',
     iconName: 'list',
     route: '/admin/templates',
     bgcolor: 'secondary',
+  },
+  {
+    displayName: 'Profil',
+    iconName: 'check',
+    route: 'profil',
+    bgcolor: 'transparent',
+
   },
 ];
 
@@ -82,14 +90,14 @@ export const coordinatorNavItems: NavItem[] = [
     iconName: 'users-group',
     route: '/admin/coordinator/patients',
     bgcolor: 'transparent',
-   
+
   },
   {
     displayName: 'REMINDERS',
     iconName: 'bell-ringing',
     route: '/admin/coordinator/reminders',
     bgcolor: 'transparent',
-   
+
   },
   {
     displayName: 'AI PREDICTION',
@@ -143,6 +151,12 @@ export const patientNavItems: NavItem[] = [
     iconName: 'bell',
     route: '/dashboard/patient/alerts',
     bgcolor: 'error',
+  },
+  {
+    displayName: 'Assistant IA',
+    iconName: 'robot',
+    route: '/dashboard/patient/ai-chat',
+    bgcolor: 'primary',
   },
   {
     displayName: 'Profile',

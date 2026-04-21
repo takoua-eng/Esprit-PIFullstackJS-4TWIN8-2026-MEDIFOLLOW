@@ -1,0 +1,60 @@
+<!-- ══════════════════════════════════════════════
+     Voice Assistant floating widget
+     Only rendered when on patient pages
+════════════════════════════════════════════════ -->
+<ng-container *ngIf="isPatientPage">
+
+  <!-- Floating container -->
+  <div class="va-wrapper" [class.va-active]="isEnabled">
+
+    <!-- ── Bubble / speech text ── -->
+    <div class="va-bubble" *ngIf="isEnabled && showBubble && assistantText">
+      <button class="va-close-bubble" (click)="closeBubble()" aria-label="Fermer">✕</button>
+
+      <div class="va-bubble-inner">
+        <div class="va-assistant-msg">
+          <mat-icon class="va-icon-small">smart_toy</mat-icon>
+          <span>{{ assistantText }}</span>
+        </div>
+
+        <div class="va-user-msg" *ngIf="userText">
+          <mat-icon class="va-icon-small">person</mat-icon>
+          <span>{{ userText }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Controls row ── -->
+    <div class="va-controls" [attr.dir]="lang === 'ar' ? 'rtl' : 'ltr'">
+
+      <!-- Language selector -->
+      <div class="va-lang-buttons" *ngIf="isEnabled">
+        <button class="va-lang-btn" [class.active]="lang === 'fr'" (click)="setLang('fr')" title="Français">FR</button>
+        <button class="va-lang-btn" [class.active]="lang === 'ar'" (click)="setLang('ar')" title="العربية">ع</button>
+        <button class="va-lang-btn" [class.active]="lang === 'en'" (click)="setLang('en')" title="English">EN</button>
+      </div>
+
+      <!-- Microphone button (only when enabled) -->
+      <button class="va-mic-btn"
+              *ngIf="isEnabled"
+              [class.listening]="isListening"
+              [class.speaking]="isSpeaking"
+              (click)="onMicClick()"
+              [attr.aria-label]="isListening ? 'Arrêter l\'écoute' : 'Commencer à écouter'">
+        <mat-icon>{{ isListening ? 'mic' : isSpeaking ? 'volume_up' : 'mic_none' }}</mat-icon>
+      </button>
+
+      <!-- Main toggle button (always visible on patient pages) -->
+      <button class="va-toggle-btn"
+              (click)="onToggle()"
+              [class.enabled]="isEnabled"
+              [attr.aria-label]="isEnabled ? 'Désactiver l\'assistant vocal' : 'Activer l\'assistant vocal'"
+              [title]="isEnabled ? 'Désactiver l\'assistant' : 'Activer l\'assistant vocal (accessibilité)'">
+        <mat-icon>{{ isEnabled ? 'hearing_disabled' : 'accessibility_new' }}</mat-icon>
+      </button>
+
+    </div>
+
+  </div>
+
+</ng-container>

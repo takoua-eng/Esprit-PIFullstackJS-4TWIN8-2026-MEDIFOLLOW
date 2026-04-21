@@ -101,11 +101,17 @@ export class UsersService {
 
     dto.role = role._id;
 
+    if (!dto.password) {
+      throw new BadRequestException('Le mot de passe est requis pour créer un patient');
+    }
+
+    dto.password = await bcrypt.hash(dto.password, 10);
+
     // ✅ création du patient
     const patient = new this.userModel(dto);
     const savedPatient = await patient.save();
 
-    console.log('🔔 patient created:', savedPatient._id);
+    this.logger.log(`🔔 patient created: ${savedPatient._id}`);
 
     // Ajouter le patient au coordinator
     if (coordinatorId) {

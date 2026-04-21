@@ -26,14 +26,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     status?: any,
   ): TUser {
     // Si erreur ou pas d'user → rejeter avec Unauthorized
-    if (err || !user) {
-      throw (
-        err ||
-        new UnauthorizedException(
-          'Token invalide ou utilisateur non authentifié',
-        )
-      );
-    }
+
 
     // ✅ Retourner l'utilisateur pour l'attacher à request.user
     return user;

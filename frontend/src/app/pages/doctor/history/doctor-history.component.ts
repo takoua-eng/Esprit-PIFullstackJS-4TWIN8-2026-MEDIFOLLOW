@@ -62,6 +62,19 @@ export class DoctorHistoryComponent implements OnInit {
   allResponses: any[] = [];
 
   displayedColumns: string[] = ['when', 'patient', 'source', 'summary'];
+  
+  // Pagination for Validation Box
+  vPage = 1;
+  vPageSize = 3;
+
+  // Pagination for Instructions Sent Box
+  aPage = 1;
+  aPageSize = 3;
+
+  // Pagination for Clinical History Table
+  hPage = 1;
+  hPageSize = 5;
+
 
   constructor(
     private readonly usersApi: UsersApiService,
@@ -147,6 +160,12 @@ export class DoctorHistoryComponent implements OnInit {
   }
 
   private loadAlerts(): void {
+    // Proactively try to resolve physician ID from CoreService if missing (e.g. on early refresh)
+    if (!this.activePhysicianId) {
+      const user = this.core.currentUser();
+      if (user?._id) this.activePhysicianId = user._id;
+    }
+
     if (!this.activePhysicianId || !this.selectedPatientId) {
       this.alerts = [];
       this.alertLoading = false;
@@ -202,8 +221,31 @@ export class DoctorHistoryComponent implements OnInit {
     );
   }
 
+  get totalHPages(): number {
+    return Math.ceil(this.historyRows.length / this.hPageSize) || 1;
+  }
 
-  /** Urgent instructions sent by this physician to the selected patient (newest first). */
+  get paginatedHistoryRows(): HistoryRow[] {
+    if (this.hPage > this.totalHPages) {
+      this.hPage = this.totalHPages;
+    }
+    const start = (Math.max(1, this.hPage) - 1) * this.hPageSize;
+    return this.historyRows.slice(start, start + this.hPageSize);
+  }
+
+  nextHPage(): void {
+    if (this.hPage < this.totalHPages) {
+      this.hPage++;
+    }
+  }
+
+  prevHPage(): void {
+    if (this.hPage > 1) {
+      this.hPage--;
+    }
+  }
+
+
   get alertsForSelectedPatient(): AlertDto[] {
     return [...this.alerts].sort(
       (a, b) =>
@@ -212,12 +254,78 @@ export class DoctorHistoryComponent implements OnInit {
     );
   }
 
+  get totalAPages(): number {
+    return Math.ceil(this.alertsForSelectedPatient.length / this.aPageSize) || 1;
+  }
+
+  get paginatedAlerts(): AlertDto[] {
+    if (this.aPage > this.totalAPages) {
+      this.aPage = this.totalAPages;
+    }
+    const start = (Math.max(1, this.aPage) - 1) * this.aPageSize;
+    return this.alertsForSelectedPatient.slice(start, start + this.aPageSize);
+  }
+
+  nextAPage(): void {
+    if (this.aPage < this.totalAPages) {
+      this.aPage++;
+    }
+  }
+
+  prevAPage(): void {
+    if (this.aPage > 1) {
+      this.aPage--;
+    }
+  }
+
   get pendingValidationVitals(): VitalDto[] {
     return this.vitals.filter((v) => !v.verifiedAt);
   }
 
   get pendingValidationSymptoms(): SymptomDto[] {
     return this.symptoms.filter((s) => !s.verifiedAt);
+  }
+
+  get allValidationItems(): any[] {
+    const items: any[] = [];
+    
+    this.pendingValidationVitals.forEach(v => {
+      items.push({ type: 'vital', data: v, date: v.recordedAt });
+    });
+    
+    this.pendingValidationSymptoms.forEach(s => {
+      items.push({ type: 'symptom', data: s, date: s.reportedAt });
+    });
+    
+    this.unreviewedResponses.forEach(r => {
+      items.push({ type: 'questionnaire', data: r, date: r.createdAt });
+    });
+
+    return items.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  }
+
+  get totalVPages(): number {
+    return Math.ceil(this.allValidationItems.length / this.vPageSize) || 1;
+  }
+
+  get paginatedValidationItems(): any[] {
+    if (this.vPage > this.totalVPages) {
+      this.vPage = this.totalVPages;
+    }
+    const start = (Math.max(1, this.vPage) - 1) * this.vPageSize;
+    return this.allValidationItems.slice(start, start + this.vPageSize);
+  }
+
+  nextVPage(): void {
+    if (this.vPage < this.totalVPages) {
+      this.vPage++;
+    }
+  }
+
+  prevVPage(): void {
+    if (this.vPage > 1) {
+      this.vPage--;
+    }
   }
 
   validateVital(v: VitalDto): void {
@@ -276,6 +384,7 @@ export class DoctorHistoryComponent implements OnInit {
           .subscribe({
             next: (created) => {
               this.alerts = [created, ...this.alerts];
+              this.validateVital(v);
             },
             error: (e) => console.error('Urgent clinic alert failed', e),
           });
@@ -306,6 +415,7 @@ export class DoctorHistoryComponent implements OnInit {
           .subscribe({
             next: (created) => {
               this.alerts = [created, ...this.alerts];
+              this.validateSymptom(s);
             },
             error: (e) => console.error('Urgent clinic alert failed', e),
           });

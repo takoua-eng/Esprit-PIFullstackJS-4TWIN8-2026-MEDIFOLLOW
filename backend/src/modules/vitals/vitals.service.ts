@@ -66,12 +66,12 @@ export class VitalsService {
       patientId:
         doc.patientId instanceof Types.ObjectId
           ? doc.patientId.toString()
-          : String(doc.patientId),
+          : (doc.patientId as any)?._id?.toString() || String(doc.patientId),
       patientName: this.nameOf(patient),
       recordedBy:
         doc.recordedBy instanceof Types.ObjectId
           ? doc.recordedBy.toString()
-          : String(doc.recordedBy),
+          : (doc.recordedBy as any)?._id?.toString() || String(doc.recordedBy),
       recorderName: this.nameOf(recorder),
       entrySource: doc.entrySource,
       temperature: doc.temperature,

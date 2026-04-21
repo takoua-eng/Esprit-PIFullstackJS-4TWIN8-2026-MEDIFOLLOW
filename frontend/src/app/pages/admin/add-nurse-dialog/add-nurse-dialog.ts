@@ -14,6 +14,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
 
 import { NurseService } from 'src/app/services/admin/nurse.service';
 import { ServiceService } from 'src/app/services/superadmin/service.service';
@@ -31,6 +32,7 @@ import { ServiceService } from 'src/app/services/superadmin/service.service';
     MatSelectModule,
     MatButtonModule,
     MatIconModule,
+    MatSnackBarModule,
   ],
 })
 export class AddNurse implements OnInit {
@@ -45,6 +47,7 @@ export class AddNurse implements OnInit {
     private nurseService: NurseService,
     private serviceService: ServiceService,
     private dialogRef: MatDialogRef<AddNurse>,
+    private snackBar: MatSnackBar
   ) {
     this.nurseForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
@@ -125,8 +128,16 @@ export class AddNurse implements OnInit {
     }
 
     this.nurseService.createNurse(formData).subscribe({
-      next: () => this.dialogRef.close(true),
-      error: (err) => console.error(err),
+      next: () => {
+        this.snackBar.open('Nurse added successfully', 'Close', { duration: 3000 });
+        this.dialogRef.close(true);
+      },
+      error: (err) => {
+        console.error(err);
+        const errorMsg = err.error?.message || 'An error occurred while creating the nurse';
+        this.snackBar.open(errorMsg, 'Close', { duration: 5000, panelClass: ['error-snackbar'] });
+        this.isSubmitted = false;
+      },
     });
   }
 

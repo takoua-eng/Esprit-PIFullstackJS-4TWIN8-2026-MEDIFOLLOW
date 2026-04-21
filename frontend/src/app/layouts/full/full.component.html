@@ -1,5 +1,7 @@
 <!-- Skip navigation -->
-<a href="#main-content" class="skip-nav-link"> Skip to main content </a>
+<a href="#main-content" class="skip-nav-link">
+  Skip to main content
+</a>
 
 <app-topstrip></app-topstrip>
 
@@ -12,6 +14,7 @@
   autoFocus
   dir="ltr"
 >
+
   <!-- Sidebar -->
   <mat-sidenav
     #leftsidenav
@@ -49,9 +52,11 @@
       ></app-header>
 
       <div class="m-t-30">
-        <!-- ✅ UN SEUL router-outlet -->
         <router-outlet></router-outlet>
       </div>
     </main>
   </mat-sidenav-content>
 </mat-sidenav-container>
+
+<!-- ✅ Garder TON feature -->
+<app-voice-assistant></app-voice-assistant>

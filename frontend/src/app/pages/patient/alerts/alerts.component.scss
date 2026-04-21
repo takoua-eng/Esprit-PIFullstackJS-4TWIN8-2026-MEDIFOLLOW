@@ -1,4 +1,4 @@
-.container { padding: 24px; max-width: 800px; margin: 0 auto; }
+﻿.container { padding: 24px; max-width: 800px; margin: 0 auto; }
 
 .page-header {
   margin-bottom: 24px;
@@ -44,3 +44,14 @@
 
 .badge-pending { color: #ef5350; font-weight: 600; }
 .badge-ok      { color: #43a047; font-weight: 600; }
+
+/* Resolve button styling (green when resolved) */
+.resolve-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 6px 12px; border-radius: 18px; border: 1px solid #1976d2; color: #1976d2;
+  background: transparent; font-weight: 600; cursor: pointer;
+}
+.resolve-btn.resolved {
+  background: #43a047; border-color: #43a047; color: #fff;
+}
+.resolve-btn[disabled] { opacity: 0.9; cursor: default; }

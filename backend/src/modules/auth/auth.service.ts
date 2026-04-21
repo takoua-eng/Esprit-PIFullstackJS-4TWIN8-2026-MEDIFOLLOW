@@ -28,7 +28,8 @@ export class AuthService {
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) throw new BadRequestException('Email non trouvé');
 
-    const token = randomBytes(32).toString('hex');
+    // Generate 6-digit code
+    const token = Math.floor(100000 + Math.random() * 900000).toString();
     (user as any).resetToken = token;
     (user as any).resetTokenExpiry = Date.now() + 3600_000;
     await user.save();
@@ -60,6 +61,7 @@ export class AuthService {
     accessToken: string;
     role: string;
     permissions: string[];
+    user?: any;
   }> {
     const email = signInDto?.email?.trim();
     const password = signInDto?.password ?? '';
@@ -82,9 +84,18 @@ export class AuthService {
     if (user.isArchived) throw new UnauthorizedException('Compte archivé');
     if (user.isActive === false) throw new UnauthorizedException('Compte désactivé');
 
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid)
+    let isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid && user.password === password) {
+      // Migration automatique des comptes existants créés sans hash.
+      isPasswordValid = true;
+      user.password = await bcrypt.hash(password, 10);
+      await user.save();
+    }
+
+    if (!isPasswordValid) {
       throw new UnauthorizedException('Email ou mot de passe incorrect');
+    }
 
     const roleName =
       user.role && typeof user.role === 'object' && 'name' in user.role
@@ -120,6 +131,7 @@ export class AuthService {
       accessToken,
       role: roleName,
       permissions,
+      user,
     };
   }
 
@@ -134,7 +146,8 @@ export class AuthService {
       },
     });
 
-    const resetLink = `${this.configService.get<string>('FRONTEND_URL')}/reset-password?token=${token}`;
+    // Code validation instead of Link
+    // const resetLink = `${this.configService.get<string>('FRONTEND_URL')}/reset-password?token=${token}`;
 
     await transporter.sendMail({
       from: `"Mediflow" <${this.configService.get<string>('SMTP_USER')}>`,
@@ -142,9 +155,9 @@ export class AuthService {
       subject: 'Réinitialisation du mot de passe',
       html: `
         <h3>Réinitialisation du mot de passe</h3>
-        <p>Cliquez sur le lien ci-dessous :</p>
-        <a href="${resetLink}">${resetLink}</a>
-        <p>Ce lien expire bientôt.</p>
+        <p>Voici votre code de vérification pour réinitialiser votre mot de passe :</p>
+        <h2 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 2px;">${token}</h2>
+        <p>Ce code expirera dans 1 heure.</p>
       `,
     });
   }

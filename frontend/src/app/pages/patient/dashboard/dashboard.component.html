@@ -3,8 +3,8 @@
   <!-- ── TOP HERO ── -->
   <div class="db-hero" role="banner">
     <div class="hero-left">
-      <p class="hero-greeting">Good day,</p>
-      <h1 class="hero-name">My Health Dashboard</h1>
+      <p class="hero-greeting">{{ 'GOOD_DAY' | translate }}</p>
+      <h1 class="hero-name">{{ 'MY_HEALTH_DASHBOARD' | translate }}</h1>
       <p class="hero-date">{{ todayDate | date:'EEEE, MMMM d, y' }}</p>
     </div>
     <div class="hero-right" *ngIf="pendingAlertsCount > 0">
@@ -15,7 +15,7 @@
         aria-live="polite"
         [attr.aria-label]="pendingAlertsCount + ' alerts pending — press Enter to view'">
         <mat-icon>warning</mat-icon>
-        {{ pendingAlertsCount }} alert{{ pendingAlertsCount > 1 ? 's' : '' }} pending
+        {{ pendingAlertsCount }} {{ 'ALERTS' | translate }} {{ 'PENDING' | translate }}
       </a>
     </div>
     <!-- Keyboard hint -->
@@ -32,13 +32,13 @@
   <!-- Loading -->
   <div *ngIf="isLoading" class="db-loading" role="status" aria-live="polite">
     <mat-spinner diameter="48"></mat-spinner>
-    <p>Loading your health data...</p>
+    <p>{{ 'LOADING_YOUR_HEALTH_DATA' | translate }}</p>
   </div>
 
   <ng-container *ngIf="!isLoading">
 
     <!-- ── TODAY STATUS ── -->
-    <p class="section-label" id="today-status-label">Today's Status</p>
+    <p class="section-label" id="today-status-label">{{ 'TODAYS_STATUS' | translate }}</p>
     <div class="today-row" role="list" aria-labelledby="today-status-label">
 
       <div
@@ -47,15 +47,15 @@
         [class.tc-todo]="!vitalsEnteredToday"
         role="listitem"
         tabindex="0"
-        [attr.aria-label]="'Vital Parameters: ' + (vitalsEnteredToday ? 'Submitted today' : 'Not submitted yet — press Enter to submit')"
+        [attr.aria-label]="'Vital Parameters: ' + (vitalsEnteredToday ? ('SUBMITTED_TODAY' | translate) : ('NOT_SUBMITTED_YET' | translate))"
         (keydown.enter)="!vitalsEnteredToday && navigateTo('/dashboard/patient/parameters')"
         (keydown.space)="!vitalsEnteredToday && navigateTo('/dashboard/patient/parameters')">
         <div class="tc-icon-box">
           <mat-icon>{{ vitalsEnteredToday ? 'check_circle' : 'monitor_heart' }}</mat-icon>
         </div>
         <div class="tc-body">
-          <span class="tc-title">Vital Parameters</span>
-          <span class="tc-sub">{{ vitalsEnteredToday ? 'Submitted today' : 'Not submitted yet' }}</span>
+          <span class="tc-title">{{ 'VITAL_PARAMETERS' | translate }}</span>
+          <span class="tc-sub">{{ vitalsEnteredToday ? ('SUBMITTED_TODAY' | translate) : ('NOT_SUBMITTED_YET' | translate) }}</span>
         </div>
         <a
           *ngIf="!vitalsEnteredToday"
@@ -80,8 +80,8 @@
           <mat-icon>{{ symptomsEnteredToday ? 'check_circle' : 'sick' }}</mat-icon>
         </div>
         <div class="tc-body">
-          <span class="tc-title">Symptoms</span>
-          <span class="tc-sub">{{ symptomsEnteredToday ? 'Reported today' : 'Not reported yet' }}</span>
+          <span class="tc-title">{{ 'SYMPTOMS' | translate }}</span>
+          <span class="tc-sub">{{ symptomsEnteredToday ? ('REPORTED_TODAY' | translate) : ('NOT_REPORTED_YET' | translate) }}</span>
         </div>
         <a
           *ngIf="!symptomsEnteredToday"
@@ -106,8 +106,8 @@
           <mat-icon>{{ questionnaireAnsweredToday ? 'check_circle' : 'assignment' }}</mat-icon>
         </div>
         <div class="tc-body">
-          <span class="tc-title">Questionnaire</span>
-          <span class="tc-sub">{{ questionnaireAnsweredToday ? 'Completed today' : 'Not completed yet' }}</span>
+          <span class="tc-title">{{ 'QUESTIONNAIRE' | translate }}</span>
+          <span class="tc-sub">{{ questionnaireAnsweredToday ? ('COMPLETED_TODAY' | translate) : ('NOT_COMPLETED_YET' | translate) }}</span>
         </div>
         <a
           *ngIf="!questionnaireAnsweredToday"
@@ -122,40 +122,40 @@
     </div>
 
     <!-- ── LATEST VITALS ── -->
-    <p class="section-label" id="vitals-label">Latest Recorded Values</p>
+    <p class="section-label" id="vitals-label">{{ 'LATEST_RECORDED_VALUES' | translate }}</p>
     <div *ngIf="latestVital; else noVitals" class="vitals-row" role="list" aria-labelledby="vitals-label">
       <div class="vt-card vt-temp" role="listitem" tabindex="0" aria-label="Temperature: {{ latestVital.temperature ?? 'not recorded' }} degrees Celsius">
         <mat-icon aria-hidden="true">thermostat</mat-icon>
         <span class="vt-val">{{ latestVital.temperature ?? '--' }}<small>&deg;C</small></span>
-        <span class="vt-lbl">Temperature</span>
+        <span class="vt-lbl">{{ 'TEMPERATURE' | translate }}</span>
       </div>
       <div class="vt-card vt-hr" role="listitem" tabindex="0" aria-label="Heart Rate: {{ latestVital.heartRate ?? 'not recorded' }} bpm">
         <mat-icon aria-hidden="true">favorite</mat-icon>
         <span class="vt-val">{{ latestVital.heartRate ?? '--' }}<small>bpm</small></span>
-        <span class="vt-lbl">Heart Rate</span>
+        <span class="vt-lbl">{{ 'HEART_RATE' | translate }}</span>
       </div>
       <div class="vt-card vt-weight" role="listitem" tabindex="0" aria-label="Weight: {{ latestVital.weight ?? 'not recorded' }} kg">
         <mat-icon aria-hidden="true">monitor_weight</mat-icon>
         <span class="vt-val">{{ latestVital.weight ?? '--' }}<small>kg</small></span>
-        <span class="vt-lbl">Weight</span>
+        <span class="vt-lbl">{{ 'WEIGHT' | translate }}</span>
       </div>
       <div class="vt-card vt-bp" role="listitem" tabindex="0" aria-label="Blood Pressure: {{ latestVital.bloodPressuresystolic ?? 'not recorded' }} over {{ latestVital.bloodPressureDiastolic ?? 'not recorded' }}">
         <mat-icon aria-hidden="true">bloodtype</mat-icon>
         <span class="vt-val">{{ latestVital.bloodPressuresystolic ?? '--' }}<small>/{{ latestVital.bloodPressureDiastolic ?? '--' }}</small></span>
-        <span class="vt-lbl">Blood Pressure</span>
+        <span class="vt-lbl">{{ 'BLOOD_PRESSURE' | translate }}</span>
       </div>
     </div>
     <ng-template #noVitals>
       <div class="empty-box" role="status">
         <mat-icon aria-hidden="true">query_stats</mat-icon>
-        <p>No vital parameters recorded yet.</p>
+        <p>{{ 'NO_VITAL_PARAMETERS_YET' | translate }}</p>
       </div>
     </ng-template>
 
     <!-- ── CHART + ALERTS ── -->
     <div class="bottom-row">
       <div class="bottom-col">
-        <p class="section-label">Weekly Activity</p>
+        <p class="section-label">{{ 'WEEKLY_ACTIVITY' | translate }}</p>
         <div class="glass-card chart-card" role="img" aria-label="Weekly activity chart showing vitals, symptoms and questionnaire submissions for the past 7 days">
           <apx-chart
             [series]="usageChartOptions.series"
@@ -173,11 +173,11 @@
       </div>
 
       <div class="bottom-col bottom-col--narrow">
-        <p class="section-label" id="alerts-label">Recent Alerts</p>
+        <p class="section-label" id="alerts-label">{{ 'RECENT_ALERTS' | translate }}</p>
         <div class="glass-card alerts-card" role="list" aria-labelledby="alerts-label">
           <div *ngIf="recentAlerts.length === 0" class="empty-box-sm" role="status">
             <mat-icon aria-hidden="true">notifications_none</mat-icon>
-            <p>No recent alerts</p>
+            <p>{{ 'NO_RECENT_ALERTS' | translate }}</p>
           </div>
           <div
             *ngFor="let alert of recentAlerts"

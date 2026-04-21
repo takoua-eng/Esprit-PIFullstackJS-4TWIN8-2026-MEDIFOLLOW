@@ -1,0 +1,88 @@
+<div class="chat-page">
+
+  <!-- Header -->
+  <div class="chat-header">
+    <div class="header-left">
+      <div class="bot-avatar">
+        <span class="bot-icon">🤖</span>
+        <span class="online-dot"></span>
+      </div>
+      <div class="header-info">
+        <h2>MediBot</h2>
+        <span class="status">Assistant santé · En ligne</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-urgent" (click)="sendUrgency()" title="Urgence médicale">
+        🚨 Urgence
+      </button>
+      <button class="btn-clear" (click)="clearChat()" title="Effacer la conversation">
+        🗑️
+      </button>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimer">
+    ⚠️ Ce chatbot ne remplace pas un médecin. Consultez toujours un professionnel de santé.
+  </div>
+
+
+  <!-- Messages -->
+  <div class="messages-container" #messagesContainer>
+    <div
+      *ngFor="let msg of messages"
+      class="message-wrapper"
+      [class.patient-wrapper]="msg.sender === 'patient'"
+      [class.bot-wrapper]="msg.sender === 'bot'"
+    >
+      <!-- Bot avatar -->
+      <div class="avatar bot-avatar-sm" *ngIf="msg.sender === 'bot'">🤖</div>
+
+      <!-- Bubble -->
+      <div
+        class="bubble"
+        [class.patient-bubble]="msg.sender === 'patient'"
+        [class.bot-bubble]="msg.sender === 'bot'"
+        [class.urgent-bubble]="msg.isUrgent"
+      >
+        <p>{{ msg.text }}</p>
+        <span class="timestamp">{{ msg.timestamp | date: 'HH:mm' }}</span>
+      </div>
+
+      <!-- Patient avatar -->
+      <div class="avatar patient-avatar-sm" *ngIf="msg.sender === 'patient'">👤</div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="message-wrapper bot-wrapper" *ngIf="isLoading">
+      <div class="avatar bot-avatar-sm">🤖</div>
+      <div class="bubble bot-bubble typing-bubble">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="input-area">
+    <textarea
+      [(ngModel)]="userInput"
+      (keydown)="onKeyDown($event)"
+      placeholder="Décrivez vos symptômes... (Entrée pour envoyer)"
+      rows="2"
+      [disabled]="isLoading"
+      class="message-input"
+    ></textarea>
+    <button
+      class="send-btn"
+      (click)="send()"
+      [disabled]="!userInput.trim() || isLoading"
+    >
+      <span *ngIf="!isLoading">➤</span>
+      <span *ngIf="isLoading" class="spinner-sm"></span>
+    </button>
+  </div>
+
+</div>

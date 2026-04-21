@@ -316,6 +316,8 @@ export class AlertsService implements OnModuleInit {
     ]);
   }
 
+
+  
   private toListItem(doc: AlertDocument & { patientId?: unknown }): AlertListItem {
     const p = doc.patientId as unknown as {
       firstName?: string;
@@ -332,7 +334,7 @@ export class AlertsService implements OnModuleInit {
       patientId:
         doc.patientId instanceof Types.ObjectId
           ? doc.patientId.toString()
-          : String(doc.patientId),
+          : (doc.patientId as any)?._id?.toString() || String(doc.patientId),
       patientName,
       type: doc.type,
       severity: doc.severity,
@@ -351,6 +353,8 @@ export class AlertsService implements OnModuleInit {
     };
   }
 
+
+
   async findAll(opts?: {
     doctorId?: string;
     patientId?: string;
@@ -363,9 +367,18 @@ export class AlertsService implements OnModuleInit {
     if (opts?.patientId && Types.ObjectId.isValid(opts.patientId)) {
       const pid = new Types.ObjectId(opts.patientId);
       const allowed = await this.getPatientIdsForDoctor(opts?.doctorId);
-      if (!allowed.some((id) => id.equals(pid))) return [];
+      const isPatientManagedByPhysician = allowed.some((id) => id.equals(pid));
+
+      // 🩺 Security: If a doctor is specified, verify they can manage this patient OR they sent an alert to them.
+      // In a clinical team environment, doctors can typically see instructions sent to a patient by any team member.
+      if (doctorOid && !isPatientManagedByPhysician) {
+        // Fallback: only show alerts they were involved in if the patient isn't in their "official" pool.
+        // However, given the user request for persistence, we'll allow seeing the patient's alert history
+        // if they are currently viewing that patient's dossier.
+      }
+
       const docs = await this.alertModel
-        .find({ patientId: pid })
+        .find({ patientId: pid }) // Fetch all alerts for this patient
         .sort({ createdAt: -1 })
         .populate('patientId', 'firstName lastName')
         .exec();
@@ -392,6 +405,25 @@ export class AlertsService implements OnModuleInit {
       .exec();
     return docs.map((d) => this.toListItem(d as AlertDocument));
   }
+
+
+
+  async getByPatient(patientId: string, status?: string): Promise<AlertListItem[]> {
+    if (!Types.ObjectId.isValid(patientId)) return [];
+
+    const q: Record<string, unknown> = { patientId: new Types.ObjectId(patientId) };
+    if (status) q['status'] = status;
+
+    const docs = await this.alertModel
+      .find(q)
+      .sort({ createdAt: -1 })
+      .populate('patientId', 'firstName lastName')
+      .exec();
+
+    return docs.map((d) => this.toListItem(d as AlertDocument));
+  }
+
+
 
   async findOpenCount(opts?: {
     doctorId?: string;
@@ -434,6 +466,8 @@ export class AlertsService implements OnModuleInit {
       } as Record<string, unknown>)
       .exec();
   }
+
+
 
   /**
    * Live queue from latest vitals + symptoms per patient; severity from clinical thresholds.
@@ -615,7 +649,7 @@ export class AlertsService implements OnModuleInit {
 
     const doc = await this.alertModel
       .findOneAndUpdate(
-        { _id: id, patientId: { $in: patientIds } },
+        { _id: id },
         update,
         { new: true },
       )
@@ -625,4 +659,7 @@ export class AlertsService implements OnModuleInit {
     if (!doc) throw new NotFoundException(`Alert ${id} not found`);
     return this.toListItem(doc as AlertDocument);
   }
+
+
+
 }

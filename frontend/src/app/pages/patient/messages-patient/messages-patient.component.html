@@ -1,0 +1,96 @@
+﻿<div class="chat-page">
+
+  <div class="chat-header">
+    <mat-icon>forum</mat-icon>
+    <div>
+      <h2>Messages</h2>
+      <p>Chat directly with your medical team</p>
+    </div>
+  </div>
+
+  <div class="chat-layout">
+
+    <!-- ─── Left: doctors list ─────────────────────── -->
+    <aside class="contacts-panel">
+      <div class="contacts-search">
+        <mat-icon>search</mat-icon>
+        <input placeholder="Search doctor…" [(ngModel)]="searchQuery" />
+      </div>
+
+      <div class="contacts-label">Doctors</div>
+
+      <div class="contacts-list">
+        <div
+          *ngFor="let doc of filteredDoctors"
+          class="contact-item"
+          [class.active]="selectedContact?._id === doc._id"
+          (click)="selectContact(doc)">
+          <div class="avatar avatar-blue">{{ initials(doc) }}</div>
+          <div class="contact-info">
+            <span class="contact-name">Dr. {{ doc.firstName }} {{ doc.lastName }}</span>
+          </div>
+          <span *ngIf="doc.unreadCount > 0" class="unread-badge">{{ doc.unreadCount }}</span>
+        </div>
+
+        <div *ngIf="filteredDoctors.length === 0" class="nothing-msg">
+          No doctors found.
+        </div>
+      </div>
+    </aside>
+
+    <!-- ─── Right: conversation ────────────────────── -->
+    <main class="conv-panel">
+      <ng-container *ngIf="selectedContact; else noSel">
+
+        <!-- Header -->
+        <div class="conv-header">
+          <div class="avatar avatar-blue">{{ initials(selectedContact) }}</div>
+          <div class="conv-header-name">
+            Dr. {{ selectedContact.firstName }} {{ selectedContact.lastName }}
+          </div>
+        </div>
+
+        <!-- Messages -->
+        <div class="messages-area">
+          <div *ngIf="loading" class="msg-loading">Loading…</div>
+
+          <div
+            *ngFor="let msg of messages"
+            class="bubble"
+            [class.bubble-sent]="isMine(msg)"
+            [class.bubble-recv]="!isMine(msg)">
+            <div class="bubble-text">{{ msg.content }}</div>
+            <div class="bubble-time">{{ msg.createdAt | date:'MMM d, HH:mm' }}</div>
+          </div>
+
+          <div *ngIf="messages.length === 0 && !loading" class="nothing-msg center">
+            No messages yet. Say hello 👋
+          </div>
+
+          <div #msgEnd></div>
+        </div>
+
+        <!-- Input -->
+        <div class="input-bar">
+          <input
+            type="text"
+            placeholder="Type a message…"
+            [(ngModel)]="newMessage"
+            (keyup.enter)="send()" />
+          <button class="send-btn" (click)="send()" [disabled]="!newMessage.trim()">
+            <mat-icon>send</mat-icon>
+          </button>
+        </div>
+
+      </ng-container>
+
+      <ng-template #noSel>
+        <div class="no-selection">
+          <mat-icon>chat_bubble_outline</mat-icon>
+          <p>Select a doctor on the left to start chatting</p>
+        </div>
+      </ng-template>
+    </main>
+
+  </div>
+</div>

@@ -41,8 +41,10 @@ export class AdminProfileComponent implements OnInit {
           phone: user.phone,
           service: user.service?.name || '—',
           hospital: 'MediFollow Demo Hospital',
-          avatar: user.photo
-            ? `http://localhost:3000/${user.photo}`
+          avatar: (user.photo && typeof user.photo === 'string' && user.photo !== 'null' && user.photo !== 'undefined' && user.photo !== '')
+            ? (user.photo.startsWith('uploads/') || user.photo.startsWith('http') 
+               ? `http://localhost:3000/${user.photo.replace(/\\/g, '/')}` 
+               : `http://localhost:3000/uploads/${user.photo.replace(/\\/g, '/')}`)
             : '/assets/images/profile/user-1.jpg'
         };
 

@@ -1,4 +1,4 @@
-﻿import {
+import {
   Body,
   Controller,
   Delete,
@@ -174,7 +174,13 @@ export class UsersController {
   findPhysicians() {
     return this.usersService.findByRoleName('Physician');
   }
-
+  //get profile
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  async getProfile(@Req() req) {
+    const userId = req.user._id;
+    return this.usersService.getUser(userId);
+  }
   // ✅ GET UN USER : Condition spéciale pour patient
   @Get(':id')
   @Permissions('users:read', 'profile:read') // L'un OU l'autre suffit
@@ -305,13 +311,7 @@ updateAuditor(
   return this.usersService.updateAuditor(id, dto, file);
 }
 
-  //get profile
-  @UseGuards(JwtAuthGuard)
-  @Get('me')
-  async getProfile(@Req() req) {
-    const userId = req.user.userId;
-    return this.usersService.getUser(userId);
-  }
+
   // ⚠️ TOUJOURS À LA FIN
 
 

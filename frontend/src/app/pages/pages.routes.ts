@@ -22,7 +22,7 @@ import { UserManagementComponent } from './super-admin/user-management/user-mana
 
 import { AiIntelligenceComponent } from './super-admin/ai-intelligence/ai-intelligence.component';
 import { SuperAdminDashboardComponent } from './super-admin/superadmin-dashboard/superadmin-dashboard.component';
-import { SuperAdminProfileComponent } from './super-admin/superadmin-profile/superadmin-profile.component';
+//import { SuperAdminProfileComponent } from './super-admin/superadmin-profile/superadmin-profile.component';
 import { AdminsComponent } from './super-admin/admins/admins';
 import { Patients as SuperPatients } from './super-admin/patients/patients';
 
@@ -41,14 +41,12 @@ import { AuditorAnomaliesComponent } from './auditor/auditor-anomalies/auditor-a
 // Patient Components (from main)
 import { DashboardComponent } from './patient/dashboard/dashboard.component';
 import { DossiersComponent } from './patient/dossiers/dossiers.component';
-import { ProfileComponent } from './patient/profile/profile.component';
+//import { ProfilComponent } from './patient/profile/profil.component';
 import { ParametersComponent } from './patient/parameters/parameters.component';
 import { SymptomsComponent } from './patient/symptoms/symptoms.component';
 import { QuestionnairesComponent } from './patient/questionnaires/questionnaires.component';
 import { HistoryComponent } from './patient/history/history.component';
-import { MessagesComponent } from './patient/messages/messages.component';
 import { AlertsComponent } from './patient/alerts/alerts.component';
-
 // Nurse & doctor workspaces
 import { NurseDashboardComponent } from './nurse/dashboard/nurse-dashboard.component';
 import { NurseAlertsComponent } from './nurse/alerts/nurse-alerts.component';
@@ -58,11 +56,15 @@ import { DoctorDashboardComponent } from './doctor/dashboard/doctor-dashboard.co
 import { DoctorAlertsComponent } from './doctor/alerts/doctor-alerts.component';
 import { DoctorHistoryComponent } from './doctor/history/doctor-history.component';
 import { DoctorPrescriptionsComponent } from './doctor/prescriptions/doctor-prescriptions.component';
+import { MessagesDoctorComponent } from './doctor/messages-doctor/messages-doctor.component';
+import { MessagesPatientComponent } from './patient/messages-patient/messages-patient.component';
+import { AiChatComponent } from './patient/ai-chat/ai-chat.component';
 import { AiPredictionComponent } from './coordinator/ai-prediction/ai-prediction.component';
 import { ServiceComponent } from './super-admin/service/service';
 import { RoleComponent } from './super-admin/role/role';
 import { PermissionGuard } from '../permission.guard';
 import { MedecinsComponent } from './admin/medecins/medecins';
+import { ProfilComponent } from './profil/profil.component';
 
 /** Roles allowed to use the sub-admin `/dashboard/admin/...` area (not patients, not coordinators). */
 const staffAdminGuard = [
@@ -119,10 +121,9 @@ export const AdminRoutes: Routes = [
   },
 
   {
-    path: 'profile',
-    component: AdminProfileComponent,
-    canActivate: [...staffAdminGuard],
-
+    path: 'profil',
+    component: ProfilComponent,
+ 
   },
 ];
 // ✅ COORDINATOR ROUTES — loaded only from `/admin/coordinator` (see `app.routes.ts`)
@@ -183,6 +184,10 @@ export const NurseRoutes: Routes = [
   },
 ];
 
+export const ProfilRoutes: Routes = [
+  { path: 'profil', component: ProfilComponent },
+];    
+
 /** Physician portal: `/dashboard/doctor`, `/dashboard/doctor/alerts`, … */
 export const DoctorRoutes: Routes = [
   {
@@ -209,6 +214,11 @@ export const DoctorRoutes: Routes = [
         component: DoctorPrescriptionsComponent,
         data: { title: 'Doctor Prescriptions' },
       },
+      {
+        path: 'messages',
+        component: MessagesDoctorComponent,
+        data: { title: 'Messages' },
+      },
     ],
   },
 ];
@@ -228,7 +238,7 @@ export const SuperAdminRoutes: Routes = [
   },
   {
     path: 'profile',
-    component: SuperAdminProfileComponent,
+    component: ProfilComponent,
   },
   {
     path: 'admin-users',
@@ -292,47 +302,16 @@ export const PatientRoutes: Routes = [
     path: 'patient',
     canActivate: patientOnlyGuard,
     children: [
-      {
-        path: 'dashboard',
-        component: DashboardComponent,
-        data: { title: 'Dashboard' },
-      },
-      {
-        path: 'dossiers',
-        component: DossiersComponent,
-        data: { title: 'Dossiers' },
-      },
-      {
-        path: 'profile',
-        component: ProfileComponent,
-        data: { title: 'Profil' },
-      },
-      {
-        path: 'parameters',
-        component: ParametersComponent,
-        data: { title: 'Mes Paramètres' },
-      },
-      {
-        path: 'symptoms',
-        component: SymptomsComponent,
-        data: { title: 'Mes Symptômes' },
-      },
-      {
-        path: 'questionnaires',
-        component: QuestionnairesComponent,
-        data: { title: 'Questionnaires' },
-      },
-      {
-        path: 'history',
-        component: HistoryComponent,
-        data: { title: 'Historique' },
-      },
-      {
-        path: 'messages',
-        component: MessagesComponent,
-        data: { title: 'Messages' },
-      },
+      { path: 'dashboard', component: DashboardComponent, data: { title: 'Dashboard' } },
+      { path: 'dossiers', component: DossiersComponent, data: { title: 'Dossiers' } },
+      { path: 'profile', component: ProfilComponent, data: { title: 'Profil' } },
+      { path: 'parameters', component: ParametersComponent, data: { title: 'Mes Paramètres' } },
+      { path: 'symptoms', component: SymptomsComponent, data: { title: 'Mes Symptômes' } },
+      { path: 'questionnaires', component: QuestionnairesComponent, data: { title: 'Questionnaires' } },
+      { path: 'history', component: HistoryComponent, data: { title: 'Historique' } },
       { path: 'alerts', component: AlertsComponent, data: { title: 'Alerts' } },
+      { path: 'messages', component: MessagesPatientComponent, data: { title: 'Messages' } },
+      { path: 'ai-chat', component: AiChatComponent, data: { title: 'Assistant IA' } },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },
@@ -357,5 +336,5 @@ export const AuditorRoutes: Routes = [
   { path: 'anomalies',    component: AuditorAnomaliesComponent,    canActivate: [PermissionGuard], data: { permission: 'audit:read' } },
   { path: 'logs',         component: AuditLogsComponent,           canActivate: [PermissionGuard], data: { permission: 'audit:read' } },
   { path: 'verify',       component: AuditorVerifyComponent,       canActivate: [PermissionGuard], data: { permission: 'audit:read' } },
-  { path: 'profile',      component: SuperAdminProfileComponent },
+  { path: 'profile',      component: ProfilComponent },
 ];

@@ -14,4 +14,8 @@ export class UserService {
   getProfile(): Observable<any> {
     return this.http.get(`${this.api}/me`);
   }
+
+  updateUser(id: string, dto: any): Observable<any> {
+    return this.http.put(`${this.api}/${id}`, dto);
+  }
 }

@@ -57,12 +57,12 @@ export class SymptomsService {
       patientId:
         doc.patientId instanceof Types.ObjectId
           ? doc.patientId.toString()
-          : String(doc.patientId),
+          : (doc.patientId as any)?._id?.toString() || String(doc.patientId),
       patientName: this.nameOf(patient),
       reportedBy:
         doc.reportedBy instanceof Types.ObjectId
           ? doc.reportedBy.toString()
-          : String(doc.reportedBy),
+          : (doc.reportedBy as any)?._id?.toString() || String(doc.reportedBy),
       reporterName: this.nameOf(reporter),
       entrySource: doc.entrySource ?? 'patient',
       symptoms: doc.symptoms || [],

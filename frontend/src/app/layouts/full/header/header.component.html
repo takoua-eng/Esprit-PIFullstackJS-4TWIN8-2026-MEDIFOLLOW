@@ -8,20 +8,26 @@
     <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
   </button>
 
-  <!-- Alert Bell (Patient only) -->
-  <button
-    *ngIf="core.userRole() === 'Patient'"
-    mat-icon-button
-    routerLink="/dashboard/patient/alerts"
-    aria-label="Alerts"
-  >
-    <span class="bell-wrapper">
-      <i-tabler class="d-flex" name="bell"></i-tabler>
-      <span *ngIf="pendingAlertsCount > 0" class="alert-badge">
-        {{ pendingAlertsCount }}
-      </span>
+  
+  <!-- Alert Bell with live badge -->
+<button
+  *ngIf="canNavigateToAlerts()"
+  mat-icon-button
+  (click)="goToAlerts()"
+  aria-label="Alerts"
+>
+  <span class="bell-wrapper">
+    <i-tabler class="d-flex" name="bell"></i-tabler>
+
+    <!-- Badge uniquement pour Patient -->
+    <span
+      *ngIf="core.userRole() === 'Patient' && pendingAlertsCount > 0"
+      class="alert-badge"
+    >
+      {{ pendingAlertsCount }}
     </span>
-  </button>
+  </span>
+</button>
 
   <span class="flex-1-auto"></span>
 
@@ -46,9 +52,10 @@
     aria-label="User menu"
   >
     <img
-      src="/assets/images/profile/user-1.jpg"
+      [src]="currentUser?.photoUrl || '/assets/images/profile/user-1.jpg'"
       class="rounded-circle object-cover d-block"
       width="35"
+      height="35"
     />
   </button>
 
@@ -129,7 +136,7 @@
   <!-- Profile Menu -->
   <mat-menu #profileMenu="matMenu" xPosition="before">
     <div class="px-4 py-2">
-      <div class="f-w-600">{{ "APP_NAME" | translate }}</div>
+      <div class="f-w-600">{{ currentUser ? currentUser.firstName + ' ' + currentUser.lastName : ('APP_NAME' | translate) }}</div>
       <div class="text-muted f-s-12">{{ core.userRole() }}</div>
     </div>
     <mat-divider></mat-divider>

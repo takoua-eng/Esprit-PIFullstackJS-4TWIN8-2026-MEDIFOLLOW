@@ -35,12 +35,26 @@
           📷 Login with Face ID
         </button>
 
-        <!-- 🎥 CAMERA -->
-        <div *ngIf="showCamera" class="camera-container">
-          <video #video autoplay playsinline width="320" height="240" *ngIf="useVideo"></video>
-          <img #image *ngIf="!useVideo" src="assets/test/test-face.jpg" width="320" height="240" />
-          <button (click)="startTestFace()">Test Face</button>
-          <div>{{ faceMessage }}</div>
+        <!-- 🎥 IMPROVED CAMERA VIEW -->
+        <div *ngIf="showCamera" class="face-id-scanner" [class.scanning]="loadingFace">
+          
+          <div class="video-wrapper">
+            <video #video autoplay playsinline *ngIf="useVideo"></video>
+            <img #image *ngIf="!useVideo" src="assets/test/test-face.jpg" style="width:100%; height:auto;" />
+            <!-- Animated Scan Line -->
+            <div class="scan-overlay" *ngIf="loadingFace"></div>
+          </div>
+
+          <div class="camera-controls">
+            <button mat-flat-button color="primary" type="button" (click)="captureAndLogin()" [disabled]="loadingFace">🔓 Login</button>
+            <button mat-stroked-button color="accent" type="button" (click)="enrollFace()" [disabled]="loadingFace">➕ Enroll Face</button>
+            <button mat-stroked-button color="warn" type="button" (click)="closeCamera()">Cancel</button>
+          </div>
+
+          <!-- Message Box with dynamic color class -->
+          <div class="message-box" *ngIf="faceMessage" [ngClass]="getMessageClass()">
+            {{ faceMessage }}
+          </div>
         </div>
 
 

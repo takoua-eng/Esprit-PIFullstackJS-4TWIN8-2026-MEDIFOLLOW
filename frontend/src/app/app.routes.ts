@@ -35,6 +35,13 @@ export const routes: Routes = [
           ),
       },
 
+      {
+        path: 'profil',
+        component: FullComponent,
+        loadChildren: () =>
+          import('./pages/pages.routes').then((m) => m.ProfilRoutes),
+      },
+
       // ✅ Redirect /template-builder → /templates/create
       {
         path: 'admin/template-builder',

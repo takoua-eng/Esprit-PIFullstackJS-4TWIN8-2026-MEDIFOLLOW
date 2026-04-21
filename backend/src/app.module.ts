@@ -32,14 +32,12 @@ import { CoordinatorModule } from './modules/coordinator/coordinator.module';
 import { VitalParametersModule } from './modules/vital-parameters/vital-parameters.module';
 import { AutoAlertsModule } from './modules/auto-alerts/auto-alerts.module';
 import { QuestionnaireResponseModule } from './modules/questionnaire-responses/questionnaire-response.module';
-import { PatientNotesModule } from './modules/patient-notes/patient-notes.module';
+// import { PatientNotesModule } from './modules/patient-notes/patient-notes.module';
 import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { HospitalizationHandwritingModule } from './modules/hospitalization-handwriting/hospitalization-handwriting.module';
 import { QuestionnairesModule } from './modules/questionnaires/questionnaires.module';
 import { AdminModule } from './modules/admin/admin.module';
-import { AiModule } from './modules/ai/ai.module';
-import { QuestionnaireTemplateModule } from './modules/questionnaire-template/questionnaire-template.module';
-import { QuestionnaireInstanceModule } from './modules/questionnaire-instance/questionnaire-instance.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 // Schemas
 import { User, UserSchema } from './modules/users/users.schema';
@@ -48,21 +46,22 @@ import {
   Service,
   ServiceSchema,
 } from './modules/service/services/service.schema';
-import {
-  QuestionnaireTemplate,
-  QuestionnaireTemplateSchema,
-} from './modules/questionnaire-template/questionnaire-template.schema';
-import {
-  QuestionnaireResponse,
-  QuestionnaireResponseSchema,
-} from './modules/questionnaire-responses/questionnaire-response.schema';
-import {
-  QuestionnaireInstance,
-  QuestionnaireInstanceSchema,
-} from './modules/questionnaire-instance/questionnaire-instance.schema';
+// import {
+//   QuestionnaireTemplate,
+//   QuestionnaireTemplateSchema,
+// } from './modules/questionnaire-template/questionnaire-template.schema';
+// import {
+//   QuestionnaireResponse,
+//   QuestionnaireResponseSchema,
+// } from './modules/questionnaire-responses/questionnaire-response.schema';
+// import {
+//   QuestionnaireInstance,
+//   QuestionnaireInstanceSchema,
+// } from './modules/questionnaire-instance/questionnaire-instance.schema';
 
 // Middleware
 import { Upload, UploadAvatar } from './middleware/upload.middleware';
+import { MessagesPatientDoctorModule } from './modules/messages-patient-doctor/messages-patient-doctor.module';
 
 // Others
 import { AppController } from './app.controller';
@@ -73,6 +72,13 @@ const mongoConfigLogger = new Logger('MongoConfig');
 
 const DEFAULT_MONGODB_URI =
   'mongodb+srv://Medifollow:Medifollow2025@cluster0.15l0i6q.mongodb.net/?retryWrites=true&w=majority';
+import { QuestionnaireTemplate, QuestionnaireTemplateSchema } from './modules/questionnaire-template/questionnaire-template.schema';
+import { QuestionnaireResponse, QuestionnaireResponseSchema } from './modules/questionnaire-responses/questionnaire-response.schema';
+import { QuestionnaireInstance, QuestionnaireInstanceSchema } from './modules/questionnaire-instance/questionnaire-instance.schema';
+import { QuestionnaireTemplateModule } from './modules/questionnaire-template/questionnaire-template.module';
+import { QuestionnaireInstanceModule } from './modules/questionnaire-instance/questionnaire-instance.module';
+// import { JwtStrategy } from './modules/auth/jwt.strategy';
+import { AiModule } from './modules/ai/ai.module';
 
 @Module({
   controllers: [AppController],
@@ -137,12 +143,14 @@ const DEFAULT_MONGODB_URI =
     AutoAlertsModule,
     QuestionnaireTemplateModule,
     QuestionnaireResponseModule,
+    MessagesPatientDoctorModule,
     QuestionnaireInstanceModule,
-    PatientNotesModule,
+    QuestionnaireTemplateModule,
     VideoCallsModule,
     HospitalizationHandwritingModule,
     QuestionnairesModule,
     AdminModule,
+    DashboardModule,
     AiModule,
   ],
   providers: [

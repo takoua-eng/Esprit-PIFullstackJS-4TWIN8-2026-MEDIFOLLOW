@@ -24,4 +24,12 @@ export class AiController {
   generateAuditReport() {
     return this.aiService.generateAuditReport();
   }
+  	@Post('chat')
+	async chat(@Body() body: { message: string; patientContext?: any }) {
+		const { message, patientContext } = body || { message: '', patientContext: undefined };
+		const response = await this.aiService.chatWithPatient(message, patientContext);
+		return { response };
+	}
 }
+
+

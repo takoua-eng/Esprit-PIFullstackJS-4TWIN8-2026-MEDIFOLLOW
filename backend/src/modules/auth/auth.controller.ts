@@ -13,6 +13,7 @@ import { SignInDto } from '../auth/dto/SignIn.dto';
 import { ForgotPasswordDto } from '../auth/dto/forgot-password.dto';
 import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { RoleDocument } from '../roles/role.schema';
 import express from 'express';
@@ -85,9 +86,9 @@ export class AuthController {
 
     const users = await this.userModel.find({
       faceDescriptor: { $exists: true, $ne: [] },
-    });
+    }).populate('role', 'name permissions');
 
-    let bestMatch: UserDocument | null = null; // ✅ typage explicite
+    let bestMatch: any = null; // Use any to allow populated role access
     let minDistance = Infinity;
 
     for (const user of users) {
@@ -103,13 +104,46 @@ export class AuthController {
     }
 
     if (bestMatch && minDistance < 0.6) {
+      const roleName = bestMatch.role?.name || '';
       return {
         user: bestMatch,
-        token: this.generateJWT(bestMatch),
+        role: roleName,
+        permissions: bestMatch.role?.permissions || [],
+        token: this.generateJWT(bestMatch, roleName),
       };
     }
 
     throw new UnauthorizedException('Face not recognized');
+  }
+
+  // ================= REGISTER FACE =================
+  @UseGuards(JwtAuthGuard)
+  @Post('register-face')
+  async registerFace(@Request() req: any, @Body() body: any) {
+    const { faceDescriptor } = body;
+    if (!faceDescriptor) {
+      throw new BadRequestException('No face data provided');
+    }
+    const user = await this.userModel.findById(req.user._id);
+    if (!user) throw new NotFoundException('User not found');
+    user.faceDescriptor = faceDescriptor;
+    await user.save();
+    return { message: 'Face successfully registered' };
+  }
+
+  // ================= ENROLL FACE (DEMO/TESTING) =================
+  @Post('enroll-face')
+  async enrollFacePublic(@Body() body: any) {
+    const { email, faceDescriptor } = body;
+    if (!email || !faceDescriptor) {
+      throw new BadRequestException('Email and face data required');
+    }
+    const user = await this.userModel.findOne({ email });
+    if (!user) throw new NotFoundException('User not found');
+    
+    user.faceDescriptor = faceDescriptor;
+    await user.save();
+    return { message: 'Face successfully enrolled' };
   }
 
   // ================= DISTANCE =================
@@ -120,11 +154,12 @@ export class AuthController {
   }
 
   // ================= JWT =================
-  generateJWT(user: any) {
+  generateJWT(user: any, roleName: string) {
     return this.jwtService.sign({
       sub: user._id,
       email: user.email,
-      role: user.role,
+      role: roleName,
+      permissions: user.role?.permissions || [],
     });
   }
 }

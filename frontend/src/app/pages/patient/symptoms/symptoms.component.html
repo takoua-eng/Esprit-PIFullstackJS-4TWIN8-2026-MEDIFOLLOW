@@ -17,12 +17,21 @@
     </mat-card-header>
 
     <mat-card-content>
-      <form
-        id="symptoms-form"
-        [formGroup]="symptomsForm"
-        (ngSubmit)="onSubmit()"
-        aria-labelledby="symptoms-title"
-        novalidate>
+        <div *ngIf="submittedToday" class="already-submitted">
+  <mat-card>
+    <mat-card-content>
+      <p>Vous avez déjà signalé vos symptômes aujourd'hui. Vous pouvez le faire de nouveau demain.</p>
+    </mat-card-content>
+  </mat-card>
+</div>
+
+<form
+  *ngIf="!submittedToday"
+  id="symptoms-form"
+  [formGroup]="symptomsForm"
+  (ngSubmit)="onSubmit()"
+  aria-labelledby="symptoms-title"
+  novalidate>
 
         <fieldset class="symptoms-fieldset">
           <legend class="symptoms-legend">Select your symptoms</legend>
