@@ -65,6 +65,7 @@ import { RoleComponent } from './super-admin/role/role';
 import { PermissionGuard } from '../permission.guard';
 import { MedecinsComponent } from './admin/medecins/medecins';
 import { ProfilComponent } from './profil/profil.component';
+import { PatientPrescriptionsComponent } from './patient/prescriptions/patient-prescriptions.component';
 
 /** Roles allowed to use the sub-admin `/dashboard/admin/...` area (not patients, not coordinators). */
 const staffAdminGuard = [
@@ -312,6 +313,7 @@ export const PatientRoutes: Routes = [
       { path: 'alerts', component: AlertsComponent, data: { title: 'Alerts' } },
       { path: 'messages', component: MessagesPatientComponent, data: { title: 'Messages' } },
       { path: 'ai-chat', component: AiChatComponent, data: { title: 'Assistant IA' } },
+      { path: 'prescriptions', component: PatientPrescriptionsComponent, data: { title: 'Mes Prescriptions' } },
       { path: '', redirectTo: 'dashboard', pathMatch: 'full' },
     ],
   },

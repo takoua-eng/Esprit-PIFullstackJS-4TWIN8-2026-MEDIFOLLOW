@@ -141,6 +141,12 @@ export const patientNavItems: NavItem[] = [
     bgcolor: 'secondary',
   },
   {
+    displayName: 'Prescriptions',
+    iconName: 'notes',
+    route: '/dashboard/patient/prescriptions',
+    bgcolor: 'success',
+  },
+  {
     displayName: 'Messages',
     iconName: 'message',
     route: '/dashboard/patient/messages',

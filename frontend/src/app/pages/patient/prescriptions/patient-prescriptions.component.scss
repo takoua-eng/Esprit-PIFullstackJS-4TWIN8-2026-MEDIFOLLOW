@@ -1,0 +1,33 @@
+.prescription-card {
+  border: none;
+  overflow: hidden;
+  
+  .card-glass-header {
+    background: linear-gradient(135deg, #5d87ff 0%, #002d9c 100%);
+  }
+
+  .signature-img {
+    filter: contrast(1.5) grayscale(1);
+    mix-blend-mode: multiply;
+  }
+}
+
+.bg-light-primary {
+  background-color: rgba(93, 135, 255, 0.1);
+}
+
+.max-width-200 {
+  max-width: 200px;
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.hover-grow:hover {
+  transform: translateY(-5px);
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
