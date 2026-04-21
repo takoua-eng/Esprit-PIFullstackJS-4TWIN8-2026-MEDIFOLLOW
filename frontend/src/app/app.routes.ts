@@ -84,7 +84,7 @@ export const routes: Routes = [
       // ✅ Super Admin routes
       {
         path: 'super-admin',
-        component: FullSuperComponent,
+        component: FullComponent,
         canActivate: [authGuard, roleGuard(['superadmin'])],
         loadChildren: () =>
           import('./pages/pages.routes').then((m) => m.SuperAdminRoutes),
@@ -92,7 +92,7 @@ export const routes: Routes = [
 
       {
         path: 'auditor',
-        component: AuditorLayoutComponent,
+        component: FullComponent,
         canActivate: [authGuard, roleGuard(['auditor'])],
         loadChildren: () =>
           import('./pages/pages.routes').then((m) => m.AuditorRoutes),

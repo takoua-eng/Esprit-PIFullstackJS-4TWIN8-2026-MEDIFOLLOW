@@ -1,17 +1,21 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { VitalsApiService } from 'src/app/services/vitals-api.service';
+import { catchError, of } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/api.config';
 
 interface AnomalyRow {
   patientId: string;
   name: string;
   email: string;
+  mrn: string;
+  service: string;
+  coordinatorName: string;
+  vitalsToday: boolean;
+  symptomsToday: boolean;
   issue: string;
   severity: 'HIGH' | 'MEDIUM';
 }
@@ -19,56 +23,85 @@ interface AnomalyRow {
 @Component({
   selector: 'app-auditor-anomalies',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
   templateUrl: './auditor-anomalies.component.html',
   styleUrls: ['./auditor-anomalies.component.scss'],
 })
 export class AuditorAnomaliesComponent implements OnInit {
-  anomalies: AnomalyRow[] = [];
+  allAnomalies: AnomalyRow[] = [];
+  filtered: AnomalyRow[] = [];
   loading = false;
   lastRefresh = new Date();
 
-  constructor(private http: HttpClient, private vitalsService: VitalsApiService) {}
+  filterSeverity: 'ALL' | 'HIGH' | 'MEDIUM' = 'ALL';
+  searchText = '';
+
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void { this.load(); }
 
   load(): void {
     this.loading = true;
-    const today = new Date().toISOString().split('T')[0];
+    this.http.get<any[]>(`${API_BASE_URL}/coordinator/auditor/patients-overview`)
+      .pipe(catchError(() => of([])))
+      .subscribe(patients => {
+        this.lastRefresh = new Date();
 
-    forkJoin({
-      patients: this.http.get<any[]>(`${API_BASE_URL}/users/patients`).pipe(catchError(() => of([]))),
-      vitals:   this.vitalsService.getVitals().pipe(catchError(() => of([]))),
-      symptoms: this.http.get<any[]>(`${API_BASE_URL}/symptoms`).pipe(catchError(() => of([]))),
-    }).subscribe(({ patients, vitals, symptoms }) => {
-      this.lastRefresh = new Date();
-      const vitsToday = new Set((vitals as any[]).filter(v => v.recordedAt?.startsWith(today)).map(v => v.patientId?.toString()));
-      const sympToday = new Set((symptoms as any[]).filter(s => (s.reportedAt || s.createdAt)?.startsWith(today)).map(s => s.patientId?.toString()));
+        const rows: AnomalyRow[] = [];
 
-      const rows: AnomalyRow[] = [];
-      for (const p of patients as any[]) {
-        const id = p._id?.toString();
-        const name = `${p.firstName} ${p.lastName}`;
-        const hasV = vitsToday.has(id);
-        const hasS = sympToday.has(id);
+        for (const p of patients) {
+          if (p.status === 'OK') continue; // pas d'anomalie
 
-        if (!hasV && !hasS) {
-          rows.push({ patientId: id, name, email: p.email, issue: 'No vitals and no symptoms submitted today', severity: 'HIGH' });
-        } else if (!hasV) {
-          rows.push({ patientId: id, name, email: p.email, issue: 'Missing vital signs today', severity: 'MEDIUM' });
-        } else if (!hasS) {
-          rows.push({ patientId: id, name, email: p.email, issue: 'Missing symptoms report today', severity: 'MEDIUM' });
+          const severity: 'HIGH' | 'MEDIUM' = p.status === 'NO DATA' ? 'HIGH' : 'MEDIUM';
+
+          let issue = '';
+          if (!p.vitalsToday && !p.symptomsToday) {
+            issue = 'Aucune soumission de vitaux ni de symptômes aujourd\'hui';
+          } else if (!p.vitalsToday) {
+            issue = 'Signes vitaux manquants aujourd\'hui';
+          } else {
+            issue = 'Rapport de symptômes manquant aujourd\'hui';
+          }
+
+          rows.push({
+            patientId:       p._id,
+            name:            p.name,
+            email:           p.email,
+            mrn:             p.mrn || '—',
+            service:         p.service || p.department || '—',
+            coordinatorName: p.coordinatorName || '—',
+            vitalsToday:     p.vitalsToday,
+            symptomsToday:   p.symptomsToday,
+            issue,
+            severity,
+          });
         }
-      }
-      this.anomalies = rows.sort((a, b) => (a.severity === 'HIGH' ? -1 : 1));
-      this.loading = false;
+
+        // Sort: HIGH first
+        this.allAnomalies = rows.sort((a, b) => a.severity === 'HIGH' ? -1 : 1);
+        this.applyFilters();
+        this.loading = false;
+      });
+  }
+
+  applyFilters(): void {
+    const s = this.searchText.toLowerCase();
+    this.filtered = this.allAnomalies.filter(a => {
+      const matchSev  = this.filterSeverity === 'ALL' || a.severity === this.filterSeverity;
+      const matchText = !s || a.name.toLowerCase().includes(s) || a.email.toLowerCase().includes(s) || a.mrn.toLowerCase().includes(s);
+      return matchSev && matchText;
     });
+  }
+
+  onSearch(e: Event): void {
+    this.searchText = (e.target as HTMLInputElement).value;
+    this.applyFilters();
   }
 
   severityColor(s: string): string {
     return s === 'HIGH' ? '#d63031' : '#fdcb6e';
   }
 
-  get highCount():   number { return this.anomalies.filter(a => a.severity === 'HIGH').length; }
-  get mediumCount(): number { return this.anomalies.filter(a => a.severity === 'MEDIUM').length; }
+  get highCount():   number { return this.allAnomalies.filter(a => a.severity === 'HIGH').length; }
+  get mediumCount(): number { return this.allAnomalies.filter(a => a.severity === 'MEDIUM').length; }
 }

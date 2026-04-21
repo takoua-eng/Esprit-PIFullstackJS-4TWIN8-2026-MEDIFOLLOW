@@ -113,6 +113,10 @@ export class AppSideLoginComponent implements OnInit {
         this.loading = false;
         localStorage.setItem('accessToken', res.accessToken);
         this.core.setUserFromLogin(res.user);
+        // Save permissions from login response
+        if ((res as any).permissions) {
+          this.core.setPermissions((res as any).permissions);
+        }
         this.router.navigateByUrl(getPostLoginPath(res.role));
       });
   }

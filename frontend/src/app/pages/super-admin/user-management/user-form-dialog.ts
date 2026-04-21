@@ -20,6 +20,7 @@ import { RoleService, Role } from '../../../services/superadmin/role.service';
 import { DoctorService, Doctor } from '../../../services/superadmin/doctor.service';
 import { UserManagementService, UserRow } from '../../../services/superadmin/user-management.service';
 import { CoordinateurService, Coordinator } from '../../../services/superadmin/coordinateur.service';
+import { NurseService, Nurse } from '../../../services/superadmin/nurse.service';
 
 export interface UserFormData {
   role: string;
@@ -68,6 +69,8 @@ export class UserFormDialog implements OnInit {
   roles: Role[] = [];
   doctors: Doctor[] = [];
   coordinators: Coordinator[] = [];
+  nurses: Nurse[] = [];
+  filteredNurses: Nurse[] = [];  // nurses du même service que le doctor sélectionné
   specializations = [...DEFAULT_SPECIALIZATIONS];
   newSpecialization = '';
 
@@ -87,6 +90,7 @@ export class UserFormDialog implements OnInit {
     private roleSvc: RoleService,
     private doctorSvc: DoctorService,
     private coordSvc: CoordinateurService,
+    private nurseSvc: NurseService,
     public dialogRef: MatDialogRef<UserFormDialog>,
     @Inject(MAT_DIALOG_DATA) public data: UserFormData,
   ) {
@@ -102,11 +106,14 @@ export class UserFormDialog implements OnInit {
       roles:        this.roleSvc.getRoles(),
       doctors:      this.doctorSvc.getDoctors(),
       coordinators: this.coordSvc.getCoordinators(),
-    }).subscribe(({ services, roles, doctors, coordinators }) => {
+      nurses:       this.nurseSvc.getNurses(),
+    }).subscribe(({ services, roles, doctors, coordinators, nurses }) => {
       this.services     = services;
       this.roles        = roles.filter(r => !r.isArchived && r.name?.toLowerCase() !== 'superadmin');
       this.doctors      = doctors.filter(d => !d.isArchived);
       this.coordinators = coordinators.filter((c: any) => !c.isArchived);
+      this.nurses       = (nurses as Nurse[]).filter((n: any) => !n.isArchived);
+      this.filteredNurses = [];
       if (this.isEdit && this.data.user) this.patchForm(this.data.user);
     });
 
@@ -130,27 +137,41 @@ export class UserFormDialog implements OnInit {
   // ── Auto-fill service when doctor is selected ─────────────────────
   onDoctorChange(doctorId: string): void {
     if (!doctorId) {
-      this.form.patchValue({ serviceId: '' });
+      this.form.patchValue({ serviceId: '', nurseId: '' });
       this.autoServiceName = '';
+      this.filteredNurses = [];
       return;
     }
     const doctor = this.doctors.find(d => d._id === doctorId);
     if (!doctor?.serviceId) {
-      this.form.patchValue({ serviceId: '' });
+      this.form.patchValue({ serviceId: '', nurseId: '' });
       this.autoServiceName = '';
+      this.filteredNurses = [];
       return;
     }
 
-    // serviceId can be a populated object {_id, name} or a plain string id
+    let resolvedServiceId: string;
+
     if (typeof doctor.serviceId === 'object') {
       const svc = doctor.serviceId as any;
+      resolvedServiceId = svc._id;
       this.form.patchValue({ serviceId: svc._id });
       this.autoServiceName = svc.name ?? '';
     } else {
+      resolvedServiceId = doctor.serviceId as string;
       this.form.patchValue({ serviceId: doctor.serviceId });
       const found = this.services.find(s => s._id === doctor.serviceId);
       this.autoServiceName = found?.name ?? '';
     }
+
+    // Filter nurses by same serviceId
+    this.filteredNurses = this.nurses.filter(n => {
+      const nSid = typeof n.serviceId === 'object' ? n.serviceId?._id : n.serviceId;
+      return nSid?.toString() === resolvedServiceId?.toString();
+    });
+
+    // Reset nurse selection
+    this.form.patchValue({ nurseId: '' });
   }
 
   // Helper: get service name by serviceId (string id)
@@ -217,6 +238,7 @@ export class UserFormDialog implements OnInit {
       // Patient-specific
       doctorId:            c(''),
       coordinatorId:       c(''),
+      nurseId:             c(''),
       dateOfBirth:         c(null),
       emergencyContact:    c('', [Validators.pattern(phonePattern)]),
       medicalRecordNumber: c({ value: this.generateMRN(), disabled: true }),
@@ -242,6 +264,7 @@ export class UserFormDialog implements OnInit {
       serviceId:        u.serviceId?._id ?? u.serviceId ?? '',
       doctorId:         (u as any).doctorId ?? '',
       coordinatorId:    (u as any).coordinatorId?._id ?? (u as any).coordinatorId ?? '',
+      nurseId:          (u as any).nurseId?._id ?? (u as any).nurseId ?? '',
       dateOfBirth:      u.dateOfBirth ? new Date(u.dateOfBirth) : null,
       emergencyContact: u.emergencyContact ?? '',
       specialization:   u.specialization ?? '',
@@ -306,6 +329,7 @@ export class UserFormDialog implements OnInit {
     if (this.showPatient) {
       if (v['doctorId'])         fd.append('doctorId', v['doctorId']);
       if (v['coordinatorId'])    fd.append('coordinatorId', v['coordinatorId']);
+      if (v['nurseId'])          fd.append('nurseId', v['nurseId']);
       if (v['dateOfBirth'])      fd.append('dateOfBirth', (v['dateOfBirth'] as Date).toISOString());
       if (v['emergencyContact']) fd.append('emergencyContact', v['emergencyContact']);
       const mrn = v['medicalRecordNumber'];

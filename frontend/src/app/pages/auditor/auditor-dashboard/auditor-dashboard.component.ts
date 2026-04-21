@@ -19,10 +19,14 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   lastRefresh = new Date();
   private sub?: Subscription;
 
-  // ── AI Insights ────────────────────────────────────────────
-  aiInsights: { level: string; icon: string; title: string; detail: string }[] = [];
-  insightsLoading = false;
-  insightsGeneratedAt: string | null = null;
+  // ── AI Audit Insights ──────────────────────────────────────
+  aiAuditReport: {
+    riskScore: number; riskLevel: string; resume: string;
+    alertes: string[]; risques: string[]; interpretation: string;
+    actions: string[]; topUsers: string[];
+  } | null = null;
+  aiAuditLoading = false;
+  aiAuditGeneratedAt: string | null = null;
 
   // ── KPIs patients ──────────────────────────────────────────
   totalPatients    = 0;
@@ -61,7 +65,7 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.loadInsights();
+    this.loadAuditAI();
     this.sub = interval(60000).pipe(
       startWith(0),
       switchMap(() => forkJoin({
@@ -99,19 +103,15 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
-  loadInsights(): void {
-    this.insightsLoading = true;
-    this.http.get<any>(`${API_BASE_URL}/coordinator/auditor/ai-insights`)
-      .pipe(catchError(() => of({ insights: [], generatedAt: null })))
+  loadAuditAI(): void {
+    this.aiAuditLoading = true;
+    this.http.post<any>(`${API_BASE_URL}/ai/audit-report`, {})
+      .pipe(catchError(() => of({ report: null, generatedAt: null })))
       .subscribe(res => {
-        this.aiInsights = res.insights ?? [];
-        this.insightsGeneratedAt = res.generatedAt;
-        this.insightsLoading = false;
+        this.aiAuditReport     = res.report;
+        this.aiAuditGeneratedAt = res.generatedAt;
+        this.aiAuditLoading    = false;
       });
-  }
-
-  insightColor(level: string): string {
-    return ({ critical: '#d63031', warning: '#fdcb6e', info: '#0984e3', success: '#00b894' } as any)[level] ?? '#b2bec3';
   }
 
   delayLabel(min: number | null): string {

@@ -1,50 +1,112 @@
 <div class="p-24">
-  <div class="d-flex justify-content-between align-items-center m-b-20">
+
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center m-b-24">
     <div>
-      <h2 class="m-0 d-flex align-items-center gap-8">
+      <h2 class="m-0 f-w-700 d-flex align-items-center gap-8">
         <i-tabler name="alert-triangle" style="color:#d63031" class="icon-24"></i-tabler>
-        Anomalies & Alerts
+        Anomalies & Alertes
       </h2>
-      <p class="text-muted f-s-13 m-0">Patients with missing data — {{ lastRefresh | date:"HH:mm:ss" }}</p>
+      <p class="text-muted f-s-13 m-0">Patients avec données manquantes — {{ lastRefresh | date:"HH:mm:ss" }}</p>
     </div>
     <div class="d-flex gap-8 align-items-center">
-      <span class="chip chip-red">{{ highCount }} High</span>
-      <span class="chip chip-yellow">{{ mediumCount }} Medium</span>
-      <button mat-stroked-button (click)="load()">
+      <span class="chip chip-red" [class.active]="filterSeverity==='HIGH'"
+        (click)="filterSeverity='HIGH'; applyFilters()">
+        <i-tabler name="alert-octagon" class="icon-14"></i-tabler> {{ highCount }} High
+      </span>
+      <span class="chip chip-yellow" [class.active]="filterSeverity==='MEDIUM'"
+        (click)="filterSeverity='MEDIUM'; applyFilters()">
+        <i-tabler name="alert-circle" class="icon-14"></i-tabler> {{ mediumCount }} Medium
+      </span>
+      <span class="chip chip-grey" *ngIf="filterSeverity !== 'ALL'"
+        (click)="filterSeverity='ALL'; applyFilters()">
+        <i-tabler name="x" class="icon-14"></i-tabler> Clear
+      </span>
+      <button mat-stroked-button color="primary" (click)="load()">
         <i-tabler name="refresh" class="icon-16 m-r-4"></i-tabler> Refresh
       </button>
     </div>
   </div>
 
-  <div *ngIf="loading" class="text-center p-24">
+  <!-- Search -->
+  <mat-form-field appearance="outline" class="m-b-20" style="width:300px">
+    <mat-icon matPrefix>search</mat-icon>
+    <input matInput placeholder="Rechercher patient, MRN..." (keyup)="onSearch($event)" />
+  </mat-form-field>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="text-center p-40">
     <mat-progress-spinner diameter="40" mode="indeterminate"></mat-progress-spinner>
   </div>
 
-  <div *ngIf="!loading && anomalies.length === 0" class="text-center p-40">
-    <i-tabler name="circle-check" style="color:#00b894;font-size:3rem;width:3rem;height:3rem"></i-tabler>
-    <h3 class="m-t-12" style="color:#00b894">No anomalies detected</h3>
-    <p class="text-muted">All patients have submitted their data today.</p>
+  <!-- All good -->
+  <div *ngIf="!loading && allAnomalies.length === 0" class="text-center p-40">
+    <i-tabler name="circle-check" style="color:#00b894" class="icon-56"></i-tabler>
+    <h3 class="m-t-12" style="color:#00b894">Aucune anomalie détectée</h3>
+    <p class="text-muted">Tous les patients ont soumis leurs données aujourd'hui.</p>
   </div>
 
-  <div *ngIf="!loading && anomalies.length > 0" class="anomaly-list">
-    <mat-card *ngFor="let a of anomalies" class="anomaly-card m-b-12"
+  <!-- Anomaly cards -->
+  <div *ngIf="!loading && filtered.length > 0" class="anomaly-list">
+    <mat-card *ngFor="let a of filtered" class="anomaly-card m-b-12"
       [class.high]="a.severity === 'HIGH'" [class.medium]="a.severity === 'MEDIUM'">
-      <mat-card-content class="d-flex align-items-center gap-16 p-16">
-        <div class="sev-icon" [style.background]="severityColor(a.severity) + '18'">
-          <i-tabler [name]="a.severity === 'HIGH' ? 'alert-octagon' : 'alert-circle'"
-            [style.color]="severityColor(a.severity)" class="icon-22"></i-tabler>
+      <mat-card-content class="p-16">
+        <div class="d-flex align-items-center gap-16">
+
+          <!-- Severity icon -->
+          <div class="sev-icon" [style.background]="severityColor(a.severity) + '18'">
+            <i-tabler [name]="a.severity === 'HIGH' ? 'alert-octagon' : 'alert-circle'"
+              [style.color]="severityColor(a.severity)" class="icon-22"></i-tabler>
+          </div>
+
+          <!-- Patient info -->
+          <div class="flex-1-auto">
+            <div class="d-flex align-items-center gap-8 m-b-2">
+              <span class="f-w-700 f-s-14">{{ a.name }}</span>
+              <span class="mrn-badge">{{ a.mrn }}</span>
+            </div>
+            <div class="text-muted f-s-12 m-b-4">{{ a.email }}</div>
+            <div class="issue-text">{{ a.issue }}</div>
+
+            <!-- Meta row -->
+            <div class="d-flex gap-16 m-t-8 f-s-12 text-muted">
+              <span *ngIf="a.service !== '—'">
+                <i-tabler name="building-hospital" class="icon-14 m-r-2"></i-tabler>{{ a.service }}
+              </span>
+              <span *ngIf="a.coordinatorName !== '—'">
+                <i-tabler name="users-group" class="icon-14 m-r-2"></i-tabler>{{ a.coordinatorName }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Right side: checks + badge -->
+          <div class="d-flex flex-column align-items-end gap-8">
+            <span class="sev-badge"
+              [style.background]="severityColor(a.severity) + '18'"
+              [style.color]="severityColor(a.severity)">
+              {{ a.severity }}
+            </span>
+            <div class="d-flex gap-8 f-s-12">
+              <span class="check-item" [class.ok]="a.vitalsToday" [class.ko]="!a.vitalsToday">
+                <i-tabler [name]="a.vitalsToday ? 'circle-check' : 'circle-x'" class="icon-14"></i-tabler>
+                Vitaux
+              </span>
+              <span class="check-item" [class.ok]="a.symptomsToday" [class.ko]="!a.symptomsToday">
+                <i-tabler [name]="a.symptomsToday ? 'circle-check' : 'circle-x'" class="icon-14"></i-tabler>
+                Symptômes
+              </span>
+            </div>
+          </div>
+
         </div>
-        <div class="flex-1-auto">
-          <div class="f-w-600 f-s-14">{{ a.name }}</div>
-          <div class="text-muted f-s-12">{{ a.email }}</div>
-          <div class="issue-text m-t-4">{{ a.issue }}</div>
-        </div>
-        <span class="sev-badge"
-          [style.background]="severityColor(a.severity) + '18'"
-          [style.color]="severityColor(a.severity)">
-          {{ a.severity }}
-        </span>
       </mat-card-content>
     </mat-card>
   </div>
+
+  <!-- No results after filter -->
+  <div *ngIf="!loading && allAnomalies.length > 0 && filtered.length === 0" class="text-center p-24 text-muted">
+    <i-tabler name="filter-off" class="icon-40" style="opacity:.3"></i-tabler>
+    <p>Aucun résultat pour ce filtre</p>
+  </div>
+
 </div>

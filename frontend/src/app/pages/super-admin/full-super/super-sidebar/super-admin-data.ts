@@ -1,93 +1,79 @@
 import { NavItem } from '../../../../layouts/full/sidebar/nav-item/nav-item';
 
 export const superAdminNavItems: NavItem[] = [
-  { navCap: 'SUPER_ADMIN_MENU' },
+  { navCap: 'Administration' },
   {
-    displayName: 'DASHBOARD',
+    displayName: 'Dashboard',
     iconName: 'gauge',
     route: '/super-admin/dashboard',
     bgcolor: 'primary',
   },
   {
-    displayName: 'MANAGE_USERS',
+    displayName: 'Utilisateurs',
     iconName: 'users',
     route: '/super-admin/users',
     bgcolor: 'secondary',
   },
   {
-    displayName: 'SERVICES',
+    displayName: 'Services',
     iconName: 'building-hospital',
     route: '/super-admin/services',
     bgcolor: 'info',
   },
   {
-    displayName: 'ROLES',
+    displayName: 'Rôles',
     iconName: 'shield-check',
     route: '/super-admin/role',
     bgcolor: 'warning',
   },
   {
-    displayName: 'AUDIT_LOGS',
+    displayName: 'Audit Logs',
     iconName: 'camera',
     route: '/super-admin/audit-logs',
     bgcolor: 'error',
   },
+  {
+    displayName: 'AI Intelligence',
+    iconName: 'brain',
+    route: '/super-admin/ai-intelligence',
+    bgcolor: 'accent',
+  },
 ];
 
 export const auditorNavItems: NavItem[] = [
-  { navCap: 'AUDITOR_MENU' },
+  { navCap: 'Audit' },
   {
-    displayName: 'AUDITOR_DASHBOARD',
+    displayName: 'Dashboard',
     iconName: 'gauge',
     route: '/auditor/dashboard',
     bgcolor: 'primary',
   },
   {
-    displayName: 'AUDITOR_PATIENTS',
+    displayName: 'Patients',
     iconName: 'users',
     route: '/auditor/patients',
     bgcolor: 'secondary',
     permission: 'audit:read',
   },
   {
-    displayName: 'AUDITOR_COORDINATORS',
+    displayName: 'Coordinateurs',
     iconName: 'users-group',
     route: '/auditor/coordinators',
     bgcolor: 'warning',
     permission: 'audit:read',
   },
   {
-    displayName: 'AUDITOR_REMINDERS',
+    displayName: 'Reminders',
     iconName: 'bell',
     route: '/auditor/reminders',
     bgcolor: 'error',
     permission: 'audit:read',
   },
   {
-    displayName: 'AUDITOR_ANOMALIES',
+    displayName: 'Anomalies',
     iconName: 'alert-triangle',
     route: '/auditor/anomalies',
     bgcolor: 'error',
     permission: 'audit:read',
-  },
-  {
-    displayName: 'AUDIT_LOGS',
-    iconName: 'camera',
-    route: '/auditor/logs',
-    bgcolor: 'info',
-    permission: 'audit:read',
-  },
-  {
-    displayName: 'AUDITOR_VERIFY',
-    iconName: 'shield-check',
-    route: '/auditor/verify',
-    bgcolor: 'success',
-    permission: 'audit:read',
-  },
-  {
-    displayName: 'PROFILE',
-    iconName: 'user',
-    route: '/auditor/profile',
-    bgcolor: 'secondary',
   },
 ];

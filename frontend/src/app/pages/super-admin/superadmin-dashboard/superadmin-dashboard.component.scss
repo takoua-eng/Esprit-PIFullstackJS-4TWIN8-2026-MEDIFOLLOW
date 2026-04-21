@@ -128,3 +128,11 @@
 .empty-sec { text-align: center; padding: 24px 0; color: #ccc;
   p { margin-top: 6px; font-size: .85rem; }
 }
+
+// AI Report widget
+.ai-response-box {
+  background: linear-gradient(135deg, #f8f4ff, #f0f4ff);
+  border: 1px solid #e0d7ff;
+  border-radius: 12px;
+  padding: 16px 20px;
+}

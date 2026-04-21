@@ -82,9 +82,11 @@ export const DEFAULT_ROLES = [
       'coordinators:read',
       'auditors:read',
       'physicians:read',
+      'reminders:send',
       'dashboard:read', 'dashboard:view',
       'profile:read', 'profile:update',
       'notifications:read',
+      'reports:generate',
     ],
   },
   {

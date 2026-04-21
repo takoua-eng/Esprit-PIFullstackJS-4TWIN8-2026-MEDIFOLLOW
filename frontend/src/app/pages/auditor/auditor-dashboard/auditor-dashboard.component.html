@@ -16,50 +16,100 @@
     </div>
   </div>
 
-  <!-- ── AI INSIGHTS ───────────────────────────────────────── -->
+  <!-- ── AI AUDIT INSIGHTS ──────────────────────────────────── -->
   <mat-card class="cardWithShadow m-b-28">
     <mat-card-content class="p-20">
+
+      <!-- Header -->
       <div class="d-flex align-items-center justify-content-between m-b-16">
         <div class="d-flex align-items-center gap-8">
           <div style="background:#6c5ce718;border-radius:10px;padding:8px;display:flex">
             <i-tabler name="brain" class="icon-22" style="color:#6c5ce7"></i-tabler>
           </div>
           <div>
-            <div class="f-s-15 f-w-700">AI Insights</div>
-            <div class="f-s-11 text-muted" *ngIf="insightsGeneratedAt">Généré à {{ insightsGeneratedAt | date:'HH:mm:ss' }}</div>
+            <div class="f-s-15 f-w-700">🧠 Analyse Audit IA</div>
+            <div class="f-s-11 text-muted" *ngIf="aiAuditGeneratedAt">{{ aiAuditGeneratedAt | date:'HH:mm:ss' }}</div>
           </div>
         </div>
-        <button mat-stroked-button color="primary" (click)="loadInsights()" [disabled]="insightsLoading">
+        <button mat-stroked-button color="primary" (click)="loadAuditAI()" [disabled]="aiAuditLoading">
           <i-tabler name="refresh" class="icon-16 m-r-4"></i-tabler>
-          {{ insightsLoading ? 'Analyse...' : 'Actualiser' }}
+          {{ aiAuditLoading ? 'Analyse...' : 'Actualiser' }}
         </button>
       </div>
 
-      <div *ngIf="insightsLoading" class="text-center p-24">
-        <mat-progress-spinner diameter="36" mode="indeterminate"></mat-progress-spinner>
-        <p class="text-muted f-s-12 m-t-8">Analyse des données en cours...</p>
+      <!-- Loading -->
+      <div *ngIf="aiAuditLoading" class="text-center p-24">
+        <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
+        <p class="text-muted f-s-12 m-t-8">Analyse des logs en cours...</p>
       </div>
 
-      <div *ngIf="!insightsLoading" class="insights-grid">
-        <div *ngFor="let ins of aiInsights" class="insight-card"
-          [style.border-left]="'4px solid ' + insightColor(ins.level)">
-          <div class="insight-icon" [style.background]="insightColor(ins.level) + '18'">
-            <i-tabler [name]="ins.icon" [style.color]="insightColor(ins.level)" class="icon-20"></i-tabler>
+      <!-- Report -->
+      <div *ngIf="!aiAuditLoading && aiAuditReport">
+
+        <!-- Risk Score -->
+        <div class="d-flex align-items-center gap-16 m-b-20 p-16"
+          style="background:#f8f9fa;border-radius:12px">
+          <div class="risk-score-circle"
+            [style.background]="aiAuditReport.riskLevel === 'HIGH' ? '#d63031' : aiAuditReport.riskLevel === 'MEDIUM' ? '#fdcb6e' : '#00b894'">
+            <span class="f-s-20 f-w-700">{{ aiAuditReport.riskScore }}</span>
+            <span class="f-s-10">/100</span>
           </div>
-          <div class="insight-body">
-            <div class="f-s-13 f-w-700" [style.color]="insightColor(ins.level)">{{ ins.title }}</div>
-            <div class="f-s-12 text-muted m-t-2">{{ ins.detail }}</div>
+          <div>
+            <div class="f-s-14 f-w-700">Risk Level:
+              <span [style.color]="aiAuditReport.riskLevel === 'HIGH' ? '#d63031' : aiAuditReport.riskLevel === 'MEDIUM' ? '#fdcb6e' : '#00b894'">
+                {{ aiAuditReport.riskLevel }}
+              </span>
+            </div>
+            <p class="f-s-13 text-muted m-0 m-t-4">{{ aiAuditReport.resume }}</p>
           </div>
-          <span class="insight-badge" [style.background]="insightColor(ins.level) + '18'" [style.color]="insightColor(ins.level)">
-            {{ ins.level | uppercase }}
-          </span>
         </div>
 
-        <div *ngIf="aiInsights.length === 0" class="text-center p-24 text-muted">
-          <i-tabler name="brain" class="icon-40" style="opacity:.3"></i-tabler>
-          <p>Aucun insight disponible</p>
+        <div class="row">
+          <!-- Alertes -->
+          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.alertes?.length">
+            <div class="f-s-12 f-w-700 m-b-6" style="color:#d63031">🚨 Alertes critiques</div>
+            <ul class="ai-audit-list" style="color:#d63031">
+              <li *ngFor="let a of aiAuditReport.alertes">{{ a }}</li>
+            </ul>
+          </div>
+          <!-- Risques -->
+          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.risques?.length">
+            <div class="f-s-12 f-w-700 m-b-6" style="color:#e17055">⚠️ Risques identifiés</div>
+            <ul class="ai-audit-list" style="color:#e17055">
+              <li *ngFor="let r of aiAuditReport.risques">{{ r }}</li>
+            </ul>
+          </div>
+          <!-- Actions -->
+          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.actions?.length">
+            <div class="f-s-12 f-w-700 m-b-6" style="color:#00b894">⚡ Recommandations</div>
+            <ul class="ai-audit-list" style="color:#00b894">
+              <li *ngFor="let a of aiAuditReport.actions">{{ a }}</li>
+            </ul>
+          </div>
+          <!-- Top Users -->
+          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.topUsers?.length">
+            <div class="f-s-12 f-w-700 m-b-6" style="color:#6c5ce7">👤 Utilisateurs à surveiller</div>
+            <ul class="ai-audit-list" style="color:#6c5ce7">
+              <li *ngFor="let u of aiAuditReport.topUsers">{{ u }}</li>
+            </ul>
+          </div>
         </div>
+
+        <!-- Interprétation -->
+        <div *ngIf="aiAuditReport.interpretation" class="m-t-12 p-12"
+          style="background:#f0f4ff;border-radius:10px;border-left:3px solid #6c5ce7">
+          <div class="f-s-12 f-w-700 m-b-4" style="color:#6c5ce7">📌 Interprétation IA</div>
+          <p class="f-s-13 m-0" style="line-height:1.7">{{ aiAuditReport.interpretation }}</p>
+        </div>
+
       </div>
+
+      <!-- Empty -->
+      <div *ngIf="!aiAuditLoading && !aiAuditReport" class="text-center p-20 text-muted">
+        <i-tabler name="brain" class="icon-40" style="opacity:.3"></i-tabler>
+        <p class="f-s-12 m-t-8">Cliquez sur Actualiser pour lancer l'analyse</p>
+      </div>
+
     </mat-card-content>
   </mat-card>
 

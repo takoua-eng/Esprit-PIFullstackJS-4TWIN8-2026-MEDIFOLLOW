@@ -37,6 +37,7 @@ import { VideoCallsModule } from './modules/video-calls/video-calls.module';
 import { HospitalizationHandwritingModule } from './modules/hospitalization-handwriting/hospitalization-handwriting.module';
 import { QuestionnairesModule } from './modules/questionnaires/questionnaires.module';
 import { AdminModule } from './modules/admin/admin.module';
+import { AiModule } from './modules/ai/ai.module';
 import { QuestionnaireTemplateModule } from './modules/questionnaire-template/questionnaire-template.module';
 import { QuestionnaireInstanceModule } from './modules/questionnaire-instance/questionnaire-instance.module';
 
@@ -142,6 +143,7 @@ const DEFAULT_MONGODB_URI =
     HospitalizationHandwritingModule,
     QuestionnairesModule,
     AdminModule,
+    AiModule,
   ],
   providers: [
     JwtStrategy,

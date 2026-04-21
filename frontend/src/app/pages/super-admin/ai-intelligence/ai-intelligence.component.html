@@ -1,0 +1,171 @@
+<div class="ai-page p-24">
+
+  <!-- Header -->
+  <div class="ai-header m-b-32">
+    <div class="d-flex align-items-center gap-16">
+      <div class="ai-logo">
+        <i-tabler name="brain" class="icon-32"></i-tabler>
+      </div>
+      <div>
+        <h1 class="m-0 f-w-700 f-s-24">AI Medical Intelligence</h1>
+        <p class="m-0 f-s-14" style="opacity:.7">Analyse intelligente — Super Admin uniquement</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Type cards -->
+  <div class="row m-b-32">
+    <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes">
+      <mat-card class="type-card" [class.active]="activeType === t.key"
+        [style.border-color]="activeType === t.key ? t.color : 'transparent'"
+        (click)="generate(t.key)" style="cursor:pointer">
+        <mat-card-content class="p-20">
+          <div class="type-icon m-b-12" [style.background]="t.color + '18'">
+            <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-24"></i-tabler>
+          </div>
+          <div class="f-w-700 f-s-14 m-b-4">{{ t.label }}</div>
+          <div class="text-muted f-s-12">{{ t.desc }}</div>
+          <mat-progress-bar *ngIf="loading && activeType === t.key"
+            mode="indeterminate" class="m-t-8"></mat-progress-bar>
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- Result + History -->
+  <div class="row">
+
+    <!-- Main result -->
+    <div class="col-lg-8 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-24">
+
+          <!-- Loading -->
+          <div *ngIf="loading" class="text-center p-40">
+            <i-tabler name="brain" class="icon-48 ai-thinking" style="color:#6c5ce7;opacity:.6"></i-tabler>
+            <p class="f-s-14 text-muted m-t-12">Analyse en cours...</p>
+            <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
+          </div>
+
+          <!-- Result -->
+          <div *ngIf="!loading && result">
+
+            <!-- Header -->
+            <div class="d-flex align-items-center gap-12 m-b-20">
+              <div class="type-icon" [style.background]="getTypeInfo(result.type).color + '18'">
+                <i-tabler [name]="getTypeInfo(result.type).icon"
+                  [style.color]="getTypeInfo(result.type).color" class="icon-20"></i-tabler>
+              </div>
+              <div>
+                <div class="f-w-700 f-s-16">{{ getTypeInfo(result.type).label }}</div>
+                <div class="text-muted f-s-12">{{ result.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+              </div>
+            </div>
+
+            <!-- Résumé -->
+            <div class="ai-result-box m-b-16">
+              <div class="d-flex align-items-center gap-8 m-b-8">
+                <i-tabler name="sparkles" class="icon-14" style="color:#6c5ce7"></i-tabler>
+                <span class="f-s-12 f-w-600" style="color:#6c5ce7">Résumé exécutif</span>
+              </div>
+              <p class="f-s-14 m-0" style="line-height:1.8">{{ result.report.resume }}</p>
+            </div>
+
+            <!-- Problèmes -->
+            <div class="ai-section m-b-12" *ngIf="result.report.problemes?.length">
+              <div class="ai-section-title" style="color:#d63031">
+                <i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes critiques
+              </div>
+              <ul class="ai-list">
+                <li *ngFor="let p of result.report.problemes">{{ p }}</li>
+              </ul>
+            </div>
+
+            <!-- Causes -->
+            <div class="ai-section m-b-12" *ngIf="result.report.causes?.length">
+              <div class="ai-section-title" style="color:#e17055">
+                <i-tabler name="search" class="icon-14"></i-tabler> Causes probables
+              </div>
+              <ul class="ai-list">
+                <li *ngFor="let c of result.report.causes">{{ c }}</li>
+              </ul>
+            </div>
+
+            <!-- Recommandations -->
+            <div class="ai-section m-b-16" *ngIf="result.report.recommandations?.length">
+              <div class="ai-section-title" style="color:#00b894">
+                <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations
+              </div>
+              <ul class="ai-list">
+                <li *ngFor="let r of result.report.recommandations">{{ r }}</li>
+              </ul>
+            </div>
+
+            <!-- Data context -->
+            <div class="data-context" *ngIf="result.data">
+              <div class="f-s-12 text-muted m-b-8 f-w-600">Données analysées</div>
+              <div class="d-flex gap-16 flex-wrap">
+                <div class="ctx-item">
+                  <span class="ctx-val">{{ result.data.totalPatients }}</span>
+                  <span class="ctx-lbl">Patients</span>
+                </div>
+                <div class="ctx-item">
+                  <span class="ctx-val" [style.color]="result.data.complianceToday >= 50 ? '#00b894' : '#d63031'">
+                    {{ result.data.complianceToday }}%
+                  </span>
+                  <span class="ctx-lbl">Compliance</span>
+                </div>
+                <div class="ctx-item">
+                  <span class="ctx-val" style="color:#0984e3">{{ result.data.sentReminders }}</span>
+                  <span class="ctx-lbl">Reminders</span>
+                </div>
+                <div class="ctx-item">
+                  <span class="ctx-val">{{ result.data.responseRate }}%</span>
+                  <span class="ctx-lbl">Taux réponse</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Empty -->
+          <div *ngIf="!loading && !result" class="text-center p-40">
+            <i-tabler name="brain" class="icon-56" style="color:#dfe6e9"></i-tabler>
+            <p class="text-muted f-s-14 m-t-12">Sélectionnez un type d'analyse pour commencer</p>
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- History -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="f-s-14 f-w-700 m-b-16 d-flex align-items-center gap-8">
+            <i-tabler name="history" class="icon-18 text-muted"></i-tabler>
+            Historique de session
+          </div>
+
+          <div *ngIf="history.length === 0" class="text-center p-20 text-muted">
+            <i-tabler name="clock" class="icon-32" style="opacity:.3"></i-tabler>
+            <p class="f-s-12 m-t-8">Aucune analyse générée</p>
+          </div>
+
+          <div *ngFor="let h of history" class="history-item" (click)="result = h; activeType = h.type">
+            <div class="d-flex align-items-center gap-8">
+              <i-tabler [name]="getTypeInfo(h.type).icon"
+                [style.color]="getTypeInfo(h.type).color" class="icon-16"></i-tabler>
+              <span class="f-s-13 f-w-600">{{ getTypeInfo(h.type).label }}</span>
+            </div>
+            <div class="text-muted f-s-11 m-t-2">{{ h.generatedAt | date:'HH:mm:ss' }}</div>
+            <div class="f-s-12 text-muted m-t-4 text-truncate">
+              {{ h.report?.resume | slice:0:60 }}...
+            </div>
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+</div>

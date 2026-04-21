@@ -6,8 +6,8 @@
   Delete,
   Param,
   Body,
+  UseGuards,
 } from '@nestjs/common';
-import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { CoordinatorService } from './coordinator.service';
 import { NotificationService } from '../notifications/notification.service';
@@ -76,10 +76,7 @@ export class CoordinatorController {
   // ─── AI endpoints (proxy vers OpenAI) ────────────────────────
 
   @Post(':id/ai/chat')
-  async aiChat(
-    @Param('id') id: string,
-    @Body() body: { prompt: string },
-  ) {
+  async aiChat(@Param('id') id: string, @Body() body: { prompt: string }) {
     try {
       const response = await this.notificationService.askAI(body.prompt, 300);
       return { response };
@@ -90,10 +87,7 @@ export class CoordinatorController {
   }
 
   @Post(':id/ai/summary')
-  async aiSummary(
-    @Param('id') id: string,
-    @Body() body: { prompt: string },
-  ) {
+  async aiSummary(@Param('id') id: string, @Body() body: { prompt: string }) {
     try {
       const response = await this.notificationService.askAI(body.prompt, 500);
       return { response };
@@ -127,7 +121,8 @@ export class CoordinatorController {
   @Post(':id/reminders')
   createReminder(
     @Param('id') id: string,
-    @Body() body: {
+    @Body()
+    body: {
       patientId: string;
       type: string;
       message: string;

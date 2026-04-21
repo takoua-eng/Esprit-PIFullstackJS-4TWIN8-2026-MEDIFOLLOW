@@ -152,10 +152,10 @@ export class AuditLogsComponent implements OnInit, AfterViewInit, OnDestroy {
   actionColor(a: string): string {
     return {
       CREATE:'#00b894', UPDATE:'#0984e3', DELETE:'#d63031', LOGIN:'#6c5ce7',
-      LOGOUT:'#a29bfe', VIEW:'#b2bec3', ACTIVATE:'#00cec9', DEACTIVATE:'#e17055',
+      LOGOUT:'#a29bfe', VIEW:'#0984e3', ACTIVATE:'#00cec9', DEACTIVATE:'#e17055',
       ARCHIVE:'#636e72', RESTORE:'#fdcb6e', VERIFY:'#00b894', RESOLVE:'#00b894',
       ACKNOWLEDGE:'#0984e3', SEND_REMINDER:'#e17055', RESET_PASSWORD:'#d63031',
-    }[a] ?? '#b2bec3';
+    }[a] ?? '#636e72';
   }
 
   actionIcon(a: string): string {

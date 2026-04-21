@@ -111,6 +111,49 @@ button.mat-mdc-button:hover {
 .np-meta { font-size: .68rem; color: #b0bec5; margin-top: 3px; }
 
 .np-empty {
-  text-align: center; padding: 32px 16px; color: #cbd5e1;
-  p { margin: 8px 0 0; font-size: .82rem; }
+  text-align: center; padding: 24px 16px; color: #cbd5e1;
+  p { margin: 6px 0 0; font-size: .8rem; }
+}
+
+.np-footer {
+  padding: 8px 16px;
+  border-top: 1px solid #f0f4f8;
+  text-align: center;
+  background: #fafbfc;
+
+  .np-mark-all-footer {
+    font-size: .75rem; color: #6c5ce7; font-weight: 600;
+    display: inline-flex; align-items: center;
+    &:hover { background: #f0ebff; border-radius: 8px; }
+  }
+}
+
+// ── Language + Contrast ───────────────────────────────────────
+.lang-btn {
+  min-width: auto !important;
+  padding: 0 8px !important;
+  height: 32px !important;
+  font-size: .72rem !important;
+  border-radius: 8px !important;
+  color: #636e72;
+  &.lang-active {
+    background: #f0ebff !important;
+    color: #6c5ce7 !important;
+    font-weight: 700;
+  }
+}
+
+.contrast-btn {
+  height: 32px !important;
+  font-size: .72rem !important;
+  border-radius: 8px !important;
+  padding: 0 10px !important;
+  color: #636e72;
+  border-color: #dee2e6 !important;
+  display: inline-flex; align-items: center;
+  &.contrast-on {
+    background: #2d3436 !important;
+    color: #fff !important;
+    border-color: #2d3436 !important;
+  }
 }

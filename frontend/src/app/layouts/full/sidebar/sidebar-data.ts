@@ -154,3 +154,79 @@ export const patientNavItems: NavItem[] = [
 
 // For backward compatibility, keep navItems as adminNavItems
 export const navItems = adminNavItems;
+
+// Sidebar pour le super admin
+export const superAdminNavItems: NavItem[] = [
+  { navCap: 'Administration' },
+  {
+    displayName: 'Dashboard',
+    iconName: 'gauge',
+    route: '/super-admin/dashboard',
+    bgcolor: 'primary',
+  },
+  {
+    displayName: 'Utilisateurs',
+    iconName: 'users',
+    route: '/super-admin/users',
+    bgcolor: 'secondary',
+  },
+  {
+    displayName: 'Services',
+    iconName: 'building-hospital',
+    route: '/super-admin/services',
+    bgcolor: 'info',
+  },
+  {
+    displayName: 'Rôles',
+    iconName: 'shield-check',
+    route: '/super-admin/role',
+    bgcolor: 'warning',
+  },
+  {
+    displayName: 'Audit Logs',
+    iconName: 'camera',
+    route: '/super-admin/audit-logs',
+    bgcolor: 'error',
+  },
+  {
+    displayName: 'AI Intelligence',
+    iconName: 'brain',
+    route: '/super-admin/ai-intelligence',
+    bgcolor: 'accent',
+  },
+];
+
+// Sidebar pour l'auditor (dans FullComponent)
+export const auditorNavItems: NavItem[] = [
+  { navCap: 'Audit' },
+  {
+    displayName: 'Dashboard',
+    iconName: 'gauge',
+    route: '/auditor/dashboard',
+    bgcolor: 'primary',
+  },
+  {
+    displayName: 'Patients',
+    iconName: 'users',
+    route: '/auditor/patients',
+    bgcolor: 'secondary',
+  },
+  {
+    displayName: 'Coordinateurs',
+    iconName: 'users-group',
+    route: '/auditor/coordinators',
+    bgcolor: 'warning',
+  },
+  {
+    displayName: 'Reminders',
+    iconName: 'bell',
+    route: '/auditor/reminders',
+    bgcolor: 'error',
+  },
+  {
+    displayName: 'Anomalies',
+    iconName: 'alert-triangle',
+    route: '/auditor/anomalies',
+    bgcolor: 'error',
+  },
+];

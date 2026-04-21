@@ -24,7 +24,10 @@
   <mat-menu #notifMenu="matMenu" xPosition="before" class="notif-panel">
     <div class="np-header" (click)="$event.stopPropagation()">
       <span class="np-title">Notifications</span>
-      <button *ngIf="unreadCount > 0" mat-button class="np-mark-all" (click)="markAllRead()">Mark all as read</button>
+      <button mat-button class="np-mark-all" (click)="markAllRead()">
+        <i-tabler name="checks" class="icon-14 m-r-4"></i-tabler>
+        Tout lire
+      </button>
     </div>
 
     <ng-container *ngIf="unreadNotifs.length > 0">
@@ -54,8 +57,8 @@
     </ng-container>
 
     <div *ngIf="notifications.length === 0" class="np-empty" (click)="$event.stopPropagation()">
-      <i-tabler name="bell-off" class="icon-32"></i-tabler>
-      <p>No notifications yet</p>
+      <i-tabler name="bell-off" class="icon-24" style="opacity:.4"></i-tabler>
+      <p>Aucune notification pour le moment</p>
     </div>
   </mat-menu>
 

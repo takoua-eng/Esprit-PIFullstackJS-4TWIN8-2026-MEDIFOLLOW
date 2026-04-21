@@ -12,10 +12,9 @@ import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
 import { AppTopstripComponent } from './top-strip/topstrip.component';
-import { adminNavItems, coordinatorNavItems } from './sidebar/sidebar-data';
+import { adminNavItems, coordinatorNavItems, patientNavItems, superAdminNavItems, auditorNavItems } from './sidebar/sidebar-data';
 import { nurseNavItems } from './sidebar/nurse-sidebar-data';
 import { doctorNavItems } from './sidebar/doctor-sidebar-data';
-import { patientNavItems } from './sidebar/sidebar-data';
 import { NavItem } from './sidebar/nav-item/nav-item';
 import { normalizeRoleKey } from 'src/app/core/post-login-route';
 import { KeyboardGuideComponent } from 'src/app/pages/patient/keyboard-guide/keyboard-guide.component';
@@ -102,7 +101,11 @@ export class FullComponent implements OnInit {
         : null,
     );
 
-    if (url.startsWith('/dashboard/admin')) {
+    if (url.startsWith('/super-admin')) {
+      this.navItems = superAdminNavItems;
+    } else if (url.startsWith('/auditor')) {
+      this.navItems = auditorNavItems;
+    } else if (url.startsWith('/dashboard/admin')) {
       this.navItems = adminNavItems;
     } else if (url.startsWith('/dashboard/nurse')) {
       this.navItems = nurseNavItems;
@@ -112,20 +115,20 @@ export class FullComponent implements OnInit {
       this.navItems = patientNavItems;
     } else if (url.startsWith('/dashboard/profile')) {
       if (role === 'nurse') this.navItems = nurseNavItems;
-      else if (role === 'doctor' || role === 'physician')
-        this.navItems = doctorNavItems;
+      else if (role === 'doctor' || role === 'physician') this.navItems = doctorNavItems;
       else if (role === 'patient') this.navItems = patientNavItems;
       else this.navItems = adminNavItems;
     } else if (url.startsWith('/admin/coordinator')) {
       this.navItems = coordinatorNavItems;
     } else {
-      // Final fallback based on role
-      if (role === 'patient') this.navItems = patientNavItems;
-      else if (role === 'nurse') this.navItems = nurseNavItems;
-      else if (role === 'doctor' || role === 'physician')
-        this.navItems = doctorNavItems;
-      else if (role === 'coordinator') this.navItems = coordinatorNavItems;
-      else this.navItems = adminNavItems;
+      // Fallback by role
+      if (role === 'superadmin')                          this.navItems = superAdminNavItems;
+      else if (role === 'auditor')                        this.navItems = auditorNavItems;
+      else if (role === 'patient')                        this.navItems = patientNavItems;
+      else if (role === 'nurse')                          this.navItems = nurseNavItems;
+      else if (role === 'doctor' || role === 'physician') this.navItems = doctorNavItems;
+      else if (role === 'coordinator')                    this.navItems = coordinatorNavItems;
+      else                                                this.navItems = adminNavItems;
     }
   }
 

@@ -110,10 +110,26 @@ td.mat-cell {
 }
 
 .action-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: 20px;
-  font-size: .7rem; font-weight: 700; text-transform: uppercase;
-  white-space: nowrap;
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 12px; border-radius: 8px;
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  white-space: nowrap; letter-spacing: .3px;
+  border: 1px solid currentColor;
+  opacity: .85;
+  transition: opacity .15s;
+  &:hover { opacity: 1; }
+}
+
+.action-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: .75rem; font-weight: 600; text-transform: uppercase;
+  color: var(--ac, #636e72); white-space: nowrap;
+
+  .action-dot {
+    width: 7px; height: 7px; border-radius: 50%;
+    background: var(--ac, #636e72);
+    flex-shrink: 0;
+  }
 }
 
 .entity-badge {
@@ -129,4 +145,37 @@ td.mat-cell {
 mat-paginator {
   border-top: 1px solid #dee2e6;
   background: #fff;
+}
+
+// ── Action buttons ────────────────────────────────────────────────
+.action-group {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.action-btn {
+  height: 32px !important;
+  line-height: 32px !important;
+  padding: 0 12px !important;
+  font-size: .75rem !important;
+  border-radius: 8px !important;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  &.view-btn {
+    color: #0984e3 !important;
+    border-color: #0984e3 !important;
+    &:hover { background: #0984e310 !important; }
+  }
+}
+
+.delete-btn {
+  width: 32px !important;
+  height: 32px !important;
+  color: #d63031 !important;
+  border-radius: 8px !important;
+  &:hover { background: #d6303110 !important; }
 }

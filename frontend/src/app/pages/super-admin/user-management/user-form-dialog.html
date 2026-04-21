@@ -60,7 +60,7 @@
           <mat-error *ngIf="form.get('email')?.hasError('pattern')">Invalid email format (e.g. name@gmail.com)</mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" *ngIf="!isEdit">
+        <mat-form-field appearance="outline" *ngIf="!isEdit" class="span-2" subscriptSizing="dynamic">
           <mat-label>Password *</mat-label>
           <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'" />
           <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
@@ -68,27 +68,24 @@
           </button>
           <mat-error *ngIf="form.get('password')?.hasError('required')">Required</mat-error>
           <mat-error *ngIf="form.get('password')?.hasError('minlength')">Min 8 characters</mat-error>
-          <mat-error *ngIf="form.get('password')?.hasError('pattern')">Must contain uppercase, number and special character</mat-error>
-          <mat-hint>Min 8 chars · 1 uppercase · 1 number · 1 special char</mat-hint>
+          <mat-error *ngIf="form.get('password')?.hasError('pattern')">Min 8 chars · uppercase · number · special char</mat-error>
         </mat-form-field>
 
         <!-- Password optional on edit -->
-        <mat-form-field appearance="outline" *ngIf="isEdit">
+        <mat-form-field appearance="outline" *ngIf="isEdit" class="span-2">
           <mat-label>New Password (optional)</mat-label>
           <input matInput formControlName="password" [type]="hidePassword ? 'password' : 'text'"
             placeholder="Leave empty to keep current" />
           <button mat-icon-button matSuffix type="button" (click)="hidePassword = !hidePassword">
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
-          <mat-hint>Leave empty to keep current password</mat-hint>
           <mat-error *ngIf="form.get('password')?.hasError('minlength')">Min 6 characters</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
           <mat-label>Phone</mat-label>
           <input matInput formControlName="phone" placeholder="+216 XX XXX XXX" />
-          <mat-error *ngIf="form.get('phone')?.hasError('pattern')">Invalid phone (e.g. +21620123456 or 20123456)</mat-error>
-          <mat-hint>Tunisian: 2X/5X/9X XXXXXXX or international +XXX...</mat-hint>
+          <mat-error *ngIf="form.get('phone')?.hasError('pattern')">Format invalide</mat-error>
         </mat-form-field>
 
         <mat-form-field appearance="outline">
@@ -99,11 +96,10 @@
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
           <mat-label>National ID (CIN)</mat-label>
           <input matInput formControlName="nationalId" placeholder="12345678" maxlength="8" />
-          <mat-error *ngIf="form.get('nationalId')?.hasError('pattern')">CIN must be exactly 8 digits</mat-error>
-          <mat-hint>8 digits exactly</mat-hint>
+          <mat-error *ngIf="form.get('nationalId')?.hasError('pattern')">8 digits exactly</mat-error>
         </mat-form-field>
 
         <!-- Marital Status — common to all -->
@@ -136,7 +132,7 @@
           <div class="grid-2">
 
             <!-- Assigned Doctor FIRST — triggers service auto-fill -->
-            <mat-form-field appearance="outline" class="span-2">
+            <mat-form-field appearance="outline" class="span-2" style="margin-bottom:4px">
               <mat-label>Assigned Doctor</mat-label>
               <mat-select formControlName="doctorId"
                 (selectionChange)="onDoctorChange($event.value)">
@@ -145,11 +141,10 @@
                   {{ doctorFullName(d) }}
                 </mat-option>
               </mat-select>
-              <mat-hint>Selecting a doctor will auto-fill the service</mat-hint>
             </mat-form-field>
 
             <!-- Assigned Coordinator -->
-            <mat-form-field appearance="outline" class="span-2">
+            <mat-form-field appearance="outline" class="span-2" style="margin-bottom:4px">
               <mat-label>Assigned Coordinator</mat-label>
               <mat-select formControlName="coordinatorId">
                 <mat-option value="">-- No coordinator assigned --</mat-option>
@@ -158,6 +153,24 @@
                 </mat-option>
               </mat-select>
               <mat-icon matSuffix>supervisor_account</mat-icon>
+            </mat-form-field>
+
+            <!-- Assigned Nurse (filtered by doctor's service) -->
+            <mat-form-field appearance="outline" class="span-2" style="margin-bottom:4px">
+              <mat-label>Assigned Nurse</mat-label>
+              <mat-select formControlName="nurseId">
+                <mat-option value="">-- No nurse assigned --</mat-option>
+                <mat-option *ngFor="let n of filteredNurses" [value]="n._id">
+                  {{ n.firstName }} {{ n.lastName }}
+                </mat-option>
+              </mat-select>
+              <mat-icon matSuffix>local_hospital</mat-icon>
+              <mat-hint *ngIf="filteredNurses.length === 0 && form.get('doctorId')?.value">
+                No nurses found in this service
+              </mat-hint>
+              <mat-hint *ngIf="!form.get('doctorId')?.value">
+                Select a doctor first to see available nurses
+              </mat-hint>
             </mat-form-field>
 
             <!-- Date of Birth -->

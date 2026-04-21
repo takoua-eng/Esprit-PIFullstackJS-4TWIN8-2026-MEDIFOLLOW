@@ -66,6 +66,11 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   serviceStaffChart: any = {};
   serviceStaffData: { serviceId: string; doctorCount: number; nurseCount: number; patientCount: number }[] = [];
 
+  // AI Report
+  aiReportText = '';
+  aiReportLoading = false;
+  aiReportGeneratedAt: string | null = null;
+
   // AI Insights (simulated from real data)
   aiInsights: { icon: string; color: string; text: string }[] = [];
 
@@ -138,6 +143,18 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
+
+  generateAiReport(type: string): void {
+    this.aiReportLoading = true;
+    this.aiReportText = '';
+    this.http.post<any>(`${API_BASE_URL}/coordinator/admin/ai-report`, { type })
+      .pipe(catchError(() => of({ response: 'Service AI indisponible.' })))
+      .subscribe(res => {
+        this.aiReportText = res.response ?? '';
+        this.aiReportGeneratedAt = res.generatedAt ?? new Date().toISOString();
+        this.aiReportLoading = false;
+      });
+  }
 
   // ── Data processors ──────────────────────────────────────────────
 

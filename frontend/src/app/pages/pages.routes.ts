@@ -20,6 +20,7 @@ import { AuditLogsComponent } from './super-admin/audit-logs/audit-logs';
 
 import { UserManagementComponent } from './super-admin/user-management/user-management.component';
 
+import { AiIntelligenceComponent } from './super-admin/ai-intelligence/ai-intelligence.component';
 import { SuperAdminDashboardComponent } from './super-admin/superadmin-dashboard/superadmin-dashboard.component';
 import { SuperAdminProfileComponent } from './super-admin/superadmin-profile/superadmin-profile.component';
 import { AdminsComponent } from './super-admin/admins/admins';
@@ -275,6 +276,11 @@ export const SuperAdminRoutes: Routes = [
   path: 'audit-logs',
   component: AuditLogsComponent,
   canActivate: [PermissionGuard],
+},
+{
+  path: 'ai-intelligence',
+  component: AiIntelligenceComponent,
+  canActivate: superAdminOnlyGuard,
 },
 ];
 

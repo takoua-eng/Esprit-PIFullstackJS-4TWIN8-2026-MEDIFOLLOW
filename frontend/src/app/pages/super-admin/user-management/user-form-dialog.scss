@@ -37,9 +37,16 @@ mat-dialog-content {
 .grid-2 {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  mat-form-field { width: 100%; }
+  gap: 0 12px;
+  mat-form-field { width: 100%; margin-bottom: 8px; }
   .span-2 { grid-column: 1 / -1; }
+}
+
+// Fix Angular Material subscript overlap
+mat-form-field {
+  .mat-mdc-form-field-subscript-wrapper {
+    position: relative !important;
+  }
 }
 
 .full { width: 100%; }
