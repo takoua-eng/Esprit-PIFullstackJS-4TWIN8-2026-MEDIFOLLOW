@@ -1,13 +1,37 @@
-.doctor-prescriptions-table {
-  min-width: 900px;
+.cursor-crosshair {
+  cursor: crosshair;
 }
 
-.icon-18 {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
+.max-width-200 {
+  max-width: 200px;
 }
 
-.m-r-8 {
-  margin-right: 8px;
+.bg-light {
+  background-color: #f8f9fa !important;
+}
+
+.border-dashed {
+  border: 2px dashed #dee2e6;
+}
+
+.signature-section {
+  canvas {
+    touch-action: none; // Prevent scrolling while signing on mobile
+  }
+}
+
+.hover-grow {
+  transition: transform 0.2s;
+  &:hover {
+    transform: scale(1.02);
+  }
+}
+
+.transition-all {
+  transition: all 0.3s ease;
+}
+
+.history-item {
+  cursor: pointer;
+  border-left: 4px solid #5d87ff;
 }

@@ -1,0 +1,76 @@
+<div class="row m-b-24">
+  <div class="col-12">
+    <h1 class="f-w-600 m-b-4">{{ 'PATIENT_PRESCRIPTIONS_TITLE' | translate }}</h1>
+    <p class="f-s-14 text-muted m-b-0">{{ 'PATIENT_PRESCRIPTIONS_SUBTITLE' | translate }}</p>
+  </div>
+</div>
+
+@if (loading) {
+  <div class="d-flex justify-content-center p-48">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+} @else {
+  @if (prescriptions.length === 0) {
+    <mat-card class="cardWithShadow bg-light">
+      <mat-card-content class="p-48 text-center">
+        <i-tabler name="prescription" class="icon-64 text-muted m-b-16"></i-tabler>
+        <h3 class="f-w-600 m-b-8">No prescriptions found</h3>
+        <p class="text-muted">You haven't received any electronic prescriptions yet.</p>
+      </mat-card-content>
+    </mat-card>
+  } @else {
+    <div class="row g-4">
+      @for (p of prescriptions; track p._id) {
+        <div class="col-12 col-md-6 col-xl-4">
+          <mat-card class="cardWithShadow h-100 prescription-card premium-shadow hover-grow transition-all">
+            <div class="card-glass-header p-24 bg-primary text-white position-relative overflow-hidden">
+              <div class="position-relative z-index-1">
+                <div class="d-flex justify-content-between align-items-start m-b-12">
+                  <span class="badge bg-white text-primary f-s-10 f-w-700">PRESCRIPTION</span>
+                  <div class="d-flex align-items-center gap-2">
+                    <span class="f-s-12 opacity-75">{{ p.createdAt | date:'mediumDate' }}</span>
+                    <button mat-icon-button class="text-white" (click)="downloadPDF(p)" matTooltip="Download PDF">
+                      <i-tabler name="printer" class="icon-18"></i-tabler>
+                    </button>
+                  </div>
+                </div>
+                <h3 class="f-w-600 m-b-0 d-flex align-items-center">
+                  <i-tabler name="stethoscope" class="icon-20 m-r-8"></i-tabler>
+                  Dr. {{ p.doctorName }}
+                </h3>
+              </div>
+              <i-tabler name="medical-box" class="icon-100 position-absolute end-0 bottom-0 opacity-10 m-r--20 m-b--20"></i-tabler>
+            </div>
+
+            <mat-card-content class="p-24">
+              <div class="medication-list">
+                @for (m of p.medications; track $index) {
+                  <div class="med-item d-flex align-items-center p-y-12 border-bottom">
+                    <div class="bg-light-primary rounded-circle p-8 m-r-12">
+                      <i-tabler name="pill" class="icon-18 text-primary"></i-tabler>
+                    </div>
+                    <div class="flex-column">
+                      <div class="f-w-600 f-s-14">{{ m.name }}</div>
+                      <div class="f-s-12 text-muted">{{ m.dosage }} • {{ m.frequency }} • {{ m.duration }}</div>
+                    </div>
+                  </div>
+                }
+              </div>
+
+              @if (p.notes) {
+                <div class="notes-area m-t-16 p-12 bg-light rounded f-s-13 font-italic">
+                  "{{ p.notes }}"
+                </div>
+              }
+
+              <div class="signature-display m-t-24 d-flex flex-column align-items-end">
+                <span class="f-s-11 text-muted text-uppercase m-b-4">Physician Signature</span>
+                <img [src]="p.signature" alt="Signature" class="max-width-200 h-auto signature-img" />
+              </div>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      }
+    </div>
+  }
+}

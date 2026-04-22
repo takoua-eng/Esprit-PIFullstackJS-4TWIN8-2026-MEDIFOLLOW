@@ -38,6 +38,7 @@ import { HospitalizationHandwritingModule } from './modules/hospitalization-hand
 import { QuestionnairesModule } from './modules/questionnaires/questionnaires.module';
 import { AdminModule } from './modules/admin/admin.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { PrescriptionsModule } from './modules/prescriptions/prescriptions.module';
 
 // Schemas
 import { User, UserSchema } from './modules/users/users.schema';
@@ -152,6 +153,7 @@ import { AiModule } from './modules/ai/ai.module';
     AdminModule,
     DashboardModule,
     AiModule,
+    PrescriptionsModule,
   ],
   providers: [
     JwtStrategy,
