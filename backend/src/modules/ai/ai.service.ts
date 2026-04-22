@@ -277,7 +277,7 @@ NO TEXT OUTSIDE JSON.`;
       return res?.candidates?.[0]?.content?.parts?.[0]?.text
         || res?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('')
         ''
-      );
+      
     } catch { return ''; }
   }
 
