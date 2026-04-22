@@ -235,6 +235,8 @@ NO TEXT OUTSIDE JSON.`;
       }
     }
 
+
+
     // Fallback: Groq
     const groqKey = this.config.get<string>('GROQ_API_KEY');
     if (!groqKey) return '';
@@ -252,9 +254,17 @@ NO TEXT OUTSIDE JSON.`;
 
   private cleanJson(text: string) {
     try {
-      return JSON.parse(text.replace(/```json/g, '').replace(/```/g, '').trim());
+      // Try direct parse first
+      const cleaned = text.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleaned);
     } catch {
-      return { resume: 'Erreur AI', problemes: [], causes: [], recommandations: [] };
+      // Try to extract JSON from text
+      try {
+        const match = text.match(/\{[\s\S]*\}/);
+        if (match) return JSON.parse(match[0]);
+      } catch { /* ignore */ }
+      this.logger.error('JSON parse failed, raw:', text?.slice(0, 200));
+      return { resume: 'Erreur de parsing AI', problemes: [], causes: [], recommandations: [] };
     }
   }
 
@@ -266,7 +276,95 @@ NO TEXT OUTSIDE JSON.`;
     try {
       return res?.candidates?.[0]?.content?.parts?.[0]?.text
         || res?.candidates?.[0]?.content?.parts?.map((p: any) => p.text).join('')
-        || '';
+        ''
+      );
     } catch { return ''; }
+  }
+
+  // ─── STROKE RISK PREDICTION (ML Service) ────────────────────
+
+  async predictStrokeRisk(patientId: string) {
+    const patient = await this.userModel.findById(patientId).lean();
+    if (!patient) throw new Error('Patient not found');
+
+    // Latest vitals
+    const latestVital = await this.vitalModel
+      .findOne({ patientId: (patient as any)._id })
+      .sort({ recordedAt: -1 })
+      .lean();
+
+    // Age from dateOfBirth
+    const dob = (patient as any).dateOfBirth;
+    const age = dob
+      ? Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+      : 50;
+
+    // BMI
+    const weight = (latestVital as any)?.weight;
+    const heightCm = (patient as any)?.height;
+    const bmi = weight && heightCm
+      ? parseFloat((weight / ((heightCm / 100) ** 2)).toFixed(1))
+      : (latestVital as any)?.bmi || 28;
+
+    // Blood pressure — try both field name variants
+    const systolic = (latestVital as any)?.bloodPressureSystolic
+                  || 0;
+
+    // Glucose — try multiple field names
+    const glucose = (latestVital as any)?.bloodGlucose
+                 || (age > 60 ? 180 + Math.floor(age * 0.5) : age > 45 ? 130 : 95);
+
+    // Use patient age as primary risk factor when vitals missing
+    const ageRiskFactor = age > 65 ? 1 : 0;
+
+    const mlInput = {
+      age,
+      gender:            (patient as any).gender === 'male' ? 'Male' : 'Female',
+      hypertension:      systolic > 140 ? 1 : (age > 60 ? 1 : 0),
+      heart_disease:     ((latestVital as any)?.heartRate || 0) > 100 ? 1 : (age > 70 ? 1 : 0),
+      ever_married:      (patient as any).maritalStatus === 'married' ? 'Yes' : 'No',
+      work_type:         'Private',
+      Residence_type:    'Urban',
+      avg_glucose_level: glucose,
+      bmi,
+      smoking_status:    'Unknown',
+    };
+
+    try {
+      const res = await fetch('http://localhost:5001/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(mlInput),
+      });
+      if (!res.ok) throw new Error(`ML service HTTP ${res.status}`);
+      const prediction = await res.json();
+      return {
+        patientId,
+        patientName: `${(patient as any).firstName} ${(patient as any).lastName}`,
+        mlInput,
+        prediction,
+        generatedAt: new Date().toISOString(),
+      };
+    } catch (err: any) {
+      this.logger.error(`ML prediction failed: ${err.message}`);
+      return { patientId, error: 'ML service unavailable. Run: py app.py in ml-service/', mlInput };
+    }
+  }
+
+  async predictAllPatientsRisk() {
+    const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
+    if (!patientRole) return [];
+
+    const patients = await this.userModel
+      .find({ role: patientRole._id, isArchived: { $ne: true } })
+      .lean();
+
+    const results = await Promise.all(
+      (patients as any[]).map(p => this.predictStrokeRisk(p._id.toString()).catch(() => null))
+    );
+
+    return results
+      .filter((r: any) => r?.prediction?.riskScore !== undefined)
+      .sort((a: any, b: any) => b.prediction.riskScore - a.prediction.riskScore);
   }
 }

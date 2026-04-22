@@ -24,10 +24,6 @@
 
   <mat-sidenav-content class="contentWrapper light-theme" #content>
     <main class="pageWrapper maxWidth">
-      <app-super-header
-        [showToggle]="!isOver"
-        (toggleMobileNav)="sidenav.toggle()"
-      ></app-super-header>
       <div class="m-t-30">
         <router-outlet></router-outlet>
       </div>

@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { AiService } from './ai.service';
@@ -23,6 +23,18 @@ export class AiController {
   @Permissions('audit:read')
   generateAuditReport() {
     return this.aiService.generateAuditReport();
+  }
+
+  @Get('stroke-risk/:patientId')
+  @Permissions('*')
+  predictStrokeRisk(@Param('patientId') patientId: string) {
+    return this.aiService.predictStrokeRisk(patientId);
+  }
+
+  @Get('stroke-risk-all')
+  @Permissions('*')
+  predictAllPatientsRisk() {
+    return this.aiService.predictAllPatientsRisk();
   }
   	@Post('chat')
 	async chat(@Body() body: { message: string; patientContext?: any }) {

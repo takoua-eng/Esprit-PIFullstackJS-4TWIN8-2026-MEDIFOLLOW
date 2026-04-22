@@ -1,7 +1,7 @@
 <div class="ai-page p-24">
 
   <!-- Header -->
-  <div class="ai-header m-b-32">
+  <div class="ai-header m-b-24">
     <div class="d-flex align-items-center gap-16">
       <div class="ai-logo">
         <i-tabler name="brain" class="icon-32"></i-tabler>
@@ -13,159 +13,260 @@
     </div>
   </div>
 
-  <!-- Type cards -->
-  <div class="row m-b-32">
-    <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes">
-      <mat-card class="type-card" [class.active]="activeType === t.key"
-        [style.border-color]="activeType === t.key ? t.color : 'transparent'"
-        (click)="generate(t.key)" style="cursor:pointer">
-        <mat-card-content class="p-20">
-          <div class="type-icon m-b-12" [style.background]="t.color + '18'">
-            <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-24"></i-tabler>
-          </div>
-          <div class="f-w-700 f-s-14 m-b-4">{{ t.label }}</div>
-          <div class="text-muted f-s-12">{{ t.desc }}</div>
-          <mat-progress-bar *ngIf="loading && activeType === t.key"
-            mode="indeterminate" class="m-t-8"></mat-progress-bar>
-        </mat-card-content>
-      </mat-card>
-    </div>
+  <!-- Tabs -->
+  <div class="d-flex gap-8 m-b-24">
+    <button mat-raised-button [color]="activeTab === 'report' ? 'primary' : ''"
+      (click)="activeTab = 'report'">
+      <i-tabler name="chart-bar" class="icon-16 m-r-4"></i-tabler> Rapports AI
+    </button>
+    <button mat-raised-button [color]="activeTab === 'stroke' ? 'warn' : ''"
+      (click)="activeTab = 'stroke'; loadAllStrokeRisks()">
+      <i-tabler name="heart-rate-monitor" class="icon-16 m-r-4"></i-tabler> Risque AVC (ML)
+    </button>
   </div>
 
-  <!-- Result + History -->
-  <div class="row">
+  <!-- ══ TAB 1: AI Reports ══════════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'report'">
 
-    <!-- Main result -->
-    <div class="col-lg-8 m-b-16">
-      <mat-card class="cardWithShadow h-100">
-        <mat-card-content class="p-24">
+    <!-- Type cards -->
+    <div class="row m-b-32">
+      <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes">
+        <mat-card class="type-card" [class.active]="activeType === t.key"
+          [style.border-color]="activeType === t.key ? t.color : 'transparent'"
+          (click)="generate(t.key)" style="cursor:pointer">
+          <mat-card-content class="p-20">
+            <div class="type-icon m-b-12" [style.background]="t.color + '18'">
+              <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-24"></i-tabler>
+            </div>
+            <div class="f-w-700 f-s-14 m-b-4">{{ t.label }}</div>
+            <div class="text-muted f-s-12">{{ t.desc }}</div>
+            <mat-progress-bar *ngIf="loading && activeType === t.key"
+              mode="indeterminate" class="m-t-8"></mat-progress-bar>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
 
-          <!-- Loading -->
-          <div *ngIf="loading" class="text-center p-40">
-            <i-tabler name="brain" class="icon-48 ai-thinking" style="color:#6c5ce7;opacity:.6"></i-tabler>
-            <p class="f-s-14 text-muted m-t-12">Analyse en cours...</p>
-            <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
-          </div>
-
-          <!-- Result -->
-          <div *ngIf="!loading && result">
-
-            <!-- Header -->
-            <div class="d-flex align-items-center gap-12 m-b-20">
-              <div class="type-icon" [style.background]="getTypeInfo(result.type).color + '18'">
-                <i-tabler [name]="getTypeInfo(result.type).icon"
-                  [style.color]="getTypeInfo(result.type).color" class="icon-20"></i-tabler>
-              </div>
-              <div>
-                <div class="f-w-700 f-s-16">{{ getTypeInfo(result.type).label }}</div>
-                <div class="text-muted f-s-12">{{ result.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
-              </div>
+    <!-- Result + History -->
+    <div class="row">
+      <div class="col-lg-8 m-b-16">
+        <mat-card class="cardWithShadow h-100">
+          <mat-card-content class="p-24">
+            <div *ngIf="loading" class="text-center p-40">
+              <i-tabler name="brain" class="icon-48 ai-thinking" style="color:#6c5ce7;opacity:.6"></i-tabler>
+              <p class="f-s-14 text-muted m-t-12">Analyse en cours...</p>
+              <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
             </div>
 
-            <!-- Résumé -->
-            <div class="ai-result-box m-b-16">
-              <div class="d-flex align-items-center gap-8 m-b-8">
-                <i-tabler name="sparkles" class="icon-14" style="color:#6c5ce7"></i-tabler>
-                <span class="f-s-12 f-w-600" style="color:#6c5ce7">Résumé exécutif</span>
-              </div>
-              <p class="f-s-14 m-0" style="line-height:1.8">{{ result.report.resume }}</p>
-            </div>
-
-            <!-- Problèmes -->
-            <div class="ai-section m-b-12" *ngIf="result.report.problemes?.length">
-              <div class="ai-section-title" style="color:#d63031">
-                <i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes critiques
-              </div>
-              <ul class="ai-list">
-                <li *ngFor="let p of result.report.problemes">{{ p }}</li>
-              </ul>
-            </div>
-
-            <!-- Causes -->
-            <div class="ai-section m-b-12" *ngIf="result.report.causes?.length">
-              <div class="ai-section-title" style="color:#e17055">
-                <i-tabler name="search" class="icon-14"></i-tabler> Causes probables
-              </div>
-              <ul class="ai-list">
-                <li *ngFor="let c of result.report.causes">{{ c }}</li>
-              </ul>
-            </div>
-
-            <!-- Recommandations -->
-            <div class="ai-section m-b-16" *ngIf="result.report.recommandations?.length">
-              <div class="ai-section-title" style="color:#00b894">
-                <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations
-              </div>
-              <ul class="ai-list">
-                <li *ngFor="let r of result.report.recommandations">{{ r }}</li>
-              </ul>
-            </div>
-
-            <!-- Data context -->
-            <div class="data-context" *ngIf="result.data">
-              <div class="f-s-12 text-muted m-b-8 f-w-600">Données analysées</div>
-              <div class="d-flex gap-16 flex-wrap">
-                <div class="ctx-item">
-                  <span class="ctx-val">{{ result.data.totalPatients }}</span>
-                  <span class="ctx-lbl">Patients</span>
+            <div *ngIf="!loading && result">
+              <div class="d-flex align-items-center gap-12 m-b-20">
+                <div class="type-icon" [style.background]="getTypeInfo(result.type).color + '18'">
+                  <i-tabler [name]="getTypeInfo(result.type).icon" [style.color]="getTypeInfo(result.type).color" class="icon-20"></i-tabler>
                 </div>
-                <div class="ctx-item">
-                  <span class="ctx-val" [style.color]="result.data.complianceToday >= 50 ? '#00b894' : '#d63031'">
-                    {{ result.data.complianceToday }}%
+                <div>
+                  <div class="f-w-700 f-s-16">{{ getTypeInfo(result.type).label }}</div>
+                  <div class="text-muted f-s-12">{{ result.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
+                </div>
+              </div>
+              <div class="ai-result-box m-b-16">
+                <div class="d-flex align-items-center gap-8 m-b-8">
+                  <i-tabler name="sparkles" class="icon-14" style="color:#6c5ce7"></i-tabler>
+                  <span class="f-s-12 f-w-600" style="color:#6c5ce7">Résumé exécutif</span>
+                </div>
+                <p class="f-s-14 m-0" style="line-height:1.8">{{ result.report.resume }}</p>
+              </div>
+              <div class="ai-section m-b-12" *ngIf="result.report.problemes?.length">
+                <div class="ai-section-title" style="color:#d63031"><i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes</div>
+                <ul class="ai-list"><li *ngFor="let p of result.report.problemes">{{ p }}</li></ul>
+              </div>
+              <div class="ai-section m-b-12" *ngIf="result.report.causes?.length">
+                <div class="ai-section-title" style="color:#e17055"><i-tabler name="search" class="icon-14"></i-tabler> Causes</div>
+                <ul class="ai-list"><li *ngFor="let c of result.report.causes">{{ c }}</li></ul>
+              </div>
+              <div class="ai-section" *ngIf="result.report.recommandations?.length">
+                <div class="ai-section-title" style="color:#00b894"><i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations</div>
+                <ul class="ai-list"><li *ngFor="let r of result.report.recommandations">{{ r }}</li></ul>
+              </div>
+            </div>
+
+            <div *ngIf="!loading && !result" class="text-center p-40">
+              <i-tabler name="brain" class="icon-56" style="color:#dfe6e9"></i-tabler>
+              <p class="text-muted f-s-14 m-t-12">Sélectionnez un type d'analyse</p>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
+      <div class="col-lg-4 m-b-16">
+        <mat-card class="cardWithShadow h-100">
+          <mat-card-content class="p-20">
+            <div class="f-s-14 f-w-700 m-b-16 d-flex align-items-center gap-8">
+              <i-tabler name="history" class="icon-18 text-muted"></i-tabler> Historique
+            </div>
+            <div *ngIf="history.length === 0" class="text-center p-20 text-muted">
+              <i-tabler name="clock" class="icon-32" style="opacity:.3"></i-tabler>
+              <p class="f-s-12 m-t-8">Aucune analyse générée</p>
+            </div>
+            <div *ngFor="let h of history" class="history-item" (click)="result = h; activeType = h.type">
+              <div class="d-flex align-items-center gap-8">
+                <i-tabler [name]="getTypeInfo(h.type).icon" [style.color]="getTypeInfo(h.type).color" class="icon-16"></i-tabler>
+                <span class="f-s-13 f-w-600">{{ getTypeInfo(h.type).label }}</span>
+              </div>
+              <div class="text-muted f-s-11 m-t-2">{{ h.generatedAt | date:'HH:mm:ss' }}</div>
+              <div class="f-s-12 text-muted m-t-4 text-truncate">{{ h.report?.resume | slice:0:60 }}...</div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+    </div>
+
+  </ng-container>
+
+  <!-- ══ TAB 2: Stroke Risk ML ══════════════════════════════════ -->
+  <ng-container *ngIf="activeTab === 'stroke'">
+
+    <!-- KPI chips -->
+    <div class="d-flex gap-12 m-b-24 flex-wrap">
+      <div class="stroke-kpi" style="background:#d6303118;color:#d63031">
+        <i-tabler name="alert-octagon" class="icon-20"></i-tabler>
+        <div>
+          <div class="f-s-20 f-w-700">{{ highRiskCount }}</div>
+          <div class="f-s-11">Risque ÉLEVÉ</div>
+        </div>
+      </div>
+      <div class="stroke-kpi" style="background:#fdcb6e18;color:#e17055">
+        <i-tabler name="alert-triangle" class="icon-20"></i-tabler>
+        <div>
+          <div class="f-s-20 f-w-700">{{ mediumRiskCount }}</div>
+          <div class="f-s-11">Risque MOYEN</div>
+        </div>
+      </div>
+      <div class="stroke-kpi" style="background:#00b89418;color:#00b894">
+        <i-tabler name="circle-check" class="icon-20"></i-tabler>
+        <div>
+          <div class="f-s-20 f-w-700">{{ lowRiskCount }}</div>
+          <div class="f-s-11">Risque FAIBLE</div>
+        </div>
+      </div>
+      <button mat-stroked-button color="warn" (click)="loadAllStrokeRisks()" [disabled]="strokeLoading" class="m-l-auto">
+        <i-tabler name="refresh" class="icon-16 m-r-4"></i-tabler>
+        {{ strokeLoading ? 'Analyse...' : 'Actualiser' }}
+      </button>
+    </div>
+
+    <!-- Loading -->
+    <div *ngIf="strokeLoading" class="text-center p-40">
+      <mat-progress-spinner diameter="48" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
+      <p class="text-muted f-s-14 m-t-16">Analyse ML en cours pour tous les patients...</p>
+      <p class="text-muted f-s-12">Assurez-vous que le ML service tourne: <code>py app.py</code></p>
+    </div>
+
+    <!-- Results -->
+    <div *ngIf="!strokeLoading && strokeResults.length > 0" class="row">
+
+      <!-- Patient list -->
+      <div class="col-lg-5 m-b-16">
+        <mat-card class="cardWithShadow">
+          <mat-card-content class="p-0">
+            <div class="p-16 border-bottom">
+              <span class="f-s-14 f-w-700">{{ strokeResults.length }} patients analysés</span>
+            </div>
+            <div class="stroke-list">
+              <div *ngFor="let p of strokeResults; let i = index"
+                class="stroke-row" [class.selected]="selectedPatient?.patientId === p.patientId"
+                (click)="selectPatient(p)">
+                <div class="stroke-rank">{{ i + 1 }}</div>
+                <div class="flex-1-auto">
+                  <div class="f-s-13 f-w-600">{{ p.patientName }}</div>
+                  <div class="f-s-11 text-muted">{{ p.prediction?.clusterLabel }}</div>
+                </div>
+                <div class="d-flex align-items-center gap-8">
+                  <div class="stroke-score" [style.background]="p.prediction?.riskColor + '18'" [style.color]="p.prediction?.riskColor">
+                    {{ p.prediction?.riskScore | number:'1.0-0' }}%
+                  </div>
+                  <span class="stroke-badge" [style.background]="p.prediction?.riskColor + '18'" [style.color]="p.prediction?.riskColor">
+                    {{ p.prediction?.riskLevel }}
                   </span>
-                  <span class="ctx-lbl">Compliance</span>
-                </div>
-                <div class="ctx-item">
-                  <span class="ctx-val" style="color:#0984e3">{{ result.data.sentReminders }}</span>
-                  <span class="ctx-lbl">Reminders</span>
-                </div>
-                <div class="ctx-item">
-                  <span class="ctx-val">{{ result.data.responseRate }}%</span>
-                  <span class="ctx-lbl">Taux réponse</span>
                 </div>
               </div>
             </div>
-          </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
 
-          <!-- Empty -->
-          <div *ngIf="!loading && !result" class="text-center p-40">
-            <i-tabler name="brain" class="icon-56" style="color:#dfe6e9"></i-tabler>
-            <p class="text-muted f-s-14 m-t-12">Sélectionnez un type d'analyse pour commencer</p>
-          </div>
+      <!-- Patient detail -->
+      <div class="col-lg-7 m-b-16">
+        <mat-card class="cardWithShadow h-100">
+          <mat-card-content class="p-24">
+            <div *ngIf="!selectedPatient" class="text-center p-40 text-muted">
+              <i-tabler name="user-search" class="icon-48" style="opacity:.3"></i-tabler>
+              <p class="f-s-14 m-t-12">Sélectionnez un patient pour voir les détails</p>
+            </div>
 
-        </mat-card-content>
-      </mat-card>
+            <div *ngIf="selectedPatient">
+              <!-- Patient header -->
+              <div class="d-flex align-items-center gap-16 m-b-24">
+                <div class="risk-circle"
+                  [style.background]="selectedPatient.prediction?.riskColor">
+                  <span class="f-s-18 f-w-700">{{ selectedPatient.prediction?.riskScore | number:'1.0-0' }}</span>
+                  <span class="f-s-10">/100</span>
+                </div>
+                <div>
+                  <div class="f-s-18 f-w-700">{{ selectedPatient.patientName }}</div>
+                  <div class="f-s-13" [style.color]="selectedPatient.prediction?.riskColor">
+                    {{ selectedPatient.prediction?.riskLevel }} — {{ selectedPatient.prediction?.clusterLabel }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Risk bar -->
+              <div class="m-b-20">
+                <div class="d-flex justify-content-between f-s-12 m-b-6">
+                  <span class="text-muted">Score de risque AVC</span>
+                  <span class="f-w-600" [style.color]="selectedPatient.prediction?.riskColor">
+                    {{ selectedPatient.prediction?.riskScore | number:'1.1-1' }}%
+                  </span>
+                </div>
+                <div class="risk-bar-track">
+                  <div class="risk-bar-fill"
+                    [style.width.%]="selectedPatient.prediction?.riskScore"
+                    [style.background]="selectedPatient.prediction?.riskColor">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Recommendations -->
+              <div *ngIf="selectedPatient.prediction?.recommendations?.length">
+                <div class="f-s-13 f-w-700 m-b-10" style="color:#6c5ce7">
+                  <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations cliniques
+                </div>
+                <div *ngFor="let rec of selectedPatient.prediction.recommendations"
+                  class="rec-item">
+                  <i-tabler name="chevron-right" class="icon-14 m-r-6" style="color:#6c5ce7"></i-tabler>
+                  {{ rec }}
+                </div>
+              </div>
+
+              <!-- Error -->
+              <div *ngIf="selectedPatient.error" class="text-center p-20"
+                style="background:#fff3cd;border-radius:10px">
+                <i-tabler name="alert-triangle" class="icon-24" style="color:#e17055"></i-tabler>
+                <p class="f-s-13 m-t-8">{{ selectedPatient.error }}</p>
+              </div>
+            </div>
+          </mat-card-content>
+        </mat-card>
+      </div>
+
     </div>
 
-    <!-- History -->
-    <div class="col-lg-4 m-b-16">
-      <mat-card class="cardWithShadow h-100">
-        <mat-card-content class="p-20">
-          <div class="f-s-14 f-w-700 m-b-16 d-flex align-items-center gap-8">
-            <i-tabler name="history" class="icon-18 text-muted"></i-tabler>
-            Historique de session
-          </div>
-
-          <div *ngIf="history.length === 0" class="text-center p-20 text-muted">
-            <i-tabler name="clock" class="icon-32" style="opacity:.3"></i-tabler>
-            <p class="f-s-12 m-t-8">Aucune analyse générée</p>
-          </div>
-
-          <div *ngFor="let h of history" class="history-item" (click)="result = h; activeType = h.type">
-            <div class="d-flex align-items-center gap-8">
-              <i-tabler [name]="getTypeInfo(h.type).icon"
-                [style.color]="getTypeInfo(h.type).color" class="icon-16"></i-tabler>
-              <span class="f-s-13 f-w-600">{{ getTypeInfo(h.type).label }}</span>
-            </div>
-            <div class="text-muted f-s-11 m-t-2">{{ h.generatedAt | date:'HH:mm:ss' }}</div>
-            <div class="f-s-12 text-muted m-t-4 text-truncate">
-              {{ h.report?.resume | slice:0:60 }}...
-            </div>
-          </div>
-
-        </mat-card-content>
-      </mat-card>
+    <!-- Empty -->
+    <div *ngIf="!strokeLoading && strokeResults.length === 0" class="text-center p-40 text-muted">
+      <i-tabler name="heart-rate-monitor" class="icon-56" style="opacity:.3"></i-tabler>
+      <p class="f-s-14 m-t-12">Cliquez sur "Actualiser" pour lancer l'analyse ML</p>
+      <p class="f-s-12">Prérequis: ML service actif sur port 5001</p>
     </div>
 
-  </div>
+  </ng-container>
+
 </div>

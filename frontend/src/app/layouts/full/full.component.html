@@ -3,7 +3,7 @@
   Skip to main content
 </a>
 
-<app-topstrip></app-topstrip>
+<app-topstrip [showToggle]="isOver" (toggleNav)="sidenav.toggle()"></app-topstrip>
 
 <!-- Guide clavier -->
 <app-keyboard-guide></app-keyboard-guide>
@@ -46,11 +46,6 @@
   <!-- Main Content -->
   <mat-sidenav-content class="contentWrapper" #content>
     <main class="pageWrapper maxWidth" id="main-content" tabindex="-1">
-      <app-header
-        [showToggle]="!isOver"
-        (toggleMobileNav)="sidenav.toggle()"
-      ></app-header>
-
       <div class="m-t-30">
         <router-outlet></router-outlet>
       </div>

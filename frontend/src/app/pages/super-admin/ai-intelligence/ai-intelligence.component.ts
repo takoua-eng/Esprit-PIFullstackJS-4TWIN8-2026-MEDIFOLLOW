@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
@@ -11,6 +11,19 @@ interface ReportResult {
   report: { resume: string; problemes: string[]; causes: string[]; recommandations: string[] };
   data?: any;
   generatedAt: string;
+}
+
+interface StrokeRiskResult {
+  patientId: string;
+  patientName: string;
+  prediction: {
+    riskScore: number;
+    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+    riskColor: string;
+    clusterLabel: string;
+    recommendations: string[];
+  };
+  error?: string;
 }
 
 const REPORT_TYPES = [
@@ -27,14 +40,25 @@ const REPORT_TYPES = [
   templateUrl: './ai-intelligence.component.html',
   styleUrls: ['./ai-intelligence.component.scss'],
 })
-export class AiIntelligenceComponent {
+export class AiIntelligenceComponent implements OnInit {
+  // ── AI Report ──────────────────────────────────────────────
   reportTypes = REPORT_TYPES;
   loading = false;
   activeType = '';
   result: ReportResult | null = null;
   history: ReportResult[] = [];
 
+  // ── Stroke Risk ────────────────────────────────────────────
+  activeTab: 'report' | 'stroke' = 'report';
+  strokeLoading = false;
+  strokeResults: StrokeRiskResult[] = [];
+  selectedPatient: StrokeRiskResult | null = null;
+
   constructor(private http: HttpClient) {}
+
+  ngOnInit(): void {}
+
+  // ── AI Report methods ──────────────────────────────────────
 
   generate(type: string): void {
     this.loading = true;
@@ -59,4 +83,31 @@ export class AiIntelligenceComponent {
   getTypeInfo(key: string) {
     return REPORT_TYPES.find(t => t.key === key) ?? REPORT_TYPES[0];
   }
+
+  // ── Stroke Risk methods ────────────────────────────────────
+
+  loadAllStrokeRisks(): void {
+    this.strokeLoading = true;
+    this.strokeResults = [];
+    this.selectedPatient = null;
+
+    this.http.get<StrokeRiskResult[]>(`${API_BASE_URL}/ai/stroke-risk-all`)
+      .pipe(catchError(() => of([])))
+      .subscribe(results => {
+        this.strokeResults = results;
+        this.strokeLoading = false;
+      });
+  }
+
+  selectPatient(p: StrokeRiskResult): void {
+    this.selectedPatient = p;
+  }
+
+  riskIcon(level: string): string {
+    return { HIGH: 'alert-octagon', MEDIUM: 'alert-triangle', LOW: 'circle-check' }[level] ?? 'circle';
+  }
+
+  get highRiskCount():   number { return this.strokeResults.filter(r => r.prediction?.riskLevel === 'HIGH').length; }
+  get mediumRiskCount(): number { return this.strokeResults.filter(r => r.prediction?.riskLevel === 'MEDIUM').length; }
+  get lowRiskCount():    number { return this.strokeResults.filter(r => r.prediction?.riskLevel === 'LOW').length; }
 }

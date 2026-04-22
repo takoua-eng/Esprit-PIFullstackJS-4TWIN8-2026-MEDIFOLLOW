@@ -1,15 +1,19 @@
-<div
-  class="app-topstrip text-white p-y-16 p-x-24 w-100 d-flex align-items-center justify-content-between"
-  style="background-color: #468ecf;"
->
-  <!-- Left: logo only (sans texte 'MediFollow' ni 'Tableau de bord Admin') -->
-  <div class="d-flex align-items-center gap-16">
-    <img src="assets/images/medifollow-logo.png" alt="MediFollow" width="120" />
+<div class="app-topstrip text-white p-y-8 p-x-24 w-100 d-flex align-items-center justify-content-between"
+  style="background-color: #468ecf; min-height: 60px;">
+
+  <!-- Left: Toggle + Logo -->
+  <div class="d-flex align-items-center gap-12">
+    <button mat-icon-button class="text-white" (click)="toggleNav.emit()" *ngIf="showToggle">
+      <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
+    </button>
+    <img src="assets/images/medifollow-logo.png" alt="MediFollow" height="36" />
   </div>
 
-  <!-- Right: language selector, contrast mode + environment hint -->
+  <!-- Right: Language + Contrast + Notification + Profile -->
   <div class="d-flex align-items-center gap-8">
-    <button mat-stroked-button [matMenuTriggerFor]="langMenu" color="accent" class="f-s-12">
+
+    <!-- Language -->
+    <button mat-stroked-button [matMenuTriggerFor]="langMenu" class="f-s-12 text-white" style="border-color:rgba(255,255,255,.5)">
       {{ 'LANGUAGE' | translate }}: {{ selectedLanguage | uppercase }}
     </button>
     <mat-menu #langMenu="matMenu">
@@ -18,8 +22,69 @@
       </button>
     </mat-menu>
 
-    <button mat-stroked-button color="warn" class="f-s-12" (click)="toggleHighContrast()">
+    <!-- High Contrast -->
+    <button mat-stroked-button class="f-s-12 text-white" style="border-color:rgba(255,255,255,.5)" (click)="toggleHighContrast()">
       {{ highContrastEnabled ? ('DISABLE_HIGH_CONTRAST' | translate) : ('ENABLE_HIGH_CONTRAST' | translate) }}
     </button>
+
+    <!-- Notification Bell -->
+    <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="text-white" matTooltip="Notifications">
+      <span style="position:relative;display:inline-flex">
+        <i-tabler name="bell" class="icon-20 d-flex"></i-tabler>
+        <span *ngIf="unreadCount > 0"
+          style="position:absolute;top:-5px;right:-5px;background:#e74c3c;color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center">
+          {{ unreadCount > 9 ? '9+' : unreadCount }}
+        </span>
+      </span>
+    </button>
+
+    <mat-menu #notifMenu="matMenu" xPosition="before" class="notif-panel">
+      <div class="np-header" (click)="$event.stopPropagation()">
+        <span class="np-title">Notifications</span>
+        <button mat-button class="np-mark-all" (click)="markAllRead()">
+          <i-tabler name="checks" class="icon-14 m-r-4"></i-tabler> Tout lire
+        </button>
+      </div>
+      <ng-container *ngIf="unreadNotifs.length > 0">
+        <div class="np-section-label" (click)="$event.stopPropagation()">UNREAD</div>
+        <div *ngFor="let n of unreadNotifs" class="np-item np-unread" (click)="markRead(n)">
+          <div class="np-avatar" [ngClass]="'type-' + n.type">
+            <i-tabler [name]="getTypeIcon(n.type)" class="icon-18 d-flex"></i-tabler>
+          </div>
+          <div class="np-content">
+            <div class="np-msg"><strong>{{ n.title }}</strong> {{ n.message }}</div>
+            <div class="np-meta">{{ timeAgo(n.createdAt) }}</div>
+          </div>
+        </div>
+      </ng-container>
+      <div *ngIf="notifications.length === 0" class="np-empty" (click)="$event.stopPropagation()">
+        <i-tabler name="bell-off" class="icon-24" style="opacity:.4"></i-tabler>
+        <p>Aucune notification</p>
+      </div>
+    </mat-menu>
+
+    <!-- Profile -->
+    <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="text-white">
+      <img src="/assets/images/profile/user-1.jpg" class="rounded-circle object-cover d-block" width="32" height="32"
+        style="border:2px solid rgba(255,255,255,.5)" />
+    </button>
+
+    <mat-menu #profileMenu="matMenu" xPosition="before">
+      <div class="px-4 py-2">
+        <div class="f-w-600">{{ userRole }}</div>
+        <div class="text-muted f-s-12">{{ userEmail }}</div>
+      </div>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="goToProfile()">
+        <i-tabler name="user" class="icon-16 m-r-8"></i-tabler>
+        <span>Profil</span>
+      </button>
+      <mat-divider></mat-divider>
+      <button mat-menu-item (click)="logout()" style="color:#d63031">
+        <i-tabler name="logout" class="icon-16 m-r-8"></i-tabler>
+        <span>Déconnexion</span>
+      </button>
+    </mat-menu>
+
   </div>
 </div>

@@ -1,64 +1,150 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
 import { CommonModule, UpperCasePipe } from '@angular/common';
+import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
-import { MatBadgeModule } from '@angular/material/badge';
+import { MatDividerModule } from '@angular/material/divider';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { interval, Subscription } from 'rxjs';
+import { startWith, switchMap, catchError } from 'rxjs/operators';
+import { of } from 'rxjs';
+import { NotificationBellService, AppNotification } from 'src/app/services/notification-bell.service';
+import { clearAuthLocalStorage } from 'src/app/core/app-storage';
+import { CoreService } from 'src/app/services/core.service';
 
 @Component({
-    selector: 'app-topstrip',
-    imports: [CommonModule, UpperCasePipe, TablerIconsModule, MatButtonModule, MatMenuModule, MatTooltipModule, MatBadgeModule, TranslateModule],
-    templateUrl: './topstrip.component.html',
+  selector: 'app-topstrip',
+  standalone: true,
+  imports: [
+    CommonModule, UpperCasePipe, TablerIconsModule,
+    MatButtonModule, MatMenuModule, MatTooltipModule, MatDividerModule,
+    TranslateModule,
+  ],
+  templateUrl: './topstrip.component.html',
 })
-export class AppTopstripComponent {
-    selectedLanguage = localStorage.getItem('app_language') || 'en';
-    highContrastEnabled = localStorage.getItem('high_contrast') === 'true';
+export class AppTopstripComponent implements OnInit, OnDestroy {
+  @Input()  showToggle = false;
+  @Output() toggleNav  = new EventEmitter<void>();
 
-    availableLanguages = [
-      { code: 'en', label: 'English' },
-      { code: 'fr', label: 'Français' },
-      { code: 'ar', label: 'العربية' },
-    ];
+  selectedLanguage    = localStorage.getItem('app_language') || 'en';
+  highContrastEnabled = localStorage.getItem('high_contrast') === 'true';
 
-    constructor(private translate: TranslateService) {
-  this.translate.onLangChange.subscribe((event) => {
-    this.selectedLanguage = event.lang;
-  });
+  availableLanguages = [
+    { code: 'en', label: 'English' },
+    { code: 'fr', label: 'Français' },
+    { code: 'ar', label: 'العربية' },
+  ];
 
-  // Restaurer high contrast au démarrage
-  this.highContrastEnabled = localStorage.getItem('high_contrast') === 'true';
-  this.setHighContrastClass();
-}
+  notifications: AppNotification[] = [];
+  unreadCount = 0;
+  private notifSub?: Subscription;
 
-    changeLanguage(lang: string) {
-      this.selectedLanguage = lang;
-      this.translate.use(lang);
-      localStorage.setItem('app_language', lang);
+  get userEmail(): string {
+    try { return JSON.parse(localStorage.getItem('medi_follow_user_data') || '{}').email || ''; }
+    catch { return ''; }
+  }
 
-      const langMap: Record<string, string> = { en: 'en', fr: 'fr', ar: 'ar' };
-      document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+  get userRole(): string {
+    return localStorage.getItem('user_role') || 'User';
+  }
 
-      // Trigger Google Translate widget
-      (window as any).triggerGoogleTranslate?.(lang);
+  get unreadNotifs(): AppNotification[] { return this.notifications.filter(n => !n.isRead); }
+
+  constructor(
+    private translate: TranslateService,
+    private notifService: NotificationBellService,
+    private core: CoreService,
+    private router: Router,
+  ) {
+    this.translate.onLangChange.subscribe(e => this.selectedLanguage = e.lang);
+    this.setHighContrastClass();
+  }
+
+  ngOnInit(): void {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      this.notifSub = interval(30000).pipe(
+        startWith(0),
+        switchMap(() => this.notifService.getMyNotifications().pipe(catchError(() => of([])))),
+      ).subscribe((notifs: AppNotification[]) => {
+        this.notifications = notifs.slice(0, 10);
+        this.unreadCount   = notifs.filter(n => !n.isRead).length;
+      });
     }
+  }
 
-    toggleHighContrast() {
-      this.highContrastEnabled = !this.highContrastEnabled;
-      localStorage.setItem('high_contrast', this.highContrastEnabled ? 'true' : 'false');
-      this.setHighContrastClass();
-    }
+  ngOnDestroy(): void { this.notifSub?.unsubscribe(); }
 
-    setHighContrastClass() {
-  if (this.highContrastEnabled) {
-    document.documentElement.classList.add('high-contrast');
-    document.body.classList.add('high-contrast');
-  } else {
-    document.documentElement.classList.remove('high-contrast');
-    document.body.classList.remove('high-contrast');
+  markRead(n: AppNotification): void {
+    if (n.isRead) return;
+    this.notifService.markRead(n._id).subscribe(() => {
+      n.isRead = true;
+      this.unreadCount = Math.max(0, this.unreadCount - 1);
+    });
+  }
+
+  markAllRead(): void {
+    this.notifService.markAllRead().subscribe(() => {
+      this.notifications.forEach(n => n.isRead = true);
+      this.unreadCount = 0;
+    });
+  }
+
+  getTypeIcon(type: string): string {
+    const map: Record<string, string> = {
+      alert: 'alert-triangle', reminder: 'clock', message: 'message',
+      info: 'info-circle', success: 'circle-check', user: 'user',
+    };
+    return map[type?.toLowerCase()] ?? 'bell';
+  }
+
+  timeAgo(dateStr: string): string {
+    const diff  = Date.now() - new Date(dateStr).getTime();
+    const mins  = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days  = Math.floor(diff / 86400000);
+    if (mins  < 1)  return 'just now';
+    if (mins  < 60) return `${mins}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    return `${days}d ago`;
+  }
+
+  changeLanguage(lang: string): void {
+    this.selectedLanguage = lang;
+    this.translate.use(lang);
+    localStorage.setItem('app_language', lang);
+    document.documentElement.dir = lang === 'ar' ? 'rtl' : 'ltr';
+    (window as any).triggerGoogleTranslate?.(lang);
+  }
+
+  toggleHighContrast(): void {
+    this.highContrastEnabled = !this.highContrastEnabled;
+    localStorage.setItem('high_contrast', this.highContrastEnabled ? 'true' : 'false');
+    this.setHighContrastClass();
+  }
+
+  setHighContrastClass(): void {
+    document.documentElement.classList.toggle('high-contrast', this.highContrastEnabled);
+    document.body.classList.toggle('high-contrast', this.highContrastEnabled);
+  }
+
+  goToProfile(): void {
+    const role = (localStorage.getItem('user_role') || '').toLowerCase();
+    const profileRoutes: Record<string, string> = {
+      superadmin: '/super-admin/profile',
+      doctor:     '/dashboard/doctor/profile',
+      nurse:      '/dashboard/nurse/profile',
+      patient:    '/dashboard/patient/profile',
+      coordinator:'/admin/coordinator/profile',
+    };
+    this.router.navigate([profileRoutes[role] || '/dashboard/profile']);
+  }
+
+  logout(): void {
+    clearAuthLocalStorage();
+    this.core.clearRole();
+    this.router.navigate(['/authentication/login']);
   }
 }
-
-}
-

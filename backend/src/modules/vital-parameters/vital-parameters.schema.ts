@@ -38,10 +38,10 @@ export class VitalParameters {
   @Prop({ required: true })
   recordedAt: Date; // date de mesure
 
+  @Prop()
+  bloodGlucose?: number; // mg/dL
+
   //mongoose gere automatiquement createdAt et updatedAt grace a timestamps: true dans le decorateur @Schema
-
-
-
 }
 
 export const VitalParametersSchema = SchemaFactory.createForClass(VitalParameters);
