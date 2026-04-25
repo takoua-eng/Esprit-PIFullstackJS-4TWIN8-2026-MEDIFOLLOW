@@ -40,14 +40,17 @@ export class CoordinatorService {
   }
 
   private checkVitalFields(doc: any): string[] {
-    const missing: string[] = [];
-    if (doc.temperature == null) missing.push('Temperature');
-    if (doc.heartRate == null) missing.push('Heart Rate');
-    if (doc.bloodPressureSystolic == null || doc.bloodPressureDiastolic == null)
-      missing.push('Blood Pressure');
-    if (doc.weight == null) missing.push('Weight');
-    return missing;
-  }
+  const missing: string[] = [];
+  if (doc.temperature == null) missing.push('Temperature');
+  if (doc.heartRate == null) missing.push('Heart Rate');
+  const systolic = doc.bloodPressureSystolic ?? doc.bloodPressuresystolic;
+  if (systolic == null || doc.bloodPressureDiastolic == null)
+    missing.push('Blood Pressure');
+  if (doc.weight == null) missing.push('Weight');
+  if (doc.oxygenSaturation == null) missing.push('SpO2');
+  if (doc.respiratoryRate == null) missing.push('Respiratory Rate');
+  return missing;
+}
 
   private checkSymptomFields(doc: any): string[] {
     const missing: string[] = [];
@@ -71,8 +74,8 @@ export class CoordinatorService {
     ]);
 
     const missingVitals = vitalDoc
-      ? this.checkVitalFields(vitalDoc)
-      : ['Temperature', 'Heart Rate', 'Blood Pressure', 'Weight'];
+  ? this.checkVitalFields(vitalDoc)
+  : ['Temperature', 'Heart Rate', 'Blood Pressure', 'Weight', 'SpO2', 'Respiratory Rate'];
 
     const missingSymptoms = symptomDoc
       ? this.checkSymptomFields(symptomDoc)
