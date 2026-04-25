@@ -29,7 +29,10 @@ export class ParametersComponent implements OnInit, OnDestroy {
       bloodPressureSystolic:  ['', [Validators.required, Validators.min(80), Validators.max(200)]],
       bloodPressureDiastolic: ['', [Validators.required, Validators.min(50), Validators.max(120)]],
       weight:                 ['', [Validators.required, Validators.min(30), Validators.max(200)]],
+      glucoseLevel:          ['', [Validators.min(0.1), Validators.max(50)]],
       heartRate:              ['', [Validators.required, Validators.min(40), Validators.max(200)]],
+      oxygenSaturation:       ['', [Validators.required, Validators.min(50), Validators.max(100)]],
+      respiratoryRate:        ['', [Validators.required, Validators.min(4), Validators.max(60)]],
       notes:                  [''],
     });
   }
@@ -52,6 +55,13 @@ export class ParametersComponent implements OnInit, OnDestroy {
           min: 30, max: 200,
         },
         {
+          name: 'glucoseLevel',
+          type: 'number',
+          label: { fr: 'Glycémie moyenne (g/L)', ar: 'معدل الجلوكوز (جم/ل)', en: 'Average glucose (g/L)' },
+          hint:  { fr: 'Entrez la glycémie en g/L (ex : 1.0)', ar: 'أدخل مستوى الجلوكوز بالغرام/لتر (مثال: 1.0)', en: 'Enter glucose in g/L (e.g., 1.0)' },
+          min: 0.1, max: 50,
+        },
+        {
           name: 'bloodPressureSystolic',
           type: 'number',
           label: { fr: 'Pression artérielle systolique en millimètres de mercure', ar: 'ضغط الدم الانقباضي بالملليمتر زئبق', en: 'Systolic blood pressure in mmHg' },
@@ -71,6 +81,20 @@ export class ParametersComponent implements OnInit, OnDestroy {
           label: { fr: 'Fréquence cardiaque en battements par minute', ar: 'معدل ضربات القلب في الدقيقة', en: 'Heart rate in beats per minute' },
           hint:  { fr: 'Valeur normale entre 60 et 100', ar: 'القيمة الطبيعية بين 60 و100', en: 'Normal range 60 to 100' },
           min: 40, max: 200,
+        },
+        {
+          name: 'oxygenSaturation',
+          type: 'number',
+          label: { fr: 'Saturation en oxygène (%)', ar: 'تشبع الأكسجين (%)', en: 'Oxygen saturation (%)' },
+          hint:  { fr: 'Valeur normale ≥ 95%, critique < 90%', ar: 'القيمة الطبيعية ≥ 95%', en: 'Normal ≥ 95%, critical < 90%' },
+          min: 50, max: 100,
+        },
+        {
+          name: 'respiratoryRate',
+          type: 'number',
+          label: { fr: 'Fréquence respiratoire (resp/min)', ar: 'معدل التنفس (نفس/دقيقة)', en: 'Respiratory rate (breaths/min)' },
+          hint:  { fr: 'Normale 12–20, critique > 30 ou < 8', ar: 'الطبيعي 12–20', en: 'Normal 12–20, critical > 30 or < 8' },
+          min: 4, max: 60,
         },
         {
           name: 'notes',
@@ -112,7 +136,10 @@ export class ParametersComponent implements OnInit, OnDestroy {
       bloodPressuresystolic: Number(formVal.bloodPressureSystolic),
       bloodPressureDiastolic: Number(formVal.bloodPressureDiastolic),
       weight: Number(formVal.weight),
+      glucoseLevel: formVal.glucoseLevel ? Number(formVal.glucoseLevel) : undefined,
       heartRate: Number(formVal.heartRate),
+      oxygenSaturation: Number(formVal.oxygenSaturation),
+      respiratoryRate: Number(formVal.respiratoryRate),
       notes: formVal.notes,
       recordedAt: new Date().toISOString(),
     };

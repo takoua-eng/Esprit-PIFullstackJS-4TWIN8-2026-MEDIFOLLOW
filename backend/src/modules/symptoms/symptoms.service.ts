@@ -130,6 +130,17 @@ export class SymptomsService {
     const nausea =
       typeof data.nausea === 'boolean' ? data.nausea : Boolean(data.nausea);
 
+    // Nouveaux champs structurés
+    const chestPain = data['chestPain'] !== undefined ? Number(data['chestPain']) : undefined;
+    const palpitations = data['palpitations'] !== undefined ? Boolean(data['palpitations']) : undefined;
+    const breathingDifficulty = data['breathingDifficulty'] !== undefined ? Number(data['breathingDifficulty']) : undefined;
+    const expectoration = data['expectoration'] !== undefined ? Boolean(data['expectoration']) : undefined;
+    const nauseaLevel = data['nauseaLevel'] !== undefined ? Number(data['nauseaLevel']) : undefined;
+    const vomiting = data['vomiting'] !== undefined ? Boolean(data['vomiting']) : undefined;
+    const diarrhea = data['diarrhea'] !== undefined ? Boolean(data['diarrhea']) : undefined;
+    const appetiteLoss = data['appetiteLoss'] !== undefined ? Number(data['appetiteLoss']) : undefined;
+    const confusion = data['confusion'] !== undefined ? Boolean(data['confusion']) : undefined;
+
     const entry = new this.symptomsModel({
       ...data,
       patientId: new Types.ObjectId(String(data.patientId)),
@@ -141,6 +152,15 @@ export class SymptomsService {
       nausea,
       entrySource: data.entrySource ?? 'patient',
       reportedAt: data.reportedAt ? new Date(data.reportedAt as Date) : new Date(),
+      chestPain,
+      palpitations,
+      breathingDifficulty,
+      expectoration,
+      nauseaLevel,
+      vomiting,
+      diarrhea,
+      appetiteLoss,
+      confusion,
     });
 
     const saved = await entry.save();
@@ -151,12 +171,15 @@ export class SymptomsService {
       painLevel,
       fatigueLevel,
       shortnessOfBreath,
-    });
+      chestPain,
+      breathingDifficulty,
+      confusion,
+    } as any);
 
     return saved;
   }
 
-  private async checkSymptomAlerts(data: Partial<Symptoms>): Promise<void> {
+  private async checkSymptomAlerts(data: Partial<Symptoms> & Record<string, any>): Promise<void> {
     const patientId = data.patientId!;
 
     if (data.painLevel !== undefined && data.painLevel >= 8) {
@@ -185,6 +208,35 @@ export class SymptomsService {
         type: AutoAlertType.SYMPTOM,
         parameter: 'shortnessOfBreath',
         message: `Essoufflement signale par le patient`,
+      });
+    }
+
+    if (data.chestPain !== undefined && data.chestPain >= 7) {
+      await this.alertsService.createAlert({
+        patientId,
+        type: AutoAlertType.SYMPTOM,
+        parameter: 'chestPain',
+        value: data.chestPain,
+        message: `Douleur thoracique élevée signalée : ${data.chestPain}/10`,
+      });
+    }
+
+    if (data.breathingDifficulty !== undefined && data.breathingDifficulty >= 4) {
+      await this.alertsService.createAlert({
+        patientId,
+        type: AutoAlertType.SYMPTOM,
+        parameter: 'breathingDifficulty',
+        value: data.breathingDifficulty,
+        message: `Difficulté respiratoire élevée signalée : ${data.breathingDifficulty}/5`,
+      });
+    }
+
+    if (data.confusion === true) {
+      await this.alertsService.createAlert({
+        patientId,
+        type: AutoAlertType.SYMPTOM,
+        parameter: 'confusion',
+        message: `Confusion mentale signalée par le patient`,
       });
     }
   }

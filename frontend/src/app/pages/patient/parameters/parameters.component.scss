@@ -34,6 +34,44 @@
   }
 }
 
+.params-list {
+  margin-bottom: 16px;
+}
+
+.param-item {
+  display: grid;
+  grid-template-columns: 1fr 260px;
+  align-items: center;
+  gap: 12px 18px;
+  margin-bottom: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.04);
+}
+
+.param-label {
+  font-weight: 600;
+  font-size: 16px;
+  padding-left: 4px;
+}
+
+.param-control {
+  width: 100%;
+  max-width: 260px;
+}
+
+@media (max-width: 720px) {
+  .param-item {
+    grid-template-columns: 1fr;
+    align-items: flex-start;
+  }
+
+  .param-control {
+    max-width: none;
+    width: 100%;
+    margin-top: 6px;
+  }
+}
+
 .full-width {
   width: 100%;
 }

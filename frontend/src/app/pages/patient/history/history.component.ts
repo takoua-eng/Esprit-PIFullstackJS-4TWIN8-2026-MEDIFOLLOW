@@ -16,8 +16,28 @@ export class HistoryComponent implements OnInit {
   weightChartOptions: any;
   heartRateChartOptions: any;
   bloodPressureChartOptions: any;
+  oxygenChartOptions: any;
+  glucoseChartOptions: any;
+  respiratoryChartOptions: any;
 
   symptoms: SymptomEntry[] = [];
+  // map internal symptom keys to friendly English labels for history display
+  symptomLabelMap: Record<string, string> = {
+    douleur: 'Pain',
+    fatigue: 'Fatigue',
+    perteDAppetit: 'Loss of appetite',
+    fievre: 'Fever',
+    douleurThoracique: 'Chest pain',
+    palpitations: 'Palpitations',
+    essoufflement: 'Shortness of breath',
+    toux: 'Cough',
+    expectoration: 'Expectoration',
+    nausee: 'Nausea',
+    vomissements: 'Vomiting',
+    diarrhee: 'Diarrhea',
+    vertiges: 'Dizziness',
+    confusion: 'Confusion',
+  };
   expandedSymptom: SymptomEntry | null = null;
   isLoading = true;
   hasData = false;
@@ -58,6 +78,13 @@ export class HistoryComponent implements OnInit {
     const heartRates = sorted.map(v => v.heartRate ?? null);
     const systolic = sorted.map(v => v.bloodPressuresystolic ?? null);
     const diastolic = sorted.map(v => v.bloodPressureDiastolic ?? null);
+    const oxygen = sorted.map(v => v.oxygenSaturation ?? null);
+    const respiratory = sorted.map(v => v.respiratoryRate ?? null);
+    const glucose = sorted.map(v => {
+      if (v.glucoseLevel !== undefined && v.glucoseLevel !== null) return v.glucoseLevel;
+      if (v.bloodGlucose !== undefined && v.bloodGlucose !== null) return Number(v.bloodGlucose) / 100; // mg/dL -> g/L
+      return null;
+    });
 
     const baseChart = (height = 280) => ({ type: 'line', height, toolbar: { show: false } });
     const baseXaxis = (cats: string[]) => ({ categories: cats, labels: { style: { fontSize: '11px' } } });
@@ -116,6 +143,38 @@ export class HistoryComponent implements OnInit {
       title: { text: 'Blood Pressure Trend' },
       colors: ['#1565c0', '#0288d1'],
       markers: { size: 5 },
+    };
+
+    this.oxygenChartOptions = {
+      series: [{ name: 'Oxygen Saturation (%)', data: oxygen }],
+      chart: baseChart(),
+      xaxis: baseXaxis(dates),
+      yaxis: baseYaxis('%'),
+      title: { text: 'Oxygen Saturation' },
+      colors: ['#43a047'],
+      markers: { size: 5 },
+      annotations: { yaxis: [{ y: 90, borderColor: '#ff5722', label: { text: 'Critical < 90%', style: { color: '#fff', background: '#ff5722' } } }] },
+    };
+
+    this.glucoseChartOptions = {
+      series: [{ name: 'Average Glucose (g/L)', data: glucose }],
+      chart: baseChart(),
+      xaxis: baseXaxis(dates),
+      yaxis: baseYaxis('g/L'),
+      title: { text: 'Average Glucose (g/L)' },
+      colors: ['#ff9800'],
+      markers: { size: 5 },
+    };
+
+    this.respiratoryChartOptions = {
+      series: [{ name: 'Respiratory Rate (resp/min)', data: respiratory }],
+      chart: baseChart(),
+      xaxis: baseXaxis(dates),
+      yaxis: baseYaxis('resp/min'),
+      title: { text: 'Respiratory Rate' },
+      colors: ['#6a1b9a'],
+      markers: { size: 5 },
+      annotations: { yaxis: [ { y: 30, borderColor: '#ff5722', label: { text: 'High threshold', style: { color: '#fff', background: '#ff5722' } } }, { y: 8, borderColor: '#42a5f5', label: { text: 'Low threshold', style: { color: '#fff', background: '#42a5f5' } } } ] },
     };
   }
 }
