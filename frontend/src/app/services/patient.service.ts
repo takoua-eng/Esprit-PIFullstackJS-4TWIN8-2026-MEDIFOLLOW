@@ -9,8 +9,12 @@ export interface VitalEntry {
   temperature?: number;
   bloodPressuresystolic?: number;
   bloodPressureDiastolic?: number;
+  oxygenSaturation?: number;
+  respiratoryRate?: number;
   weight?: number;
   heartRate?: number;
+  glucoseLevel?: number; // g/L (optional)
+  bloodGlucose?: number; // mg/dL (optional, legacy)
   notes?: string;
   recordedAt: string;
   createdAt?: string;
@@ -22,8 +26,17 @@ export interface SymptomEntry {
   symptoms: string[];
   painLevel: number;
   fatigueLevel: number;
+  chestPain?: number;
+  breathingDifficulty?: number;
+  nauseaLevel?: number;
+  appetiteLoss?: number;
   shortnessOfBreath: boolean;
   nausea: boolean;
+  palpitations?: boolean;
+  expectoration?: boolean;
+  vomiting?: boolean;
+  diarrhea?: boolean;
+  confusion?: boolean;
   description?: string;
   reportedAt: string;
   createdAt?: string;

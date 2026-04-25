@@ -1,4 +1,4 @@
-﻿import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { VitalParameters } from './vital-parameters.schema';
 import { Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -130,7 +130,37 @@ export class VitalParametersService {
         message: `Tension diastolique Ã©levÃ©e : ${data.bloodPressureDiastolic} mmHg (seuil : 100)`,
       });
     }
-  }
+    if (data.oxygenSaturation !== undefined) {
+      if (data.oxygenSaturation < 90) {
+        await this.alertsService.createAlert({
+          patientId,
+          type: AutoAlertType.VITAL,
+          parameter: 'oxygenSaturation',
+          value: data.oxygenSaturation,
+          message: `Saturation O2 critique : ${data.oxygenSaturation}% (seuil critique : < 90%)`,
+        });
+      }
+    }
+
+    if (data.respiratoryRate !== undefined) {
+      if (data.respiratoryRate > 30) {
+        await this.alertsService.createAlert({
+          patientId,
+          type: AutoAlertType.VITAL,
+          parameter: 'respiratoryRate',
+          value: data.respiratoryRate,
+          message: `Fréquence respiratoire élevée : ${data.respiratoryRate} resp/min (seuil : 30)`,
+        });
+      } else if (data.respiratoryRate < 8) {
+        await this.alertsService.createAlert({
+          patientId,
+          type: AutoAlertType.VITAL,
+          parameter: 'respiratoryRate',
+          value: data.respiratoryRate,
+          message: `Fréquence respiratoire basse : ${data.respiratoryRate} resp/min (seuil : 8)`,
+        });
+      }
+    }  }
 
 
 

@@ -37,91 +37,160 @@
   aria-labelledby="page-title"
   novalidate>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Temperature (°C)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="temperature"
-              step="0.1"
-              placeholder="36.5"
-              id="temperature"
-              aria-required="true"
-              aria-describedby="temperature-hint temperature-error"
-              tabindex="0">
-            <mat-hint id="temperature-hint">Normal: 36.1 - 37.2</mat-hint>
-            <mat-error id="temperature-error" *ngIf="parametersForm.get('temperature')?.hasError('required')" role="alert">Required field</mat-error>
-            <mat-error *ngIf="parametersForm.get('temperature')?.hasError('min') || parametersForm.get('temperature')?.hasError('max')" role="alert">Value must be between 35 and 42</mat-error>
-          </mat-form-field>
+        <div class="params-list">
 
-          <mat-form-field appearance="outline">
-            <mat-label>Weight (kg)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="weight"
-              step="0.1"
-              placeholder="70"
-              id="weight"
-              aria-required="true"
-              aria-describedby="weight-error"
-              tabindex="0">
-            <mat-error id="weight-error" *ngIf="parametersForm.get('weight')?.hasError('required')" role="alert">Required field</mat-error>
-            <mat-error *ngIf="parametersForm.get('weight')?.hasError('min') || parametersForm.get('weight')?.hasError('max')" role="alert">Value must be between 30 and 200</mat-error>
-          </mat-form-field>
-        </div>
+          <div class="param-item">
+            <div class="param-label" id="label-temperature">Temperature (°C)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="temperature"
+                step="0.1"
+                placeholder="36.5"
+                id="temperature"
+                aria-required="true"
+                aria-labelledby="label-temperature"
+                aria-describedby="temperature-hint temperature-error"
+                tabindex="0">
+              <mat-hint id="temperature-hint">Normal: 36.1 - 37.2</mat-hint>
+              <mat-error id="temperature-error" *ngIf="parametersForm.get('temperature')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('temperature')?.hasError('min') || parametersForm.get('temperature')?.hasError('max')" role="alert">Value must be between 35 and 42</mat-error>
+            </mat-form-field>
+          </div>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline">
-            <mat-label>Systolic Blood Pressure (mmHg)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="bloodPressureSystolic"
-              placeholder="120"
-              id="systolic"
-              aria-required="true"
-              aria-describedby="systolic-hint systolic-error"
-              tabindex="0">
-            <mat-hint id="systolic-hint">Normal: 90 - 120</mat-hint>
-            <mat-error id="systolic-error" *ngIf="parametersForm.get('bloodPressureSystolic')?.hasError('required')" role="alert">Required field</mat-error>
-            <mat-error *ngIf="parametersForm.get('bloodPressureSystolic')?.hasError('min') || parametersForm.get('bloodPressureSystolic')?.hasError('max')" role="alert">Value must be between 80 and 200</mat-error>
-          </mat-form-field>
+          <div class="param-item">
+            <div class="param-label" id="label-weight">Weight (kg)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="weight"
+                step="0.1"
+                placeholder="70"
+                id="weight"
+                aria-required="true"
+                aria-labelledby="label-weight"
+                aria-describedby="weight-error"
+                tabindex="0">
+              <mat-error id="weight-error" *ngIf="parametersForm.get('weight')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('weight')?.hasError('min') || parametersForm.get('weight')?.hasError('max')" role="alert">Value must be between 30 and 200</mat-error>
+            </mat-form-field>
+          </div>
 
-          <mat-form-field appearance="outline">
-            <mat-label>Diastolic Blood Pressure (mmHg)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="bloodPressureDiastolic"
-              placeholder="80"
-              id="diastolic"
-              aria-required="true"
-              aria-describedby="diastolic-hint diastolic-error"
-              tabindex="0">
-            <mat-hint id="diastolic-hint">Normal: 60 - 80</mat-hint>
-            <mat-error id="diastolic-error" *ngIf="parametersForm.get('bloodPressureDiastolic')?.hasError('required')" role="alert">Required field</mat-error>
-            <mat-error *ngIf="parametersForm.get('bloodPressureDiastolic')?.hasError('min') || parametersForm.get('bloodPressureDiastolic')?.hasError('max')" role="alert">Value must be between 50 and 120</mat-error>
-          </mat-form-field>
-        </div>
+          <div class="param-item">
+            <div class="param-label" id="label-glucose">Average Glucose (g/L)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="glucoseLevel"
+                step="0.1"
+                placeholder="1.0"
+                id="glucose"
+                aria-labelledby="label-glucose"
+                aria-describedby="glucose-hint glucose-error"
+                tabindex="0">
+              <mat-hint id="glucose-hint">Enter glucose in g/L (e.g., 1.0)</mat-hint>
+              <mat-error id="glucose-error" *ngIf="parametersForm.get('glucoseLevel')?.hasError('min') || parametersForm.get('glucoseLevel')?.hasError('max')" role="alert">Value must be between 0.1 and 50</mat-error>
+            </mat-form-field>
+          </div>
 
-        <div class="form-row single">
-          <mat-form-field appearance="outline">
-            <mat-label>Heart Rate (bpm)</mat-label>
-            <input
-              matInput
-              type="number"
-              formControlName="heartRate"
-              placeholder="72"
-              id="heartRate"
-              aria-required="true"
-              aria-describedby="heartrate-hint heartrate-error"
-              tabindex="0">
-            <mat-hint id="heartrate-hint">Normal: 60 - 100</mat-hint>
-            <mat-error id="heartrate-error" *ngIf="parametersForm.get('heartRate')?.hasError('required')" role="alert">Required field</mat-error>
-            <mat-error *ngIf="parametersForm.get('heartRate')?.hasError('min') || parametersForm.get('heartRate')?.hasError('max')" role="alert">Value must be between 40 and 200</mat-error>
-          </mat-form-field>
+          <div class="param-item">
+            <div class="param-label" id="label-systolic">Systolic Blood Pressure (mmHg)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="bloodPressureSystolic"
+                placeholder="120"
+                id="systolic"
+                aria-required="true"
+                aria-labelledby="label-systolic"
+                aria-describedby="systolic-hint systolic-error"
+                tabindex="0">
+              <mat-hint id="systolic-hint">Normal: 90 - 120</mat-hint>
+              <mat-error id="systolic-error" *ngIf="parametersForm.get('bloodPressureSystolic')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('bloodPressureSystolic')?.hasError('min') || parametersForm.get('bloodPressureSystolic')?.hasError('max')" role="alert">Value must be between 80 and 200</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="param-item">
+            <div class="param-label" id="label-diastolic">Diastolic Blood Pressure (mmHg)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="bloodPressureDiastolic"
+                placeholder="80"
+                id="diastolic"
+                aria-required="true"
+                aria-labelledby="label-diastolic"
+                aria-describedby="diastolic-hint diastolic-error"
+                tabindex="0">
+              <mat-hint id="diastolic-hint">Normal: 60 - 80</mat-hint>
+              <mat-error id="diastolic-error" *ngIf="parametersForm.get('bloodPressureDiastolic')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('bloodPressureDiastolic')?.hasError('min') || parametersForm.get('bloodPressureDiastolic')?.hasError('max')" role="alert">Value must be between 50 and 120</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="param-item">
+            <div class="param-label" id="label-heartRate">Heart Rate (bpm)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="heartRate"
+                placeholder="72"
+                id="heartRate"
+                aria-required="true"
+                aria-labelledby="label-heartRate"
+                aria-describedby="heartrate-hint heartrate-error"
+                tabindex="0">
+              <mat-hint id="heartrate-hint">Normal: 60 - 100</mat-hint>
+              <mat-error id="heartrate-error" *ngIf="parametersForm.get('heartRate')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('heartRate')?.hasError('min') || parametersForm.get('heartRate')?.hasError('max')" role="alert">Value must be between 40 and 200</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="param-item">
+            <div class="param-label" id="label-oxygenSaturation">Oxygen Saturation (%)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="oxygenSaturation"
+                placeholder="98"
+                id="oxygenSaturation"
+                aria-required="true"
+                aria-labelledby="label-oxygenSaturation"
+                aria-describedby="spo2-hint spo2-error"
+                tabindex="0">
+              <mat-hint id="spo2-hint">Normal: ≥ 95% — Critical: &lt; 90%</mat-hint>
+              <mat-error id="spo2-error" *ngIf="parametersForm.get('oxygenSaturation')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('oxygenSaturation')?.hasError('min') || parametersForm.get('oxygenSaturation')?.hasError('max')" role="alert">Value must be between 50 and 100</mat-error>
+            </mat-form-field>
+          </div>
+
+          <div class="param-item">
+            <div class="param-label" id="label-respiratoryRate">Respiratory Rate (resp/min)</div>
+            <mat-form-field appearance="outline" class="param-control">
+              <input
+                matInput
+                type="number"
+                formControlName="respiratoryRate"
+                placeholder="16"
+                id="respiratoryRate"
+                aria-required="true"
+                aria-labelledby="label-respiratoryRate"
+                aria-describedby="resp-hint resp-error"
+                tabindex="0">
+              <mat-hint id="resp-hint">Normal: 12–20 — Critical: &gt; 30 or &lt; 8</mat-hint>
+              <mat-error id="resp-error" *ngIf="parametersForm.get('respiratoryRate')?.hasError('required')" role="alert">Required field</mat-error>
+              <mat-error *ngIf="parametersForm.get('respiratoryRate')?.hasError('min') || parametersForm.get('respiratoryRate')?.hasError('max')" role="alert">Value must be between 4 and 60</mat-error>
+            </mat-form-field>
+          </div>
+
         </div>
 
         <mat-form-field appearance="outline" class="full-width">

@@ -80,6 +80,50 @@
           </apx-chart>
         </mat-card-content>
       </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <apx-chart
+            [series]="oxygenChartOptions.series"
+            [chart]="oxygenChartOptions.chart"
+            [xaxis]="oxygenChartOptions.xaxis"
+            [yaxis]="oxygenChartOptions.yaxis"
+            [title]="oxygenChartOptions.title"
+            [colors]="oxygenChartOptions.colors"
+            [markers]="oxygenChartOptions.markers"
+            [annotations]="oxygenChartOptions.annotations">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <apx-chart
+            [series]="glucoseChartOptions.series"
+            [chart]="glucoseChartOptions.chart"
+            [xaxis]="glucoseChartOptions.xaxis"
+            [yaxis]="glucoseChartOptions.yaxis"
+            [title]="glucoseChartOptions.title"
+            [colors]="glucoseChartOptions.colors"
+            [markers]="glucoseChartOptions.markers">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
+
+      <mat-card>
+        <mat-card-content>
+          <apx-chart
+            [series]="respiratoryChartOptions.series"
+            [chart]="respiratoryChartOptions.chart"
+            [xaxis]="respiratoryChartOptions.xaxis"
+            [yaxis]="respiratoryChartOptions.yaxis"
+            [title]="respiratoryChartOptions.title"
+            [colors]="respiratoryChartOptions.colors"
+            [markers]="respiratoryChartOptions.markers"
+            [annotations]="respiratoryChartOptions.annotations">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
     </div>
   </section>
 
@@ -102,7 +146,7 @@
             <span class="symptom-date">{{ entry.reportedAt | date:'MMM d, y, h:mm a' }}</span>
             <span class="symptom-tags">
               <mat-chip-set>
-                <mat-chip *ngFor="let s of entry.symptoms" color="warn">{{ s }}</mat-chip>
+                <mat-chip *ngFor="let s of entry.symptoms" color="warn">{{ symptomLabelMap[s] || s }}</mat-chip>
               </mat-chip-set>
             </span>
           </div>
@@ -125,9 +169,50 @@
             <span>Shortness of Breath</span>
             <strong>{{ entry.shortnessOfBreath ? 'Yes' : 'No' }}</strong>
           </div>
-          <div class="detail-row" *ngIf="entry.nausea !== undefined">
-            <span>Nausea</span>
-            <strong>{{ entry.nausea ? 'Yes' : 'No' }}</strong>
+
+          <div class="detail-row" *ngIf="entry.chestPain !== undefined">
+            <span>Chest Pain</span>
+            <strong>{{ entry.chestPain }}/10</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.breathingDifficulty !== undefined">
+            <span>Breathing Difficulty</span>
+            <strong>{{ entry.breathingDifficulty }}/5</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.appetiteLoss !== undefined">
+            <span>Loss of Appetite</span>
+            <strong>{{ entry.appetiteLoss }}/5</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.nauseaLevel !== undefined">
+            <span>Nausea Level</span>
+            <strong>{{ entry.nauseaLevel }}/5</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.palpitations !== undefined">
+            <span>Palpitations</span>
+            <strong>{{ entry.palpitations ? 'Yes' : 'No' }}</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.expectoration !== undefined">
+            <span>Expectoration</span>
+            <strong>{{ entry.expectoration ? 'Yes' : 'No' }}</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.vomiting !== undefined">
+            <span>Vomiting</span>
+            <strong>{{ entry.vomiting ? 'Yes' : 'No' }}</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.diarrhea !== undefined">
+            <span>Diarrhea</span>
+            <strong>{{ entry.diarrhea ? 'Yes' : 'No' }}</strong>
+          </div>
+
+          <div class="detail-row" *ngIf="entry.confusion !== undefined">
+            <span>Confusion</span>
+            <strong>{{ entry.confusion ? 'Yes' : 'No' }}</strong>
           </div>
           <div class="detail-row" *ngIf="entry.description">
             <span>Notes</span>

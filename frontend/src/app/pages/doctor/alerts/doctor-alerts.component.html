@@ -31,77 +31,161 @@
 } @else {
   <mat-card class="cardWithShadow m-b-24">
     <mat-card-content class="p-24">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 m-b-12">
-        <div class="f-w-600">{{ 'DOCTOR_ALERT_REVIEW_QUEUE_TITLE' | translate }}</div>
+
+      <!-- Header row -->
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 m-b-4">
+        <div class="d-flex align-items-center gap-2">
+          <span class="f-w-600">{{ 'DOCTOR_ALERT_REVIEW_QUEUE_TITLE' | translate }}</span>
+          @if (!queueLoading) {
+            <span class="results-badge">{{ totalQueueCount }}</span>
+          }
+        </div>
         @if (queueSortedBy === 'ai') {
           <span class="ai-badge">{{ 'DOCTOR_ALERT_SORTED_BY_AI' | translate }}</span>
         } @else if (queueSortedBy === 'heuristic' && reviewQueue.length > 0) {
           <span class="f-s-12 text-muted">{{ 'DOCTOR_ALERT_SORTED_HEURISTIC' | translate }}</span>
         }
       </div>
-      <p class="f-s-13 text-muted m-b-16 m-t-0">{{ 'DOCTOR_ALERT_REVIEW_QUEUE_HINT' | translate }}</p>
+      <p class="f-s-13 text-muted m-b-12 m-t-0">{{ 'DOCTOR_ALERT_REVIEW_QUEUE_HINT' | translate }}</p>
+
+      <!-- Filter bar -->
+      <div class="filter-bar m-b-16">
+        <!-- Type -->
+        <mat-form-field appearance="outline" class="filter-select" subscriptSizing="dynamic">
+          <mat-label>Type</mat-label>
+          <mat-select [(ngModel)]="queueTypeFilter" (selectionChange)="onQueueFilterChange()">
+            <mat-option value="all">All types</mat-option>
+            <mat-option value="vital">Vital</mat-option>
+            <mat-option value="symptom">Symptom</mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Urgency -->
+        <mat-form-field appearance="outline" class="filter-select" subscriptSizing="dynamic">
+          <mat-label>Urgency</mat-label>
+          <mat-select [(ngModel)]="queueUrgencyFilter" (selectionChange)="onQueueFilterChange()">
+            <mat-option value="all">All urgencies</mat-option>
+            <mat-option value="urgent">
+              <span class="sev-pill sev-high">Urgent</span>
+            </mat-option>
+            <mat-option value="warning">
+              <span class="sev-pill sev-medium">Warning</span>
+            </mat-option>
+            <mat-option value="info">
+              <span class="sev-pill sev-low">Info</span>
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <!-- Search -->
+        <mat-form-field appearance="outline" class="filter-search" subscriptSizing="dynamic">
+          <mat-label>Search</mat-label>
+          <i-tabler name="search" matPrefix class="icon-18 m-r-4"></i-tabler>
+          <input
+            matInput
+            [(ngModel)]="queueSearchText"
+            (ngModelChange)="onQueueFilterChange()"
+            placeholder="Patient, summary…"
+          />
+          @if (queueSearchText) {
+            <button mat-icon-button matSuffix type="button" (click)="queueSearchText = ''; onQueueFilterChange()">
+              <i-tabler name="x" class="icon-18"></i-tabler>
+            </button>
+          }
+        </mat-form-field>
+
+        <!-- Clear -->
+        @if (hasActiveQueueFilters) {
+          <button mat-stroked-button type="button" (click)="clearQueueFilters()" class="btn-clear-filters">
+            <i-tabler name="filter-off" class="icon-18 m-r-4"></i-tabler>
+            Clear
+          </button>
+        }
+      </div>
 
       @if (queueLoading) {
         <mat-progress-bar mode="indeterminate"></mat-progress-bar>
       } @else if (queueError) {
         <p class="text-error m-b-0">{{ queueError }}</p>
       } @else {
-        <div class="table-responsive">
-          <table mat-table [dataSource]="reviewQueue" class="w-100 doctor-review-table">
-            <ng-container matColumnDef="recordedAt">
-              <th mat-header-cell *matHeaderCellDef>{{ 'DOCTOR_ALERT_COL_TIME' | translate }}</th>
-              <td mat-cell *matCellDef="let row">{{ row.recordedAt | date: 'short' }}</td>
-            </ng-container>
-            <ng-container matColumnDef="patientName">
-              <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
-              <td mat-cell *matCellDef="let row">{{ row.patientName }}</td>
-            </ng-container>
-            <ng-container matColumnDef="sourceType">
-              <th mat-header-cell *matHeaderCellDef>{{ 'DOCTOR_ALERT_COL_TYPE' | translate }}</th>
-              <td mat-cell *matCellDef="let row">
-                @if (row.sourceType === 'vital') {
-                  {{ 'DOCTOR_ALERT_TYPE_VITAL' | translate }}
-                } @else {
-                  {{ 'DOCTOR_ALERT_TYPE_SYMPTOM' | translate }}
+
+        @if (filteredQueue.length === 0) {
+          <div class="p-16 text-center text-muted">{{ 'DOCTOR_ALERT_REVIEW_EMPTY' | translate }}</div>
+        } @else {
+          <div class="queue-card-list">
+            @for (row of paginatedQueue; track row.queueId) {
+              <div class="queue-card" [ngClass]="'queue-card-' + queueSeverityClass(row)">
+
+                <!-- Card header -->
+                <div class="queue-card-header">
+                  <div class="queue-card-header-left">
+                    <span class="sev-pill" [ngClass]="queueSeverityClass(row)">{{ severityLabel(row) }}</span>
+                    <span class="type-badge" [ngClass]="'type-' + row.sourceType">
+                      @if (row.sourceType === 'vital') {
+                        <i-tabler name="heart-rate" class="icon-13"></i-tabler>
+                        {{ 'DOCTOR_ALERT_TYPE_VITAL' | translate }}
+                      } @else {
+                        <i-tabler name="stethoscope" class="icon-13"></i-tabler>
+                        {{ 'DOCTOR_ALERT_TYPE_SYMPTOM' | translate }}
+                      }
+                    </span>
+                    <span class="queue-card-time">{{ row.recordedAt | date: 'short' }}</span>
+                  </div>
+                  <div class="queue-card-patient">
+                    <i-tabler name="user-circle" class="icon-15"></i-tabler>
+                    <span class="f-w-600">{{ row.patientName }}</span>
+                  </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="queue-card-summary">{{ row.summary }}</div>
+
+                <!-- Parameter detail row -->
+                @if (row.parameter) {
+                  <div class="queue-card-meta">
+                    <i-tabler name="chart-bar" class="icon-13"></i-tabler>
+                    <span>{{ row.parameter }}</span>
+                    @if (row.value !== undefined) {
+                      <span class="meta-sep">→</span>
+                      <span class="meta-value">{{ row.value }}</span>
+                    }
+                    @if (row.threshold !== undefined) {
+                      <span class="meta-threshold">(threshold: {{ row.threshold }})</span>
+                    }
+                    <span class="meta-score">score {{ row.sortScore }}</span>
+                  </div>
                 }
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="summary">
-              <th mat-header-cell *matHeaderCellDef>{{ 'DOCTOR_ALERT_COL_SUMMARY' | translate }}</th>
-              <td mat-cell *matCellDef="let row" class="cell-summary">{{ row.summary }}</td>
-            </ng-container>
-            <ng-container matColumnDef="urgency">
-              <th mat-header-cell *matHeaderCellDef>{{ 'DOCTOR_ALERT_COL_URGENCY' | translate }}</th>
-              <td mat-cell *matCellDef="let row">
-                <span class="sev-pill" [ngClass]="queueSeverityClass(row)">{{ severityLabel(row) }}</span>
-                <span class="f-s-11 text-muted m-l-4">({{ row.sortScore }})</span>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="videoCall">
-              <th mat-header-cell *matHeaderCellDef>{{ 'DOCTOR_ALERT_COL_VIDEO_CALL' | translate }}</th>
-              <td mat-cell *matCellDef="let row" class="cell-video-call">
-                <button
-                  mat-stroked-button
-                  type="button"
-                  color="primary"
-                  class="btn-video-call"
-                  [disabled]="!activePhysicianId"
-                  (click)="openVideoCall(row)"
-                  [matTooltip]="'DOCTOR_ALERT_VIDEO_CALL_TOOLTIP' | translate"
-                >
-                  <i-tabler name="video" class="icon-18 m-r-4"></i-tabler>
-                  {{ 'DOCTOR_ALERT_VIDEO_CALL_BTN' | translate }}
-                </button>
-              </td>
-            </ng-container>
-            <ng-container matColumnDef="actions">
-              <th mat-header-cell *matHeaderCellDef>{{ 'ACTIONS' | translate }}</th>
-              <td mat-cell *matCellDef="let row">
-                <div class="d-flex flex-wrap gap-1 align-items-center action-btns">
+
+                <!-- Action buttons -->
+                <div class="queue-card-actions">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn-card-action btn-video"
+                    [disabled]="!activePhysicianId"
+                    (click)="openVideoCall(row)"
+                    [matTooltip]="'DOCTOR_ALERT_VIDEO_CALL_TOOLTIP' | translate"
+                  >
+                    <i-tabler name="video" class="icon-15"></i-tabler>
+                    {{ 'DOCTOR_ALERT_VIDEO_CALL_BTN' | translate }}
+                  </button>
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn-card-action btn-medical-file"
+                    (click)="openMedicalFile(row)"
+                    matTooltip="View patient medical file"
+                  >
+                    <i-tabler name="clipboard-text" class="icon-15"></i-tabler>
+                    Medical File
+                  </button>
+
+                  <span class="actions-sep"></span>
+
                   <button
                     mat-flat-button
                     type="button"
-                    class="btn-sev-high"
+                    class="btn-card-sev btn-sev-high"
                     [disabled]="sending"
                     (click)="openSendAlert(row, 'high')"
                   >
@@ -110,7 +194,7 @@
                   <button
                     mat-flat-button
                     type="button"
-                    class="btn-sev-medium"
+                    class="btn-card-sev btn-sev-medium"
                     [disabled]="sending"
                     (click)="openSendAlert(row, 'medium')"
                   >
@@ -119,34 +203,107 @@
                   <button
                     mat-stroked-button
                     type="button"
-                    class="btn-sev-low"
+                    class="btn-card-sev btn-sev-low"
                     [disabled]="sending"
                     (click)="openSendAlert(row, 'low')"
                   >
                     {{ 'DOCTOR_ALERT_BTN_LOW' | translate }}
                   </button>
                 </div>
-              </td>
-            </ng-container>
-            <tr mat-header-row *matHeaderRowDef="queueColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: queueColumns"></tr>
-          </table>
-          @if (reviewQueue.length === 0) {
-            <div class="p-16 text-center text-muted">{{ 'DOCTOR_ALERT_REVIEW_EMPTY' | translate }}</div>
-          }
-        </div>
+
+              </div>
+            }
+          </div>
+        }
+
+        <!-- Queue Pagination -->
+        @if (totalQueueCount > 0) {
+          <mat-paginator
+            class="alerts-paginator"
+            [length]="totalQueueCount"
+            [pageSize]="queuePageSize"
+            [pageSizeOptions]="queuePageSizeOptions"
+            [pageIndex]="queuePageIndex"
+            (page)="onQueuePageChange($event)"
+            aria-label="Clinical review pagination"
+          ></mat-paginator>
+        }
       }
     </mat-card-content>
   </mat-card>
 
-  <div class="row m-b-16">
-    <div class="col-12 d-flex flex-wrap align-items-center gap-2">
-      <span class="f-w-600 m-r-8">{{ 'DOCTOR_ALERT_ISSUED_SECTION' | translate }}</span>
-      <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_ALERTS_FILTER' | translate }}</span>
-      <mat-button-toggle-group [(ngModel)]="filter" name="doctorAlertFilter">
+  <!-- ── Issued Alerts header + filter bar ─────────────────────────── -->
+  <div class="issued-alerts-header m-b-12">
+    <div class="issued-alerts-title">
+      <span class="f-w-600 f-s-16">{{ 'DOCTOR_ALERT_ISSUED_SECTION' | translate }}</span>
+      @if (!loading) {
+        <span class="results-badge">{{ totalFilteredCount }}</span>
+      }
+    </div>
+
+    <div class="filter-bar">
+      <!-- Status toggle -->
+      <mat-button-toggle-group
+        [(ngModel)]="filter"
+        name="doctorAlertFilter"
+        (change)="onFilterChange()"
+      >
         <mat-button-toggle value="open">{{ 'NURSE_ALERTS_FILTER_OPEN' | translate }}</mat-button-toggle>
         <mat-button-toggle value="all">{{ 'NURSE_ALERTS_FILTER_ALL' | translate }}</mat-button-toggle>
       </mat-button-toggle-group>
+
+      <!-- Severity -->
+      <mat-form-field appearance="outline" class="filter-select" subscriptSizing="dynamic">
+        <mat-label>Severity</mat-label>
+        <mat-select [(ngModel)]="severityFilter" (selectionChange)="onFilterChange()">
+          <mat-option value="all">All severities</mat-option>
+          <mat-option value="high">
+            <span class="sev-pill sev-high">High</span>
+          </mat-option>
+          <mat-option value="medium">
+            <span class="sev-pill sev-medium">Medium</span>
+          </mat-option>
+          <mat-option value="low">
+            <span class="sev-pill sev-low">Low</span>
+          </mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Type -->
+      <mat-form-field appearance="outline" class="filter-select" subscriptSizing="dynamic">
+        <mat-label>Type</mat-label>
+        <mat-select [(ngModel)]="typeFilter" (selectionChange)="onFilterChange()">
+          <mat-option value="all">All types</mat-option>
+          <mat-option value="vital">Vital</mat-option>
+          <mat-option value="symptom">Symptom</mat-option>
+          <mat-option value="physician_instruction">Physician</mat-option>
+        </mat-select>
+      </mat-form-field>
+
+      <!-- Search -->
+      <mat-form-field appearance="outline" class="filter-search" subscriptSizing="dynamic">
+        <mat-label>Search</mat-label>
+        <i-tabler name="search" matPrefix class="icon-18 m-r-4"></i-tabler>
+        <input
+          matInput
+          [(ngModel)]="searchText"
+          (ngModelChange)="onFilterChange()"
+          placeholder="Patient, message…"
+        />
+        @if (searchText) {
+          <button mat-icon-button matSuffix type="button" (click)="searchText = ''; onFilterChange()">
+            <i-tabler name="x" class="icon-18"></i-tabler>
+          </button>
+        }
+      </mat-form-field>
+
+      <!-- Clear all -->
+      @if (hasActiveFilters) {
+        <button mat-stroked-button type="button" (click)="clearFilters()" class="btn-clear-filters">
+          <i-tabler name="filter-off" class="icon-18 m-r-4"></i-tabler>
+          Clear
+        </button>
+      }
     </div>
   </div>
 
@@ -165,7 +322,7 @@
     <mat-card class="cardWithShadow">
       <mat-card-content class="p-0">
         <div class="table-responsive">
-          <table mat-table [dataSource]="filteredAlerts" class="w-100 doctor-alerts-table">
+          <table mat-table [dataSource]="paginatedAlerts" class="w-100 doctor-alerts-table">
             <ng-container matColumnDef="createdAt">
               <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_TIME' | translate }}</th>
               <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'short' }}</td>
@@ -177,7 +334,7 @@
             <ng-container matColumnDef="severity">
               <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_SEVERITY' | translate }}</th>
               <td mat-cell *matCellDef="let row">
-                <span class="sev-pill" [ngClass]="severityClass(row.severity)">{{ row.severity }}</span>
+                <span class="sev-pill" [ngClass]="severityClass(row.severity)">{{ row.severity || '—' }}</span>
               </td>
             </ng-container>
             <ng-container matColumnDef="parameter">
@@ -205,6 +362,19 @@
             <div class="p-24 text-center text-muted">{{ 'DOCTOR_ALERTS_EMPTY' | translate }}</div>
           }
         </div>
+
+        <!-- Pagination -->
+        @if (totalFilteredCount > 0) {
+          <mat-paginator
+            class="alerts-paginator"
+            [length]="totalFilteredCount"
+            [pageSize]="pageSize"
+            [pageSizeOptions]="pageSizeOptions"
+            [pageIndex]="pageIndex"
+            (page)="onPageChange($event)"
+            aria-label="Alerts pagination"
+          ></mat-paginator>
+        }
       </mat-card-content>
     </mat-card>
   }

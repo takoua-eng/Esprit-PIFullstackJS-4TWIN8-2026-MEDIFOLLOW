@@ -28,6 +28,40 @@ export class Symptoms {
   @Prop({ type: Boolean, required: true })
   nausea: boolean;
 
+  // --- Champs structurés ajoutés selon spec client ---
+
+  // Généraux
+  @Prop({ type: Number, min: 0, max: 5 })
+  appetiteLoss?: number; // perte d'appétit 0–5
+
+  // Cardio
+  @Prop({ type: Number, min: 0, max: 10 })
+  chestPain?: number; // douleur thoracique 0–10
+
+  @Prop({ type: Boolean })
+  palpitations?: boolean;
+
+  // Respiratoire
+  @Prop({ type: Number, min: 0, max: 5 })
+  breathingDifficulty?: number; // essoufflement 0–5
+
+  @Prop({ type: Boolean })
+  expectoration?: boolean; // expectoration (bool)
+
+  // Digestif
+  @Prop({ type: Number, min: 0, max: 5 })
+  nauseaLevel?: number; // nausée 0–5
+
+  @Prop({ type: Boolean })
+  vomiting?: boolean;
+
+  @Prop({ type: Boolean })
+  diarrhea?: boolean;
+
+  // Neurologique
+  @Prop({ type: Boolean })
+  confusion?: boolean;
+
   @Prop()
   description?: string; // texte libre, optionnel
 

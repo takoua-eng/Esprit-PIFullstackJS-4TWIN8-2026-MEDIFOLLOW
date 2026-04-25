@@ -17,6 +17,10 @@ import {
   DoctorSendAlertDialogComponent,
   DoctorSendAlertDialogData,
 } from './doctor-send-alert-dialog.component';
+import {
+  PatientMedicalFileDialogComponent,
+  PatientMedicalFileDialogData,
+} from './patient-medical-file-dialog.component';
 import { buildJitsiMeetUrl } from 'src/app/core/api.config';
 import { VideoCallsApiService } from 'src/app/services/video-calls-api.service';
 
@@ -41,7 +45,23 @@ export class DoctorAlertsComponent implements OnInit {
   alerts: AlertDto[] = [];
   reviewQueue: ClinicalReviewQueueItemDto[] = [];
   queueSortedBy: 'ai' | 'heuristic' | null = null;
+  // ── Clinical Review Queue filters ──────────────────────────────────
+  queueTypeFilter = 'all';
+  queueUrgencyFilter = 'all';
+  queueSearchText = '';
+  queuePageIndex = 0;
+  queuePageSize = 10;
+  readonly queuePageSizeOptions = [5, 10, 25];
+
+  // ── Issued Alerts filters ───────────────────────────────────────────
   filter: 'all' | 'open' = 'open';
+  severityFilter = 'all';
+  typeFilter = 'all';
+  searchText = '';
+  pageIndex = 0;
+  pageSize = 10;
+  readonly pageSizeOptions = [5, 10, 25, 50];
+
   activePhysicianId: string | null = null;
   /** No Mongo user id in JWT — cannot scope alerts */
   noDoctorSession = false;
@@ -54,16 +74,6 @@ export class DoctorAlertsComponent implements OnInit {
     'parameter',
     'message',
     'status',
-  ];
-
-  queueColumns: string[] = [
-    'recordedAt',
-    'patientName',
-    'sourceType',
-    'summary',
-    'urgency',
-    'videoCall',
-    'actions',
   ];
 
   constructor(
@@ -188,11 +198,122 @@ export class DoctorAlertsComponent implements OnInit {
     });
   }
 
-  get filteredAlerts(): AlertDto[] {
-    if (this.filter === 'open') {
-      return this.alerts.filter((a) => a.status === 'open');
+  // ── Clinical Review Queue helpers ──────────────────────────────────
+
+  get filteredQueue(): ClinicalReviewQueueItemDto[] {
+    let list = this.reviewQueue;
+    if (this.queueTypeFilter !== 'all') {
+      list = list.filter((r) => r.sourceType === this.queueTypeFilter);
     }
-    return this.alerts;
+    if (this.queueUrgencyFilter !== 'all') {
+      list = list.filter((r) => r.severityCategory === this.queueUrgencyFilter);
+    }
+    if (this.queueSearchText.trim()) {
+      const q = this.queueSearchText.trim().toLowerCase();
+      list = list.filter(
+        (r) =>
+          (r.patientName || '').toLowerCase().includes(q) ||
+          (r.summary || '').toLowerCase().includes(q) ||
+          (r.parameter || '').toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }
+
+  get totalQueueCount(): number {
+    return this.filteredQueue.length;
+  }
+
+  get paginatedQueue(): ClinicalReviewQueueItemDto[] {
+    const start = this.queuePageIndex * this.queuePageSize;
+    return this.filteredQueue.slice(start, start + this.queuePageSize);
+  }
+
+  onQueueFilterChange(): void {
+    this.queuePageIndex = 0;
+  }
+
+  onQueuePageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.queuePageIndex = event.pageIndex;
+    this.queuePageSize = event.pageSize;
+  }
+
+  clearQueueFilters(): void {
+    this.queueTypeFilter = 'all';
+    this.queueUrgencyFilter = 'all';
+    this.queueSearchText = '';
+    this.queuePageIndex = 0;
+  }
+
+  get hasActiveQueueFilters(): boolean {
+    return (
+      this.queueTypeFilter !== 'all' ||
+      this.queueUrgencyFilter !== 'all' ||
+      this.queueSearchText.trim() !== ''
+    );
+  }
+
+  // ── Issued Alerts helpers ───────────────────────────────────────────
+
+  get filteredAlerts(): AlertDto[] {
+    let list = this.alerts;
+
+    if (this.filter === 'open') {
+      list = list.filter((a) => a.status === 'open');
+    }
+    if (this.severityFilter !== 'all') {
+      list = list.filter(
+        (a) => (a.severity || '').toLowerCase() === this.severityFilter,
+      );
+    }
+    if (this.typeFilter !== 'all') {
+      list = list.filter((a) => a.type === this.typeFilter);
+    }
+    if (this.searchText.trim()) {
+      const q = this.searchText.trim().toLowerCase();
+      list = list.filter(
+        (a) =>
+          (a.patientName || '').toLowerCase().includes(q) ||
+          (a.message || '').toLowerCase().includes(q) ||
+          (a.parameter || '').toLowerCase().includes(q),
+      );
+    }
+    return list;
+  }
+
+  get totalFilteredCount(): number {
+    return this.filteredAlerts.length;
+  }
+
+  get paginatedAlerts(): AlertDto[] {
+    const start = this.pageIndex * this.pageSize;
+    return this.filteredAlerts.slice(start, start + this.pageSize);
+  }
+
+  onFilterChange(): void {
+    this.pageIndex = 0;
+  }
+
+  onPageChange(event: { pageIndex: number; pageSize: number }): void {
+    this.pageIndex = event.pageIndex;
+    this.pageSize = event.pageSize;
+  }
+
+  clearFilters(): void {
+    this.filter = 'open';
+    this.severityFilter = 'all';
+    this.typeFilter = 'all';
+    this.searchText = '';
+    this.pageIndex = 0;
+  }
+
+  get hasActiveFilters(): boolean {
+    return (
+      this.filter !== 'open' ||
+      this.severityFilter !== 'all' ||
+      this.typeFilter !== 'all' ||
+      this.searchText.trim() !== ''
+    );
   }
 
   severityClass(sev: string): string {
@@ -253,6 +374,20 @@ export class DoctorAlertsComponent implements OnInit {
           );
         },
       });
+  }
+
+  openMedicalFile(row: ClinicalReviewQueueItemDto): void {
+    const data: PatientMedicalFileDialogData = {
+      patientId: row.patientId,
+      patientName: row.patientName,
+    };
+    this.dialog.open(PatientMedicalFileDialogComponent, {
+      data,
+      width: '780px',
+      maxWidth: '95vw',
+      maxHeight: '90vh',
+      autoFocus: false,
+    });
   }
 
   openSendAlert(

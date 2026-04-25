@@ -470,8 +470,10 @@ export class AlertsService implements OnModuleInit {
 
 
   /**
-   * Live queue from latest vitals + symptoms per patient; severity from clinical thresholds.
-   * `doctorId` is accepted for API compatibility but does not filter the queue (avoids empty UI when patient–doctor assignment doesn’t match data).
+   * Live queue from all vitals + symptoms in the last 7 days per patient.
+   * Scanning 7 days catches abnormal readings that may not be the most recent entry.
+   * Only warning/urgent rows are included to keep the queue focused.
+   * `doctorId` is accepted for API compatibility but does not filter the queue.
    */
   async getClinicalReviewQueue(_doctorId?: string): Promise<{
     items: ClinicalQueueRow[];
@@ -494,60 +496,59 @@ export class AlertsService implements OnModuleInit {
       ]),
     );
 
-    const items: ClinicalQueueRow[] = [];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const allRows: ClinicalQueueRow[] = [];
 
     for (const pid of patientIds) {
       const patientName = nameById.get(pid.toString()) ?? 'Patient';
 
-      const latestVital = await this.vitalModel
-        .findOne({ patientId: pid })
+      // All vitalparameters from last 7 days (up to 7 per patient)
+      const recentVps = await this.vitalModel
+        .find({ patientId: pid, recordedAt: { $gte: sevenDaysAgo } })
         .sort({ recordedAt: -1 })
+        .limit(7)
         .exec();
 
-      const latestLegacyVital = await this.legacyVitalModel
-        .findOne({ patientId: pid })
-        .sort({ recordedAt: -1 })
-        .exec();
-
-      const tVp = latestVital?.recordedAt
-        ? new Date(latestVital.recordedAt).getTime()
-        : -1;
-      const tLv = latestLegacyVital?.recordedAt
-        ? new Date(latestLegacyVital.recordedAt).getTime()
-        : -1;
-
-      if (tVp >= tLv && latestVital) {
-        items.push(
-          ...buildRowsFromVital(
-            latestVital as VitalParametersDocument,
-            pid,
-            patientName,
-          ),
-        );
-      } else if (latestLegacyVital) {
-        items.push(
-          ...buildRowsFromLegacyVital(
-            latestLegacyVital as VitalDocument,
-            pid,
-            patientName,
-          ),
+      for (const v of recentVps) {
+        allRows.push(
+          ...buildRowsFromVital(v as VitalParametersDocument, pid, patientName),
         );
       }
 
-      const latestSymptom = await this.symptomsModel
-        .findOne({ patientId: pid })
-        .sort({ reportedAt: -1 })
+      // All legacy vitals from last 7 days
+      const recentLvs = await this.legacyVitalModel
+        .find({ patientId: pid, recordedAt: { $gte: sevenDaysAgo } })
+        .sort({ recordedAt: -1 })
+        .limit(7)
         .exec();
 
-      if (latestSymptom) {
+      for (const v of recentLvs) {
+        allRows.push(
+          ...buildRowsFromLegacyVital(v as VitalDocument, pid, patientName),
+        );
+      }
+
+      // All symptoms from last 7 days
+      const recentSymptoms = await this.symptomsModel
+        .find({ patientId: pid, reportedAt: { $gte: sevenDaysAgo } })
+        .sort({ reportedAt: -1 })
+        .limit(7)
+        .exec();
+
+      for (const s of recentSymptoms) {
         const symRow = buildConsolidatedSymptomRow(
-          latestSymptom as SymptomsDocument,
+          s as SymptomsDocument,
           pid,
           patientName,
         );
-        if (symRow) items.push(symRow);
+        if (symRow) allRows.push(symRow);
       }
     }
+
+    // Keep only warning/urgent rows to avoid flooding the queue with routine info entries
+    const items = allRows.filter(
+      (r) => r.severityCategory === 'urgent' || r.severityCategory === 'warning',
+    );
 
     items.sort((a, b) => b.sortScore - a.sortScore);
     const filtered = await this.filterClinicalQueueBySentAlerts(items);

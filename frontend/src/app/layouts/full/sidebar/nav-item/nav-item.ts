@@ -10,5 +10,7 @@ export interface NavItem {
   external?: boolean;
   bgcolor?: string;
   disabled?: boolean;
-  permission?: string;   // hide item if user lacks this permission
+  permission?: string;
+  /** Keyboard shortcut hint displayed on the nav item (e.g. 'Ctrl+D'). */
+  shortcutKey?: string;
 }
