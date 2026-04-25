@@ -99,6 +99,28 @@ export class KeyboardAccessibilityService {
       return;
     }
 
+    // Ctrl shortcuts — doctor / nurse navigation
+    if (event.ctrlKey && !event.altKey && !event.shiftKey && !isTyping) {
+      const url = this.router.url;
+      if (url.startsWith('/dashboard/doctor')) {
+        switch (event.key.toLowerCase()) {
+          case 'd': event.preventDefault(); this.router.navigate(['/dashboard/doctor']); break;
+          case 'a': event.preventDefault(); this.router.navigate(['/dashboard/doctor/alerts']); break;
+          case 'h': event.preventDefault(); this.router.navigate(['/dashboard/doctor/history']); break;
+          case 'p': event.preventDefault(); this.router.navigate(['/dashboard/doctor/prescriptions']); break;
+          case 'm': event.preventDefault(); this.router.navigate(['/dashboard/doctor/messages']); break;
+        }
+      } else if (url.startsWith('/dashboard/nurse')) {
+        switch (event.key.toLowerCase()) {
+          case 'd': event.preventDefault(); this.router.navigate(['/dashboard/nurse']); break;
+          case 'a': event.preventDefault(); this.router.navigate(['/dashboard/nurse/alerts']); break;
+          case 'r': event.preventDefault(); this.router.navigate(['/dashboard/nurse/reminders']); break;
+          case 'm': event.preventDefault(); this.router.navigate(['/dashboard/nurse/medical-file']); break;
+          case 'p': event.preventDefault(); this.router.navigate(['/dashboard/profile']); break;
+        }
+      }
+    }
+
     // Alt shortcuts — navigation
     if (event.altKey) {
       switch (event.key.toLowerCase()) {

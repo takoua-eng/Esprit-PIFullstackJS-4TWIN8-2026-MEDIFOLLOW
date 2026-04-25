@@ -1,4 +1,4 @@
-﻿import { Injectable, BadRequestException } from '@nestjs/common';
+import { Injectable, BadRequestException } from '@nestjs/common';
 import { VitalParameters } from './vital-parameters.schema';
 import { Types } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';

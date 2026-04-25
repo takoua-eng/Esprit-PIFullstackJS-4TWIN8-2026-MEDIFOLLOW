@@ -220,6 +220,11 @@ export const DoctorRoutes: Routes = [
         component: MessagesDoctorComponent,
         data: { title: 'Messages' },
       },
+      {
+        path: 'medical-file',
+        component: NurseMedicalFileComponent,
+        data: { title: 'Patient Medical File' },
+      },
     ],
   },
 ];

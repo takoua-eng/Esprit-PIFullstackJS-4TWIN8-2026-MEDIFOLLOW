@@ -15,6 +15,21 @@
   min-width: 40px;
 }
 
+.shortcut-badge {
+  margin-left: auto;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1;
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.12);
+  color: inherit;
+  opacity: 0.7;
+  white-space: nowrap;
+  letter-spacing: 0.3px;
+  pointer-events: none;
+}
+
 @media (max-width: 1200px) {
   .menu-list-item {
     min-width: 200px !important;

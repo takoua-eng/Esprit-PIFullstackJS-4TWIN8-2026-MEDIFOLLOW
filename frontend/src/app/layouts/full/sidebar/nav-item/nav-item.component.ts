@@ -79,7 +79,7 @@ export class AppNavItemComponent implements OnChanges {
     window.scroll({ top: 0, left: 0, behavior: 'smooth' });
 
     if (!this.expanded) {
-      if (window.innerWidth < 1024) {
+      if (window.innerWidth < 768) {
         this.notify.emit();
       }
     }
@@ -91,7 +91,7 @@ export class AppNavItemComponent implements OnChanges {
 
   onSubItemSelected(item: NavItem) {
     if (!item.children || !item.children.length) {
-      if (this.expanded && window.innerWidth < 1024) {
+      if (this.expanded && window.innerWidth < 768) {
         this.notify.emit();
       }
     }

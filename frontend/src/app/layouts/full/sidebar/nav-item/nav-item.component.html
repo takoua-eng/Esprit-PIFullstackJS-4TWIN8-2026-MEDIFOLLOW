@@ -17,6 +17,9 @@
   >
     <i-tabler class="routeIcon" name="{{ item.iconName }}" matListItemIcon></i-tabler>
     <span>{{ item.displayName | translate }}</span>
+    @if (item.shortcutKey) {
+      <span class="shortcut-badge">{{ item.shortcutKey }}</span>
+    }
 
     @if (visibleChildren(item).length) {
       <span class="arrow-icon" fxFlex>
