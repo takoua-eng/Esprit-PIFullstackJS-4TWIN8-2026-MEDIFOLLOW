@@ -784,7 +784,7 @@ export class CoordinatorService {
     return reminder.save();
   }
 
-  // sendReminder — SEULE source d'envoi email + planification SMS
+    // sendReminder — email immédiat quand coordinator clique Send
   async sendReminder(reminderId: string) {
     const reminder = await this.reminderModel
       .findById(reminderId)
@@ -793,7 +793,6 @@ export class CoordinatorService {
 
     if (!reminder) throw new NotFoundException('Reminder not found');
 
-    // Éviter le double envoi
     if (reminder.emailSent) {
       this.logger.warn(`Email already sent for reminder ${reminderId} — skipping`);
       reminder.status = 'sent';
@@ -809,97 +808,32 @@ export class CoordinatorService {
     const patientName = `${patient.firstName} ${patient.lastName}`;
     const patientId = patient._id.toString();
 
-    // Champs manquants depuis la DB au moment de l'envoi
     const { missingVitals, missingSymptoms } = await this._getMissingFields(patientId);
+    const personalizedMessage = this.buildPersonalizedMessage(patientName, missingVitals, missingSymptoms);
 
-    // Message personnalisé pour le mail
-    const personalizedMessage = this.buildPersonalizedMessage(
-      patientName,
-      missingVitals,
-      missingSymptoms,
-    );
-
-    // Envoyer email
     if (patient.email) {
       const emailHtml = this.notificationService.buildEmailHtml(
-        patientName,
-        personalizedMessage,
-        missingVitals,
-        missingSymptoms,
+        patientName, personalizedMessage, missingVitals, missingSymptoms,
       );
-
       const emailSent = await this.notificationService.sendEmail(
         patient.email,
         `MediFollow — Daily Health Reminder for ${patientName}`,
         emailHtml,
       );
-
       if (emailSent) {
         await this.reminderModel.findByIdAndUpdate(reminderId, {
           emailSent: true,
           emailSentAt: new Date(),
         });
-        this.logger.log(`Email sent to ${patient.email} for patient ${patientName}`);
+        this.logger.log(`Email sent to ${patient.email} for ${patientName}`);
       }
-    }
-
-    // Planifier SMS court après 1 minute
-    const patientDoc = await this.userModel.findById(patient._id).lean();
-    if (patientDoc) {
-      this._scheduleSmsCheck(reminderId, patientId, patientName, patientDoc);
     }
 
     return reminder;
   }
 
-  private _scheduleSmsCheck(
-    reminderId: string,
-    patientId: string,
-    patientName: string,
-    patient: any,
-  ): void {
-    setTimeout(async () => {
-      try {
-        const reminder = await this.reminderModel.findById(reminderId);
-        if (!reminder || reminder.smsJobDone) return;
 
-        const { missingVitals, missingSymptoms } = await this._getMissingFields(patientId);
-        const stillNonCompliant = missingVitals.length > 0 || missingSymptoms.length > 0;
-
-        if (stillNonCompliant) {
-          const emergencyContact = patient.emergencyContact;
-
-          if (emergencyContact) {
-            // SMS très court
-            const smsMessage = `MediFollow: Please submit now. Your health team is monitoring.`;
-
-            const smsSent = await this.notificationService.sendSms(emergencyContact, smsMessage);
-
-            if (smsSent) {
-              await this.reminderModel.findByIdAndUpdate(reminderId, {
-                smsSent: true,
-                smsSentAt: new Date(),
-                smsJobDone: true,
-              });
-              this.logger.log(
-                `SMS sent to ${emergencyContact} for patient ${patientName}`,
-              );
-            } else {
-              await this.reminderModel.findByIdAndUpdate(reminderId, { smsJobDone: true });
-            }
-          } else {
-            this.logger.warn(`No emergency contact for ${patientName} — SMS skipped`);
-            await this.reminderModel.findByIdAndUpdate(reminderId, { smsJobDone: true });
-          }
-        } else {
-          this.logger.log(`Patient ${patientName} submitted — SMS not needed`);
-          await this.reminderModel.findByIdAndUpdate(reminderId, { smsJobDone: true });
-        }
-      } catch (err) {
-        this.logger.error(`SMS check error for reminder ${reminderId}: ${err.message}`);
-      }
-    }, 1 * 60 * 1000);
-  }
+  
 
   async cancelReminder(reminderId: string) {
     const reminder = await this.reminderModel.findById(reminderId).exec();
