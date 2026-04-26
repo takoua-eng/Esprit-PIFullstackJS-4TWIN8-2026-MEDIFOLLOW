@@ -1,3 +1,4 @@
+<!-- Header -->
 <div class="row m-b-24">
   <div class="col-12 d-flex flex-wrap justify-content-between align-items-start gap-3">
     <div>
@@ -11,11 +12,13 @@
   </div>
 </div>
 
+<!-- Filters row -->
 <div class="row m-b-16">
   <div class="col-12 d-flex flex-wrap align-items-center gap-3">
+
     <div class="d-flex align-items-center">
       <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_SELECT_PATIENT' | translate }}</span>
-      <mat-form-field appearance="outline" class="hide-hint rounded-select" style="min-width: 240px;">
+      <mat-form-field appearance="outline" class="hide-hint rounded-select" style="min-width:240px">
         <mat-select [(ngModel)]="selectedPatientId" (selectionChange)="load()">
           <mat-option value="">{{ 'ALL_PATIENTS' | translate }}</mat-option>
           @for (p of patients; track p._id) {
@@ -25,20 +28,22 @@
       </mat-form-field>
     </div>
 
-    <div class="d-flex align-items-center">
-      <span class="f-s-14 text-muted m-r-8">{{ 'NURSE_ALERTS_FILTER' | translate }}</span>
+    <div class="d-flex align-items-center gap-2">
+      <span class="f-s-14 text-muted">{{ 'NURSE_ALERTS_FILTER' | translate }}</span>
       <mat-button-toggle-group [(ngModel)]="filter" name="alertFilter">
         <mat-button-toggle value="open">{{ 'NURSE_ALERTS_FILTER_OPEN' | translate }}</mat-button-toggle>
         <mat-button-toggle value="all">{{ 'NURSE_ALERTS_FILTER_ALL' | translate }}</mat-button-toggle>
       </mat-button-toggle-group>
     </div>
 
-    <button mat-icon-button type="button" (click)="load()" [disabled]="loading" [attr.aria-label]="'NURSE_ALERTS_REFRESH' | translate">
+    <button mat-icon-button type="button" (click)="load()" [disabled]="loading"
+            [attr.aria-label]="'NURSE_ALERTS_REFRESH' | translate">
       <i-tabler name="refresh"></i-tabler>
     </button>
   </div>
 </div>
 
+<!-- Content -->
 @if (loading) {
   <div class="p-24 text-center">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
@@ -55,41 +60,102 @@
     <mat-card-content class="p-0">
       <div class="table-responsive">
         <table mat-table [dataSource]="filteredAlerts" class="w-100 nurse-alerts-table">
+
+          <!-- Date -->
           <ng-container matColumnDef="createdAt">
             <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_TIME' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.createdAt | date: 'short' }}</td>
+            <td mat-cell *matCellDef="let row" class="col-date">{{ row.createdAt | date: 'short' }}</td>
           </ng-container>
+
+          <!-- Patient -->
           <ng-container matColumnDef="patientName">
             <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.patientName }}</td>
+            <td mat-cell *matCellDef="let row" class="col-patient">{{ row.patientName }}</td>
           </ng-container>
-          <ng-container matColumnDef="severity">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_SEVERITY' | translate }}</th>
+
+          <!-- Type (parameter: SpO2, FC…) -->
+          <ng-container matColumnDef="parameter">
+            <th mat-header-cell *matHeaderCellDef>Type</th>
             <td mat-cell *matCellDef="let row">
-              <span class="sev-pill" [ngClass]="severityClass(row.severity)">{{ row.severity }}</span>
+              <div class="type-cell">
+                <span class="type-source-badge" [ngClass]="'src-' + (row.sourceType || row.type)">
+                  {{ row.sourceType || row.type }}
+                </span>
+                @if (row.parameter) {
+                  <span class="type-param">{{ row.parameter }}</span>
+                }
+              </div>
             </td>
           </ng-container>
-          <ng-container matColumnDef="parameter">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_PARAMETER' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.parameter || '—' }}</td>
-          </ng-container>
-          <ng-container matColumnDef="message">
-            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_MESSAGE' | translate }}</th>
-            <td mat-cell *matCellDef="let row">{{ row.message }}</td>
-          </ng-container>
-          <ng-container matColumnDef="status">
-            <th mat-header-cell *matHeaderCellDef>{{ 'STATUS' | translate }}</th>
+
+          <!-- Niveau -->
+          <ng-container matColumnDef="severity">
+            <th mat-header-cell *matHeaderCellDef>Niveau</th>
             <td mat-cell *matCellDef="let row">
-              @if (row.status === 'open') {
-                <span class="status-open">{{ 'NURSE_ALERT_STATUS_OPEN' | translate }}</span>
-              } @else {
-                <span class="status-done">{{ 'NURSE_ALERT_STATUS_ACK' | translate }}</span>
+              <span class="sev-pill" [ngClass]="severityClass(row.severity)">{{ row.severity || '—' }}</span>
+              @if (row.value !== undefined && row.value !== null) {
+                <span class="f-s-11 text-muted m-l-4">{{ row.value }}</span>
               }
             </td>
           </ng-container>
+
+          <!-- Message -->
+          <ng-container matColumnDef="message">
+            <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_ALERTS_COL_MESSAGE' | translate }}</th>
+            <td mat-cell *matCellDef="let row" class="col-message">{{ row.message }}</td>
+          </ng-container>
+
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>{{ 'STATUS' | translate }}</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="status-badge" [ngClass]="statusClass(row.status)">
+                {{ statusLabel(row.status) }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef>{{ 'ACTIONS' | translate }}</th>
+            <td mat-cell *matCellDef="let row">
+              @if (isActionable(row)) {
+                <div class="action-btns">
+                  <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn-seen"
+                    [disabled]="actioning.has(row._id)"
+                    (click)="markAsSeen(row)"
+                    matTooltip="Mark as seen"
+                  >
+                    <i-tabler name="eye" class="icon-15"></i-tabler>
+                    Seen
+                  </button>
+                  <button
+                    mat-flat-button
+                    type="button"
+                    class="btn-reported"
+                    [disabled]="actioning.has(row._id)"
+                    (click)="markAsReported(row)"
+                    matTooltip="Escalate / mark as reported"
+                  >
+                    <i-tabler name="flag" class="icon-15"></i-tabler>
+                    Report
+                  </button>
+                </div>
+              } @else {
+                <span class="f-s-12 text-muted">—</span>
+              }
+            </td>
+          </ng-container>
+
           <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-          <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns"
+              [ngClass]="{ 'row-seen': row.status === 'seen', 'row-reported': row.status === 'reported' }">
+          </tr>
         </table>
+
         @if (filteredAlerts.length === 0) {
           <div class="p-24 text-center text-muted">{{ 'NURSE_ALERTS_EMPTY' | translate }}</div>
         }

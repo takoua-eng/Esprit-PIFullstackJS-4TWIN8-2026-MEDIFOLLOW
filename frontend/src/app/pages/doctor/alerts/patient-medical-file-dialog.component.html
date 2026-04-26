@@ -17,7 +17,6 @@
 
     <!-- Controls row -->
     <div class="vitals-controls">
-      <!-- Parameter tabs -->
       <div class="param-tabs">
         @for (opt of paramOptions; track opt.value) {
           <button
@@ -31,7 +30,6 @@
           </button>
         }
       </div>
-      <!-- Range -->
       <div class="range-tabs">
         @for (r of rangeOptions; track r.value) {
           <button
@@ -97,7 +95,7 @@
     </div>
   } @else {
 
-    <!-- ── Demographics ─────────────────────────────────────────────── -->
+    <!-- ── Demographics + Physical Profile ─────────────────────────── -->
     @if (patient) {
       <div class="mf-section">
         <div class="mf-section-title">
@@ -128,6 +126,18 @@
               <span class="mf-value mf-blood">{{ dossier!.bloodType }}</span>
             </div>
           }
+          @if (dossier?.height) {
+            <div class="mf-field">
+              <span class="mf-label">Height</span>
+              <span class="mf-value">{{ dossier!.height }} cm</span>
+            </div>
+          }
+          @if (dossier?.weight) {
+            <div class="mf-field">
+              <span class="mf-label">Weight</span>
+              <span class="mf-value">{{ dossier!.weight }} kg</span>
+            </div>
+          }
           @if (patient.phone) {
             <div class="mf-field">
               <span class="mf-label">Phone</span>
@@ -138,6 +148,146 @@
             <div class="mf-field">
               <span class="mf-label">Emergency contact</span>
               <span class="mf-value">{{ patient.emergencyContact }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Medical History (flags + text) ───────────────────────────── -->
+    @if (medicalHistoryFlags.length || dossier?.medicalHistory?.otherConditions || dossier?.pastMedicalHistory || substanceList.length || dossier?.familyHistory) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="notes-medical" class="icon-16"></i-tabler> Medical History
+        </div>
+        @if (medicalHistoryFlags.length) {
+          <div class="mf-tag-list m-b-8">
+            @for (f of medicalHistoryFlags; track f.key) {
+              <span class="mf-tag mf-tag-antecedent">{{ f.label }}</span>
+            }
+          </div>
+        }
+        @if (dossier?.medicalHistory?.otherConditions) {
+          <div class="mf-text-block">
+            <span class="mf-label">Other conditions</span>
+            <p>{{ dossier!.medicalHistory!.otherConditions }}</p>
+          </div>
+        }
+        @if (dossier?.pastMedicalHistory) {
+          <div class="mf-text-block">
+            <span class="mf-label">Past medical history</span>
+            <p>{{ dossier!.pastMedicalHistory }}</p>
+          </div>
+        }
+        @if (substanceList.length && !substanceList.includes('None')) {
+          <div class="mf-field-full">
+            <span class="mf-label">Substance use</span>
+            <div class="mf-tag-list">
+              @for (s of substanceList; track s) {
+                <span class="mf-tag mf-tag-substance">{{ s }}</span>
+              }
+            </div>
+          </div>
+        }
+        @if (dossier?.familyHistory) {
+          <div class="mf-text-block">
+            <span class="mf-label">Family history</span>
+            <p>{{ dossier!.familyHistory }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Diagnosis ─────────────────────────────────────────────────── -->
+    @if (dossier?.primaryDiagnosisInfo?.condition || dossier?.primaryDiagnosisInfo?.notes) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="stethoscope" class="icon-16"></i-tabler> Diagnosis
+        </div>
+        @if (dossier!.primaryDiagnosisInfo!.condition) {
+          <div class="mf-text-block mf-diagnosis">
+            <span class="mf-label">Condition</span>
+            <p>{{ dossier!.primaryDiagnosisInfo!.condition }}</p>
+          </div>
+        }
+        @if (dossier!.primaryDiagnosisInfo!.notes) {
+          <div class="mf-text-block">
+            <span class="mf-label">Notes</span>
+            <p>{{ dossier!.primaryDiagnosisInfo!.notes }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Medications & Allergies (structured list + free text + allergies) ── -->
+    @if (medicationsList.length || dossier?.currentMedications || allergiesList.length) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="pill" class="icon-16"></i-tabler>
+          Medications & Allergies
+          @if (medicationsList.length) {
+            <span class="mf-count-badge">{{ medicationsList.length }}</span>
+          }
+        </div>
+        @if (medicationsList.length) {
+          <div class="med-table">
+            <div class="med-table-header">
+              <span>Medication</span><span>Dose</span><span>Frequency</span><span>Since</span>
+            </div>
+            @for (m of medicationsList; track $index) {
+              <div class="med-table-row">
+                <span class="med-name">{{ m.medication }}</span>
+                <span>{{ m.dose || '—' }}</span>
+                <span>{{ m.frequency || '—' }}</span>
+                <span>{{ m.startDate ? (m.startDate | date: 'mediumDate') : '—' }}</span>
+              </div>
+            }
+          </div>
+        }
+        @if (dossier?.currentMedications) {
+          <div class="mf-text-block m-t-8">
+            <span class="mf-label">Additional notes</span>
+            <p class="mf-medications">{{ dossier!.currentMedications }}</p>
+          </div>
+        }
+        @if (allergiesList.length) {
+          <div class="mf-field-full m-t-8">
+            <span class="mf-label">Known allergies</span>
+            <div class="mf-tag-list">
+              @for (a of allergiesList; track a) {
+                <span class="mf-tag mf-tag-allergy">{{ a }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Monitoring ────────────────────────────────────────────────── -->
+    @if (dossier?.monitoringConfig) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="activity" class="icon-16"></i-tabler> Monitoring
+        </div>
+        <div class="mf-row-grid">
+          <div class="mf-field">
+            <span class="mf-label">Status</span>
+            @if (dossier!.monitoringConfig!.isMonitoringActive) {
+              <span class="mf-value monitoring-active">Active</span>
+            } @else {
+              <span class="mf-value monitoring-inactive">Inactive</span>
+            }
+          </div>
+          @if (dossier!.monitoringConfig!.monitoringStartDate) {
+            <div class="mf-field">
+              <span class="mf-label">Start date</span>
+              <span class="mf-value">{{ dossier!.monitoringConfig!.monitoringStartDate | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (dossier!.monitoringConfig!.glucoseMonitoring) {
+            <div class="mf-field">
+              <span class="mf-label">Glucose monitoring</span>
+              <span class="mf-tag mf-tag-monitoring">Active</span>
             </div>
           }
         </div>
@@ -170,7 +320,7 @@
         </div>
         @if (latestEntry.primaryDiagnosis) {
           <div class="mf-text-block mf-diagnosis">
-            <span class="mf-label">Primary diagnosis</span>
+            <span class="mf-label">Discharge diagnosis</span>
             <p>{{ latestEntry.primaryDiagnosis }}</p>
           </div>
         }
@@ -190,63 +340,6 @@
           <div class="mf-text-block">
             <span class="mf-label">Discharge notes</span>
             <p>{{ latestEntry.dischargeSummaryNotes }}</p>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ── Medications & Allergies ────────────────────────────────────── -->
-    @if (dossier?.currentMedications || allergiesList.length) {
-      <div class="mf-section">
-        <div class="mf-section-title">
-          <i-tabler name="pill" class="icon-16"></i-tabler>
-          Medications & Allergies
-        </div>
-        @if (dossier?.currentMedications) {
-          <div class="mf-text-block">
-            <span class="mf-label">Current medications</span>
-            <p class="mf-medications">{{ dossier!.currentMedications }}</p>
-          </div>
-        }
-        @if (allergiesList.length) {
-          <div class="mf-field-full">
-            <span class="mf-label">Known allergies</span>
-            <div class="mf-tag-list">
-              @for (a of allergiesList; track a) {
-                <span class="mf-tag mf-tag-allergy">{{ a }}</span>
-              }
-            </div>
-          </div>
-        }
-      </div>
-    }
-
-    <!-- ── Medical History ────────────────────────────────────────────── -->
-    @if (dossier?.pastMedicalHistory || substanceList.length || dossier?.familyHistory) {
-      <div class="mf-section">
-        <div class="mf-section-title">
-          <i-tabler name="history" class="icon-16"></i-tabler> History
-        </div>
-        @if (dossier?.pastMedicalHistory) {
-          <div class="mf-text-block">
-            <span class="mf-label">Past medical history</span>
-            <p>{{ dossier!.pastMedicalHistory }}</p>
-          </div>
-        }
-        @if (substanceList.length && !substanceList.includes('None')) {
-          <div class="mf-field-full">
-            <span class="mf-label">Substance use</span>
-            <div class="mf-tag-list">
-              @for (s of substanceList; track s) {
-                <span class="mf-tag mf-tag-substance">{{ s }}</span>
-              }
-            </div>
-          </div>
-        }
-        @if (dossier?.familyHistory) {
-          <div class="mf-text-block">
-            <span class="mf-label">Family history</span>
-            <p>{{ dossier!.familyHistory }}</p>
           </div>
         }
       </div>

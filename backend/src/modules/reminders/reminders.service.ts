@@ -9,6 +9,8 @@ import { Model, Types } from 'mongoose';
 import { Reminder, ReminderDocument } from './reminder.schema';
 import { User, UserDocument } from '../users/users.schema';
 import { Role, RoleDocument } from '../roles/role.schema';
+import { Symptoms, SymptomsDocument } from '../symptoms/symptoms.schema';
+import { VitalParameters, VitalParametersDocument } from '../vital-parameters/vital-parameters.schema';
 
 export type ReminderListItem = {
   _id: string;
@@ -22,6 +24,25 @@ export type ReminderListItem = {
   createdAt?: Date;
 };
 
+export type ComplianceSummary = {
+  patientId: string;
+  patientName: string;
+  lastEntry: string | null;
+  status: 'compliant' | 'non-compliant' | 'overdue';
+  lastReminder?: {
+    type: string;
+    message: string;
+    status: string;
+    sentAt: string | null;
+  };
+};
+
+export type DailyCompliance = {
+  date: string;
+  status: 'done' | 'not-done';
+  entries: { type: string; time: string }[];
+};
+
 @Injectable()
 export class RemindersService implements OnModuleInit {
   private readonly logger = new Logger(RemindersService.name);
@@ -30,7 +51,9 @@ export class RemindersService implements OnModuleInit {
     @InjectModel(Reminder.name) private reminderModel: Model<ReminderDocument>,
     @InjectModel(User.name) private userModel: Model<UserDocument>,
     @InjectModel(Role.name) private roleModel: Model<RoleDocument>,
-  ) {}
+    @InjectModel(Symptoms.name) private symptomsModel: Model<SymptomsDocument>,
+    @InjectModel(VitalParameters.name) private vitalParametersModel: Model<VitalParametersDocument>,
+  ) { }
 
   /** ObjectIds of users whose role is Patient — alerts/reminders apply only to them. */
   private async getPatientUserObjectIds(): Promise<Types.ObjectId[]> {
@@ -172,10 +195,10 @@ export class RemindersService implements OnModuleInit {
     return Array.from(map.entries()).map(([patientId, rems]) => ({
       patientId,
       patientName: rems[0].patientName,
-      total:       rems.length,
-      pending:     rems.filter(r => r.status === 'pending' || r.status === 'scheduled').length,
-      sent:        rems.filter(r => r.status === 'sent').length,
-      lastStatus:  rems[0].status,
+      total: rems.length,
+      pending: rems.filter(r => r.status === 'pending' || r.status === 'scheduled').length,
+      sent: rems.filter(r => r.status === 'sent').length,
+      lastStatus: rems[0].status,
     }));
   }
 
@@ -218,5 +241,99 @@ export class RemindersService implements OnModuleInit {
 
     if (!doc) throw new NotFoundException(`Reminder ${id} not found`);
     return this.toListItem(doc as ReminderDocument);
+  }
+
+  async getComplianceSummary(): Promise<ComplianceSummary[]> {
+    const patientIds = await this.getPatientUserObjectIds();
+    if (patientIds.length === 0) return [];
+
+    const patients = await this.userModel
+      .find({ _id: { $in: patientIds } })
+      .select('firstName lastName')
+      .lean()
+      .exec();
+
+    const now = new Date();
+    const twentyFourHoursAgo = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    const summaries: ComplianceSummary[] = [];
+
+    for (const p of patients) {
+      const [lastVital, lastSymptom, lastReminder] = await Promise.all([
+        this.vitalParametersModel.findOne({ patientId: p._id }).sort({ recordedAt: -1 }).exec(),
+        this.symptomsModel.findOne({ patientId: p._id }).sort({ reportedAt: -1 }).exec(),
+        this.reminderModel.findOne({ patientId: p._id }).sort({ createdAt: -1 }).exec(),
+      ]);
+
+      const lastEntryDate = [
+        lastVital?.recordedAt,
+        lastSymptom?.reportedAt
+      ].filter(Boolean).sort((a, b) => b!.getTime() - a!.getTime())[0];
+
+      let status: ComplianceSummary['status'] = 'overdue';
+      if (lastEntryDate) {
+        if (lastEntryDate >= twentyFourHoursAgo) {
+          status = 'compliant';
+        } else if (lastEntryDate >= sevenDaysAgo) {
+          status = 'non-compliant';
+        }
+      }
+
+      summaries.push({
+        patientId: String(p._id),
+        patientName: `${p.firstName} ${p.lastName ?? ''}`.trim(),
+        lastEntry: lastEntryDate ? lastEntryDate.toISOString() : null,
+        status,
+        lastReminder: lastReminder ? {
+          type: lastReminder.type,
+          message: lastReminder.message,
+          status: lastReminder.status,
+          sentAt: lastReminder.sentAt ? lastReminder.sentAt.toISOString() : null,
+        } : undefined,
+      });
+    }
+
+    return summaries;
+  }
+
+  async getPatientComplianceHistory(patientId: string, days: number = 7): Promise<DailyCompliance[]> {
+    if (!Types.ObjectId.isValid(patientId)) return [];
+
+    const history: DailyCompliance[] = [];
+    const now = new Date();
+
+    for (let i = 0; i < days; i++) {
+      const date = new Date(now);
+      date.setDate(date.getDate() - i);
+      date.setHours(0, 0, 0, 0);
+
+      const nextDay = new Date(date);
+      nextDay.setDate(nextDay.getDate() + 1);
+
+      const [vitals, symptoms] = await Promise.all([
+        this.vitalParametersModel.find({
+          patientId,
+          recordedAt: { $gte: date, $lt: nextDay }
+        }).lean().exec(),
+        this.symptomsModel.find({
+          patientId,
+          reportedAt: { $gte: date, $lt: nextDay }
+        }).lean().exec()
+      ]);
+
+      const entries: DailyCompliance['entries'] = [
+        ...vitals.map(v => ({ type: 'Vital Parameters', time: v.recordedAt.toISOString() })),
+        ...symptoms.map(s => ({ type: 'Symptoms', time: s.reportedAt.toISOString() }))
+      ].sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime());
+
+      history.push({
+        date: date.toISOString().split('T')[0],
+        status: entries.length > 0 ? 'done' : 'not-done',
+        entries
+      });
+    }
+
+    return history;
   }
 }

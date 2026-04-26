@@ -1,4 +1,4 @@
-﻿import { Controller, Get, Param, Patch } from '@nestjs/common';
+import { Controller, Get, Param, Patch, Query } from '@nestjs/common';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RemindersService } from './reminders.service';
@@ -6,7 +6,7 @@ import { RemindersService } from './reminders.service';
 @UseGuards(JwtAuthGuard)
 @Controller('reminders')
 export class RemindersController {
-  constructor(private readonly remindersService: RemindersService) {}
+  constructor(private readonly remindersService: RemindersService) { }
 
   @Get()
   findAll() {
@@ -21,6 +21,19 @@ export class RemindersController {
   @Get('patient/:patientId')
   findByPatient(@Param('patientId') patientId: string) {
     return this.remindersService.findByPatient(patientId);
+  }
+
+  @Get('compliance')
+  getComplianceSummary() {
+    return this.remindersService.getComplianceSummary();
+  }
+
+  @Get('patient/:patientId/history')
+  getPatientHistory(
+    @Param('patientId') patientId: string,
+    @Query('days') days?: number,
+  ) {
+    return this.remindersService.getPatientComplianceHistory(patientId, days);
   }
 
   @Get('stats/pending-count')

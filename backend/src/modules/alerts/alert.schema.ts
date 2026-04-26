@@ -7,16 +7,16 @@ export type AlertDocument = Alert & Document;
 @Schema({ timestamps: true, collection: 'alerts' })
 export class Alert {
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  patientId: Types.ObjectId;
+  patientId!: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   triggeredBy?: Types.ObjectId;
 
   @Prop({ required: true })
-  type: string;
+  type!: string;
 
   @Prop({ required: true })
-  severity: string;
+  severity!: string;
 
   @Prop()
   parameter?: string;
@@ -35,16 +35,30 @@ export class Alert {
   sourceId?: Types.ObjectId;
 
   @Prop({ required: true })
-  message: string;
+  message!: string;
 
   @Prop({ default: 'open' })
-  status: string;
+  status!: string;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
   acknowledgedBy?: Types.ObjectId;
 
   @Prop()
   acknowledgedAt?: Date;
+
+  /** Set when a nurse marks the alert as seen. */
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  seenBy?: Types.ObjectId;
+
+  @Prop()
+  seenAt?: Date;
+
+  /** Set when a nurse marks the alert as reported (escalated). */
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  reportedBy?: Types.ObjectId;
+
+  @Prop()
+  reportedAt?: Date;
 }
 
 export const AlertSchema = SchemaFactory.createForClass(Alert);

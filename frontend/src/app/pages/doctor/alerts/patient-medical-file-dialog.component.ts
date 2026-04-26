@@ -265,6 +265,23 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     catch { return this.dossier.substanceUse.split(',').map((s) => s.trim()).filter(Boolean); }
   }
 
+  get medicalHistoryFlags(): { label: string; key: string }[] {
+    const mh = this.dossier?.medicalHistory;
+    if (!mh) return [];
+    const flags: { label: string; key: string }[] = [
+      { label: 'Diabète', key: 'diabetes' },
+      { label: 'Hypertension', key: 'hypertension' },
+      { label: 'Cardiopathie', key: 'heartDisease' },
+      { label: 'Asthme / BPCO', key: 'asthmaOrCOPD' },
+      { label: 'Cancer', key: 'cancer' },
+    ];
+    return flags.filter(f => (mh as Record<string, unknown>)[f.key]);
+  }
+
+  get medicationsList() {
+    return this.dossier?.medicationsList ?? [];
+  }
+
   get nurseFileUrl(): string {
     return `/dashboard/doctor/medical-file?patientId=${encodeURIComponent(this.data.patientId)}`;
   }

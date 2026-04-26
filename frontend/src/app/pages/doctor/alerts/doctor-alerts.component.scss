@@ -32,8 +32,58 @@
 }
 
 .doctor-alerts-table {
-  min-width: 720px;
+  min-width: 780px;
 }
+
+/* ── Type cell (shared with nurse) ──────────────────────────────────── */
+.type-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.type-source-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.src-vital,
+.src-vitals                { background: rgba(9, 132, 227, 0.12); color: #0984e3; }
+.src-symptom,
+.src-symptoms              { background: rgba(108, 92, 231, 0.12); color: #6c5ce7; }
+.src-physician_instruction { background: rgba(46, 213, 115, 0.15); color: #27ae60; }
+.src-auto                  { background: rgba(253, 203, 110, 0.35); color: #b7791f; }
+
+.type-param {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+/* ── Status badge ────────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-open     { background: rgba(214, 48, 49,  0.12); color: #c0392b; }
+.status-seen     { background: rgba(9, 132, 227,  0.12); color: #0984e3; }
+.status-reported { background: rgba(253, 203, 110, 0.40); color: #b7791f; }
+.status-done     { background: rgba(46, 213, 115,  0.15); color: #27ae60; }
+
+.col-date    { white-space: nowrap; }
+.col-patient { font-weight: 500; }
+.col-message { max-width: 260px; white-space: normal; word-break: break-word; font-size: 13px; }
 
 .doctor-review-table {
   min-width: 1040px;

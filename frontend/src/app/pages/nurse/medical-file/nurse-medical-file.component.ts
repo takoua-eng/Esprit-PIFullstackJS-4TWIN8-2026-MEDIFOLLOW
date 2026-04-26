@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -10,7 +10,11 @@ import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   DiagnosisEntry,
+  MedicalHistoryFlags,
+  MedicationItem,
+  MonitoringConfig,
   NurseDossierPayload,
+  PrimaryDiagnosisInfo,
   UserApiRow,
   UserListRow,
   UsersApiService,
@@ -29,6 +33,7 @@ import {
   switchMap,
 } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 
 type DossierForm = {
   diagnosisEntries?: DiagnosisEntry[];
@@ -136,8 +141,27 @@ export class NurseMedicalFileComponent implements OnInit {
   /** New row not yet committed — cancel removes it. */
   private pendingNewEntryId: string | null = null;
 
+  // ── Physical profile ────────────────────────────────────────────────
+  height: number | null = null;
+  weight: number | null = null;
   bloodType = '';
+
+  // ── Antécédents ─────────────────────────────────────────────────────
+  medicalHistory: MedicalHistoryFlags = {};
+
+  // ── Diagnostic ──────────────────────────────────────────────────────
+  primaryDiagnosisInfo: PrimaryDiagnosisInfo = {};
+
+  // ── Medications list ─────────────────────────────────────────────────
+  medicationsList: MedicationItem[] = [];
+
+  // ── Legacy free-text medications ──────────────────────────────────────
   currentMedications = '';
+
+  // ── Monitoring config ────────────────────────────────────────────────
+  monitoringConfig: MonitoringConfig = { isMonitoringActive: true };
+
+  // ── Existing fields ───────────────────────────────────────────────────
   allergies = '';
   selectedAllergies: string[] = [];
   pastMedicalHistory = '';
@@ -166,6 +190,8 @@ export class NurseMedicalFileComponent implements OnInit {
   private readonly attachmentsKey =
     'medi_follow_nurse_dossier_attachments_v1';
 
+  @ViewChild('summaryDialog') summaryDialogRef!: TemplateRef<unknown>;
+
   constructor(
     private readonly usersApi: UsersApiService,
     private readonly uploadApi: UploadApiService,
@@ -173,6 +199,7 @@ export class NurseMedicalFileComponent implements OnInit {
     private readonly translate: TranslateService,
     private readonly route: ActivatedRoute,
     private readonly snackBar: MatSnackBar,
+    private readonly dialog: MatDialog,
   ) {
     this.route.queryParamMap.pipe(takeUntilDestroyed()).subscribe((params) => {
       const pid = params.get('patientId');
@@ -386,15 +413,35 @@ export class NurseMedicalFileComponent implements OnInit {
     this.editingEntryId = null;
     this.editSnapshot = null;
     this.pendingNewEntryId = null;
+    // Physical profile
+    this.height = e['height'] != null ? Number(e['height']) || null : null;
+    this.weight = e['weight'] != null ? Number(e['weight']) || null : null;
     this.bloodType = String(e['bloodType'] ?? '').trim();
-    this.currentMedications = String(
-      e['currentMedications'] ?? e['currentTreatments'] ?? '',
-    ).trim();
+
+    // Antécédents
+    const mh = e['medicalHistory'];
+    this.medicalHistory = (mh && typeof mh === 'object') ? { ...(mh as MedicalHistoryFlags) } : {};
+
+    // Diagnostic
+    const pdi = e['primaryDiagnosisInfo'];
+    this.primaryDiagnosisInfo = (pdi && typeof pdi === 'object') ? { ...(pdi as PrimaryDiagnosisInfo) } : {};
+
+    // Medications list
+    const ml = e['medicationsList'];
+    this.medicationsList = Array.isArray(ml) ? (ml as MedicationItem[]).map(m => ({ ...m })) : [];
+
+    // Legacy medications
+    this.currentMedications = String(e['currentMedications'] ?? e['currentTreatments'] ?? '').trim();
+
+    // Monitoring config
+    const mc = e['monitoringConfig'];
+    this.monitoringConfig = (mc && typeof mc === 'object')
+      ? { ...(mc as MonitoringConfig) }
+      : { isMonitoringActive: true };
+
     this.allergies = String(e['allergies'] ?? '').trim();
     this.selectedAllergies = this.fromStoredMulti(this.allergies);
-    this.pastMedicalHistory = String(
-      e['pastMedicalHistory'] ?? e['chronicDiseases'] ?? '',
-    ).trim();
+    this.pastMedicalHistory = String(e['pastMedicalHistory'] ?? e['chronicDiseases'] ?? '').trim();
     this.substanceUse = String(e['substanceUse'] ?? '').trim();
     this.selectedSubstanceUse = this.fromStoredMulti(this.substanceUse);
     this.familyHistory = String(e['familyHistory'] ?? '').trim();
@@ -635,6 +682,12 @@ export class NurseMedicalFileComponent implements OnInit {
   }
 
   private buildDossierPayload(): Omit<NurseDossierPayload, 'updatedAt'> {
+    // Auto-activate glucose monitoring when diabetes is flagged
+    const monitoring: MonitoringConfig = {
+      ...this.monitoringConfig,
+      glucoseMonitoring: this.monitoringConfig.glucoseMonitoring ?? this.medicalHistory.diabetes ?? false,
+    };
+
     return {
       admissionDate: '',
       dischargeDate: '',
@@ -645,13 +698,30 @@ export class NurseMedicalFileComponent implements OnInit {
       proceduresPerformed: '',
       dischargeSummaryNotes: '',
       diagnosisEntries: this.diagnosisEntries.map((x) => this.trimDiagnosisEntry(x)),
+      height: this.height ?? undefined,
+      weight: this.weight ?? undefined,
       bloodType: this.bloodType.trim(),
+      medicalHistory: { ...this.medicalHistory },
+      primaryDiagnosisInfo: { ...this.primaryDiagnosisInfo },
+      medicationsList: this.medicationsList.filter(m => m.medication.trim()),
       currentMedications: this.currentMedications.trim(),
+      monitoringConfig: monitoring,
       allergies: this.allergies.trim(),
       pastMedicalHistory: this.pastMedicalHistory.trim(),
       substanceUse: this.substanceUse.trim(),
       familyHistory: this.familyHistory.trim(),
     };
+  }
+
+  // ── Medications list helpers ──────────────────────────────────────────
+  addMedication(): void {
+    this.medicationsList = [...this.medicationsList, { medication: '', dose: '', frequency: '', startDate: '' }];
+    this.onDossierFieldChange();
+  }
+
+  removeMedication(index: number): void {
+    this.medicationsList = this.medicationsList.filter((_, i) => i !== index);
+    this.onDossierFieldChange();
   }
 
   private writeDossierToLocalStorage(row: NurseDossierPayload): void {
@@ -667,6 +737,10 @@ export class NurseMedicalFileComponent implements OnInit {
       updatedAt: row.updatedAt ?? '',
     };
     localStorage.setItem(this.storageKey, JSON.stringify(all));
+  }
+
+  openSummary(): void {
+    this.dialog.open(this.summaryDialogRef, { width: '720px', maxHeight: '85vh' });
   }
 
   printMedicalFilePdf(): void {
@@ -931,8 +1005,14 @@ export class NurseMedicalFileComponent implements OnInit {
     this.editingEntryId = null;
     this.editSnapshot = null;
     this.pendingNewEntryId = null;
+    this.height = null;
+    this.weight = null;
     this.bloodType = '';
+    this.medicalHistory = {};
+    this.primaryDiagnosisInfo = {};
+    this.medicationsList = [];
     this.currentMedications = '';
+    this.monitoringConfig = { isMonitoringActive: true };
     this.allergies = '';
     this.selectedAllergies = [];
     this.pastMedicalHistory = '';

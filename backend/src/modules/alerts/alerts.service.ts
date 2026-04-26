@@ -633,11 +633,6 @@ export class AlertsService implements OnModuleInit {
       throw new NotFoundException(`Alert ${id} not found`);
     }
 
-    const patientIds = await this.getPatientUserObjectIds();
-    if (patientIds.length === 0) {
-      throw new NotFoundException(`Alert ${id} not found`);
-    }
-
     const update: Record<string, unknown> = {
       status: 'acknowledged',
       acknowledgedAt: new Date(),
@@ -649,11 +644,7 @@ export class AlertsService implements OnModuleInit {
     }
 
     const doc = await this.alertModel
-      .findOneAndUpdate(
-        { _id: id },
-        update,
-        { new: true },
-      )
+      .findOneAndUpdate({ _id: id }, update, { new: true })
       .populate('patientId', 'firstName lastName')
       .exec();
 
@@ -661,6 +652,42 @@ export class AlertsService implements OnModuleInit {
     return this.toListItem(doc as AlertDocument);
   }
 
+  async markAsSeen(id: string, nurseUserId?: string): Promise<AlertListItem> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Alert ${id} not found`);
+    }
+    const update: Record<string, unknown> = {
+      status: 'seen',
+      seenAt: new Date(),
+    };
+    if (nurseUserId && Types.ObjectId.isValid(nurseUserId)) {
+      update['seenBy'] = new Types.ObjectId(nurseUserId);
+    }
+    const doc = await this.alertModel
+      .findOneAndUpdate({ _id: id }, update, { new: true })
+      .populate('patientId', 'firstName lastName')
+      .exec();
+    if (!doc) throw new NotFoundException(`Alert ${id} not found`);
+    return this.toListItem(doc as AlertDocument);
+  }
 
+  async markAsReported(id: string, nurseUserId?: string): Promise<AlertListItem> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(`Alert ${id} not found`);
+    }
+    const update: Record<string, unknown> = {
+      status: 'reported',
+      reportedAt: new Date(),
+    };
+    if (nurseUserId && Types.ObjectId.isValid(nurseUserId)) {
+      update['reportedBy'] = new Types.ObjectId(nurseUserId);
+    }
+    const doc = await this.alertModel
+      .findOneAndUpdate({ _id: id }, update, { new: true })
+      .populate('patientId', 'firstName lastName')
+      .exec();
+    if (!doc) throw new NotFoundException(`Alert ${id} not found`);
+    return this.toListItem(doc as AlertDocument);
+  }
 
 }
