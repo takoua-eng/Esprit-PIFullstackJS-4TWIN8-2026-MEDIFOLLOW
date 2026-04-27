@@ -129,8 +129,6 @@ export class FullComponent implements OnInit {
       else this.navItems = adminNavItems;
     } else if (url.startsWith('/admin/coordinator')) {
       this.navItems = coordinatorNavItems;
-    } else if (url.startsWith('/dashboard/patient')) {   // <-- AJOUTÉ
-    this.navItems = patientNavItems;
     } else {
       // Fallback by role
       if (role === 'superadmin')                          this.navItems = superAdminNavItems;

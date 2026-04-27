@@ -1,0 +1,364 @@
+.mf-dialog-title {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+
+.mf-dialog-subtitle {
+  font-size: 13px;
+  font-weight: 400;
+  color: #636e72;
+  margin-left: 8px;
+}
+
+.mf-dialog-content {
+  min-width: 560px;
+  max-width: 740px;
+  max-height: 78vh;
+  padding: 0 24px 8px;
+}
+
+.mf-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 40px 0;
+}
+
+.mf-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #c0392b;
+  padding: 20px 0;
+}
+
+.mf-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px 0;
+  text-align: center;
+}
+
+/* ── Sections ──────────────────────────────────────────────────────── */
+.mf-section {
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.07);
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+  }
+}
+
+.mf-section-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #0984e3;
+  margin-bottom: 12px;
+}
+
+/* ── Field grid ──────────────────────────────────────────────────── */
+.mf-row-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  margin-bottom: 12px;
+}
+
+.mf-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mf-field-full {
+  margin-bottom: 10px;
+}
+
+.mf-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: #b2bec3;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.mf-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: #2d3436;
+}
+
+.mf-mono {
+  font-family: monospace;
+  font-size: 13px;
+}
+
+.mf-blood {
+  font-size: 16px;
+  font-weight: 700;
+  color: #c0392b;
+}
+
+/* ── Text blocks ─────────────────────────────────────────────────── */
+.mf-text-block {
+  margin-bottom: 10px;
+
+  p {
+    margin: 4px 0 0;
+    font-size: 14px;
+    line-height: 1.55;
+    color: #2d3436;
+    white-space: pre-wrap;
+  }
+}
+
+.mf-diagnosis p {
+  font-weight: 600;
+}
+
+.mf-medications {
+  white-space: pre-wrap;
+}
+
+/* ── Tags ────────────────────────────────────────────────────────── */
+.mf-tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.mf-tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.mf-tag-allergy {
+  background: rgba(214, 48, 49, 0.1);
+  color: #c0392b;
+}
+
+.mf-tag-substance {
+  background: rgba(253, 203, 110, 0.35);
+  color: #6c5ce7;
+}
+
+.mf-tag-antecedent {
+  background: rgba(214, 48, 49, 0.12);
+  color: #c0392b;
+}
+
+.mf-tag-monitoring {
+  background: rgba(39, 174, 96, 0.12);
+  color: #27ae60;
+}
+
+/* ── Count badge ─────────────────────────────────────────────────── */
+.mf-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(9, 132, 227, 0.15);
+  color: #0984e3;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Medication table ────────────────────────────────────────────── */
+.med-table {
+  width: 100%;
+  font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.med-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr;
+  background: rgba(9, 132, 227, 0.07);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #636e72;
+  gap: 8px;
+}
+
+.med-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr;
+  padding: 7px 12px;
+  gap: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  align-items: center;
+
+  &:hover {
+    background: rgba(9, 132, 227, 0.03);
+  }
+}
+
+.med-name {
+  font-weight: 600;
+  color: #2d3436;
+}
+
+/* ── Monitoring status ───────────────────────────────────────────── */
+.monitoring-active {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.monitoring-inactive {
+  color: #b2bec3;
+  font-weight: 500;
+}
+
+/* ── Hospital badge ──────────────────────────────────────────────── */
+.mf-unit-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(9, 132, 227, 0.12);
+  color: #0984e3;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-left: 4px;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+.mf-updated-at {
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.mf-dialog-actions {
+  padding: 12px 24px 16px;
+  gap: 8px;
+}
+
+.btn-open-full {
+  font-size: 13px;
+  color: #636e72;
+  border-color: #b2bec3;
+}
+
+/* ── Vital parameters chart ────────────────────────────────────────── */
+.vitals-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.param-tabs {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+
+.param-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 12px;
+  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  color: #636e72;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #0984e3;
+    color: #0984e3;
+  }
+
+  &.active {
+    background: #0984e3;
+    border-color: #0984e3;
+    color: #fff;
+  }
+}
+
+.range-tabs {
+  display: flex;
+  gap: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.range-tab {
+  padding: 4px 10px;
+  border: none;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 600;
+  color: #636e72;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover { background: rgba(9, 132, 227, 0.08); color: #0984e3; }
+
+  &.active {
+    background: #0984e3;
+    color: #fff;
+  }
+}
+
+.vitals-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 0;
+  text-align: center;
+  color: #b2bec3;
+}
+
+.trend-insight {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #636e72;
+  background: rgba(9, 132, 227, 0.06);
+  padding: 6px 12px;
+  border-radius: 6px;
+  margin-top: 4px;
+}
+
+.icon-20 { width: 20px; height: 20px; vertical-align: middle; }
+.icon-16 { width: 16px; height: 16px; vertical-align: middle; }
+.icon-14 { width: 14px; height: 14px; vertical-align: middle; }
+.icon-13 { width: 13px; height: 13px; vertical-align: middle; }
+.icon-28 { width: 28px; height: 28px; }
+.m-r-8  { margin-right: 8px; }
+.m-r-6  { margin-right: 6px; }
+.m-t-8  { margin-top: 8px; }
+.m-b-8  { margin-bottom: 8px; }
+.f-s-13 { font-size: 13px; }

@@ -1,3 +1,4 @@
+/* ── Severity pills ──────────────────────────────────────────────────── */
 .sev-pill {
   display: inline-block;
   padding: 2px 10px;
@@ -7,40 +8,97 @@
   text-transform: capitalize;
 }
 
-.sev-high {
-  background: rgba(214, 48, 49, 0.15);
-  color: #c0392b;
+.sev-high   { background: rgba(214, 48,  49,  0.15); color: #c0392b; }
+.sev-medium { background: rgba(253, 203, 110, 0.40); color: #6c5ce7; }
+.sev-low    { background: rgba(46,  213, 115, 0.20); color: #27ae60; }
+
+/* ── Status badges ───────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.sev-medium {
-  background: rgba(253, 203, 110, 0.4);
-  color: #6c5ce7;
+.status-open     { background: rgba(214, 48, 49,  0.12); color: #c0392b; }
+.status-seen     { background: rgba(9,  132, 227, 0.12); color: #0984e3; }
+.status-reported { background: rgba(253, 203, 110, 0.40); color: #b7791f; }
+.status-done     { background: rgba(46, 213, 115, 0.15); color: #27ae60; }
+
+/* ── Type cell ───────────────────────────────────────────────────────── */
+.type-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
 }
 
-.sev-low {
-  background: rgba(46, 213, 115, 0.2);
-  color: #27ae60;
+.type-source-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
 }
 
-.status-open {
+.src-vital,
+.src-vitals       { background: rgba(9, 132, 227, 0.12); color: #0984e3; }
+.src-symptom,
+.src-symptoms     { background: rgba(108, 92, 231, 0.12); color: #6c5ce7; }
+.src-physician_instruction { background: rgba(46, 213, 115, 0.15); color: #27ae60; }
+.src-auto         { background: rgba(253, 203, 110, 0.35); color: #b7791f; }
+
+.type-param {
+  font-size: 13px;
   font-weight: 600;
-  color: #d63031;
+  color: #2d3436;
 }
 
-.status-done {
-  color: #636e72;
+/* ── Table ───────────────────────────────────────────────────────────── */
+.nurse-alerts-table { min-width: 860px; }
+
+.col-date    { white-space: nowrap; }
+.col-patient { font-weight: 500; }
+.col-message { max-width: 260px; white-space: normal; word-break: break-word; font-size: 13px; }
+
+/* Row highlights */
+.row-seen     td { background: rgba(9, 132, 227, 0.04); }
+.row-reported td { background: rgba(253, 203, 110, 0.10); }
+
+/* ── Action buttons ──────────────────────────────────────────────────── */
+.action-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
 }
 
-.nurse-alerts-table {
-  min-width: 720px;
+.btn-seen {
+  height: 30px;
+  line-height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+  color: #0984e3;
+  border-color: #74b9ff;
 }
 
-.icon-18 {
-  width: 18px;
-  height: 18px;
-  vertical-align: middle;
+.btn-reported {
+  height: 30px;
+  line-height: 28px;
+  font-size: 12px;
+  padding: 0 10px;
+  background: #f39c12 !important;
+  color: #fff !important;
 }
 
-.m-r-8 {
-  margin-right: 8px;
-}
+/* ── Misc ────────────────────────────────────────────────────────────── */
+.icon-18 { width: 18px; height: 18px; vertical-align: middle; }
+.icon-15 { width: 15px; height: 15px; vertical-align: middle; }
+.m-r-8   { margin-right: 8px; }
+.m-l-4   { margin-left: 4px; }
+.f-s-11  { font-size: 11px; }
+.f-s-12  { font-size: 12px; }

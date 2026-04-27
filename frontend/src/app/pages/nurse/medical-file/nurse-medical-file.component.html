@@ -91,12 +91,14 @@
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_ADMISSION_DATE' | translate }}</mat-label>
                       <input matInput type="date" [(ngModel)]="entry.admissionDate" (ngModelChange)="onVisitFieldChange()" [name]="'adm-' + entry.id" />
+                      <mat-hint>Date patient was admitted</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-md-4 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_DISCHARGE_DATE' | translate }}</mat-label>
                       <input matInput type="date" [(ngModel)]="entry.dischargeDate" (ngModelChange)="onVisitFieldChange()" [name]="'dis-' + entry.id" />
+                      <mat-hint>Leave blank if still admitted</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-md-4 m-b-12">
@@ -107,36 +109,42 @@
                           <mat-option [value]="unit.value">{{ unit.labelKey | translate }}</mat-option>
                         }
                       </mat-select>
+                      <mat-hint>Ward or unit at time of discharge</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_PRIMARY_DIAGNOSIS' | translate }}</mat-label>
                       <input matInput [(ngModel)]="entry.primaryDiagnosis" (ngModelChange)="onVisitFieldChange()" [name]="'prim-' + entry.id" />
+                      <mat-hint>Main diagnosis at discharge (ICD code or description)</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_HOSPITALIZATION_REASON' | translate }}</mat-label>
                       <textarea matInput rows="2" [(ngModel)]="entry.hospitalizationReason" (ngModelChange)="onVisitFieldChange()" [name]="'reason-' + entry.id"></textarea>
+                      <mat-hint>Chief complaint or reason for admission</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-md-6 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_SECONDARY_DIAGNOSES' | translate }}</mat-label>
                       <textarea matInput rows="2" [(ngModel)]="entry.secondaryDiagnoses" (ngModelChange)="onVisitFieldChange()" [name]="'sec-' + entry.id"></textarea>
+                      <mat-hint>Comorbidities or complications identified during stay</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 col-md-6 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_PROCEDURES' | translate }}</mat-label>
                       <textarea matInput rows="2" [(ngModel)]="entry.proceduresPerformed" (ngModelChange)="onVisitFieldChange()" [name]="'proc-' + entry.id"></textarea>
+                      <mat-hint>Surgeries, interventions, or diagnostic procedures</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 m-b-12">
                     <mat-form-field appearance="outline" class="w-100">
                       <mat-label>{{ 'NURSE_MEDICAL_FILE_DISCHARGE_SUMMARY' | translate }}</mat-label>
                       <textarea matInput rows="2" [(ngModel)]="entry.dischargeSummaryNotes" (ngModelChange)="onVisitFieldChange()" [name]="'sum-' + entry.id"></textarea>
+                      <mat-hint>Instructions, follow-up plan, or relevant notes at discharge</mat-hint>
                     </mat-form-field>
                   </div>
                   <div class="col-12 d-flex flex-wrap gap-2">
@@ -154,6 +162,24 @@
         </div>
       </div>
 
+      <!-- ── Physical profile ─────────────────────────────────────────── -->
+      <div class="col-12 m-b-4">
+        <div class="section-label">Physical Profile</div>
+      </div>
+      <div class="col-6 col-md-2 m-b-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Height (cm)</mat-label>
+          <input matInput type="number" [(ngModel)]="height" (ngModelChange)="onDossierFieldChange()" name="height" min="0" max="300" />
+          <mat-hint>e.g. 175</mat-hint>
+        </mat-form-field>
+      </div>
+      <div class="col-6 col-md-2 m-b-12">
+        <mat-form-field appearance="outline" class="w-100">
+          <mat-label>Weight (kg)</mat-label>
+          <input matInput type="number" [(ngModel)]="weight" (ngModelChange)="onDossierFieldChange()" name="weight" min="0" max="500" />
+          <mat-hint>e.g. 70</mat-hint>
+        </mat-form-field>
+      </div>
       <div class="col-6 col-md-3 m-b-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'NURSE_MEDICAL_FILE_BLOOD_TYPE' | translate }}</mat-label>
@@ -162,14 +188,106 @@
               <mat-option [value]="group">{{ group }}</mat-option>
             }
           </mat-select>
+          <mat-hint>ABO + Rh factor</mat-hint>
         </mat-form-field>
+      </div>
+
+      <!-- ── Antécédents médicaux ─────────────────────────────────────── -->
+      <div class="col-12 m-b-4 m-t-4">
+        <div class="section-label">Medical History</div>
+        <p class="f-s-12 text-muted m-b-0 m-t-4">Check all known pre-existing conditions.</p>
       </div>
       <div class="col-12 m-b-12">
-        <mat-form-field appearance="outline" class="w-100">
-          <mat-label>{{ 'NURSE_MEDICAL_FILE_CURRENT_MEDICATIONS' | translate }}</mat-label>
-          <textarea matInput rows="2" [(ngModel)]="currentMedications" (ngModelChange)="onDossierFieldChange()" name="currentMedications"></textarea>
+        <div class="antecedents-grid">
+          <mat-checkbox [(ngModel)]="medicalHistory.diabetes" (ngModelChange)="onDossierFieldChange()" name="mh_diabetes">
+            Diabetes
+          </mat-checkbox>
+          <mat-checkbox [(ngModel)]="medicalHistory.hypertension" (ngModelChange)="onDossierFieldChange()" name="mh_hypertension">
+            Hypertension
+          </mat-checkbox>
+          <mat-checkbox [(ngModel)]="medicalHistory.heartDisease" (ngModelChange)="onDossierFieldChange()" name="mh_heartDisease">
+            Heart Disease
+          </mat-checkbox>
+          <mat-checkbox [(ngModel)]="medicalHistory.asthmaOrCOPD" (ngModelChange)="onDossierFieldChange()" name="mh_asthma">
+            Asthma / COPD
+          </mat-checkbox>
+          <mat-checkbox [(ngModel)]="medicalHistory.cancer" (ngModelChange)="onDossierFieldChange()" name="mh_cancer">
+            Cancer
+          </mat-checkbox>
+        </div>
+        <mat-form-field appearance="outline" class="w-100 m-t-8">
+          <mat-label>Other conditions</mat-label>
+          <input matInput [(ngModel)]="medicalHistory.otherConditions" (ngModelChange)="onDossierFieldChange()" name="mh_other" />
+          <mat-hint>e.g. Chronic kidney disease, Epilepsy, Thyroid disorder</mat-hint>
         </mat-form-field>
       </div>
+
+      <!-- ── Medications (structured list) ──────────────────────────── -->
+      <div class="col-12 m-b-4">
+        <div class="section-label d-flex align-items-center gap-2">
+          Medications
+          <button mat-stroked-button type="button" class="btn-add-med" (click)="addMedication()">
+            + Add
+          </button>
+        </div>
+      </div>
+      <div class="col-12 m-b-12">
+        @if (medicationsList.length === 0) {
+          <p class="f-s-13 text-muted">No medications added yet.</p>
+        }
+        @for (med of medicationsList; track $index) {
+          <div class="med-row">
+            <mat-form-field appearance="outline" class="med-field-name">
+              <mat-label>Medication</mat-label>
+              <input matInput [(ngModel)]="med.medication" (ngModelChange)="onDossierFieldChange()" [name]="'med_name_' + $index" />
+              <mat-hint>Generic or brand name</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="med-field-sm">
+              <mat-label>Dose</mat-label>
+              <input matInput [(ngModel)]="med.dose" (ngModelChange)="onDossierFieldChange()" [name]="'med_dose_' + $index" />
+              <mat-hint>e.g. 500 mg</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="med-field-sm">
+              <mat-label>Frequency</mat-label>
+              <input matInput [(ngModel)]="med.frequency" (ngModelChange)="onDossierFieldChange()" [name]="'med_freq_' + $index" />
+              <mat-hint>e.g. twice daily</mat-hint>
+            </mat-form-field>
+            <mat-form-field appearance="outline" class="med-field-sm">
+              <mat-label>Since</mat-label>
+              <input matInput type="date" [(ngModel)]="med.startDate" (ngModelChange)="onDossierFieldChange()" [name]="'med_date_' + $index" />
+              <mat-hint>Start date</mat-hint>
+            </mat-form-field>
+            <button mat-icon-button type="button" color="warn" (click)="removeMedication($index)" class="btn-remove-med">
+              <i-tabler name="trash" class="icon-18"></i-tabler>
+            </button>
+          </div>
+        }
+      </div>
+
+      <!-- ── Monitoring ───────────────────────────────────────────────── -->
+      <div class="col-12 m-b-4">
+        <div class="section-label">Monitoring</div>
+        <p class="f-s-12 text-muted m-b-0 m-t-4">Configure remote follow-up parameters for this patient.</p>
+      </div>
+      <div class="col-12 m-b-12">
+        <div class="monitoring-grid">
+          <mat-checkbox [(ngModel)]="monitoringConfig.isMonitoringActive" (ngModelChange)="onDossierFieldChange()" name="mon_active">
+            Active monitoring
+          </mat-checkbox>
+          <mat-checkbox [(ngModel)]="monitoringConfig.glucoseMonitoring" (ngModelChange)="onDossierFieldChange()" name="mon_glucose">
+            Glucose monitoring
+            @if (medicalHistory.diabetes) {
+              <span class="auto-badge">auto</span>
+            }
+          </mat-checkbox>
+        </div>
+        <mat-form-field appearance="outline" class="w-100 m-t-8" style="max-width:260px">
+          <mat-label>Monitoring start date</mat-label>
+          <input matInput type="date" [(ngModel)]="monitoringConfig.monitoringStartDate" (ngModelChange)="onDossierFieldChange()" name="mon_start" />
+          <mat-hint>Date monitoring was initiated</mat-hint>
+        </mat-form-field>
+      </div>
+
       <div class="col-12 m-b-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'NURSE_MEDICAL_FILE_ALLERGIES' | translate }}</mat-label>
@@ -178,12 +296,14 @@
               <mat-option [value]="item.value">{{ item.labelKey | translate }}</mat-option>
             }
           </mat-select>
+          <mat-hint>Select all known drug, food, and environmental allergies</mat-hint>
         </mat-form-field>
       </div>
       <div class="col-12 m-b-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'NURSE_MEDICAL_FILE_PAST_MEDICAL_HISTORY' | translate }}</mat-label>
           <textarea matInput rows="2" [(ngModel)]="pastMedicalHistory" (ngModelChange)="onDossierFieldChange()" name="pastMedicalHistory"></textarea>
+          <mat-hint>Previous surgeries, hospitalizations, and significant illnesses</mat-hint>
         </mat-form-field>
       </div>
       <div class="col-12 m-b-12">
@@ -194,12 +314,14 @@
               <mat-option [value]="item.value">{{ item.labelKey | translate }}</mat-option>
             }
           </mat-select>
+          <mat-hint>Select "None" if the patient reports no substance use</mat-hint>
         </mat-form-field>
       </div>
       <div class="col-12 m-b-12">
         <mat-form-field appearance="outline" class="w-100">
           <mat-label>{{ 'NURSE_MEDICAL_FILE_FAMILY_HISTORY' | translate }}</mat-label>
           <textarea matInput rows="2" [(ngModel)]="familyHistory" (ngModelChange)="onDossierFieldChange()" name="familyHistory"></textarea>
+          <mat-hint>Hereditary conditions in first-degree relatives (parents, siblings)</mat-hint>
         </mat-form-field>
       </div>
     </div>
@@ -212,28 +334,237 @@
         <i-tabler name="printer" class="icon-18 m-r-8"></i-tabler>
         {{ 'NURSE_MEDICAL_FILE_PRINT_PDF' | translate }}
       </button>
+      <button mat-stroked-button type="button" (click)="openSummary()" [disabled]="!selectedPatientId">
+        <i-tabler name="eye" class="icon-18 m-r-8"></i-tabler>
+        View Summary
+      </button>
     </div>
   </mat-card-content>
 </mat-card>
 
-<mat-card class="cardWithShadow">
-  <mat-card-content class="p-24">
-    <div class="f-w-600 m-b-8">{{ 'NURSE_MEDICAL_FILE_CURRENT_TITLE' | translate }}</div>
-    <p class="f-s-13 text-muted m-b-12">
-      {{ 'NURSE_MEDICAL_FILE_LAST_UPDATE' | translate }}:
-      @if (lastUpdatedAt) {
-        {{ lastUpdatedAt | date: 'short' }}
-      } @else {
-        -
-      }
-    </p>
-    <div class="f-s-14 m-b-6"><strong>{{ 'NURSE_MEDICAL_FILE_CURRENT_MEDICATIONS' | translate }}:</strong> {{ currentMedications || '-' }}</div>
-    <div class="f-s-14 m-b-6"><strong>{{ 'NURSE_MEDICAL_FILE_ALLERGIES' | translate }}:</strong> {{ allergies || '-' }}</div>
-    <div class="f-s-14 m-b-6"><strong>{{ 'NURSE_MEDICAL_FILE_PAST_MEDICAL_HISTORY' | translate }}:</strong> {{ pastMedicalHistory || '-' }}</div>
-    <div class="f-s-14 m-b-6"><strong>{{ 'NURSE_MEDICAL_FILE_SUBSTANCE_USE' | translate }}:</strong> {{ substanceUse || '-' }}</div>
-    <div class="f-s-14"><strong>{{ 'NURSE_MEDICAL_FILE_FAMILY_HISTORY' | translate }}:</strong> {{ familyHistory || '-' }}</div>
-  </mat-card-content>
-</mat-card>
+<!-- ── Medical summary dialog template ─────────────────────────────────── -->
+<ng-template #summaryDialog>
+  <h2 mat-dialog-title class="summary-dialog-title">
+    <i-tabler name="clipboard-text" class="icon-20 m-r-8"></i-tabler>
+    Medical Summary
+    @if (selectedPatientInfo) {
+      <span class="summary-patient-name">— {{ selectedPatientInfo.firstName }} {{ selectedPatientInfo.lastName }}</span>
+    }
+  </h2>
+
+  <mat-dialog-content class="summary-dialog-content">
+
+    <!-- Patient -->
+    @if (selectedPatientInfo) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="user" class="icon-15"></i-tabler> Patient
+        </div>
+        <div class="sum-grid">
+          @if (selectedPatientInfo.dateOfBirth) {
+            <div class="sum-field">
+              <span class="sum-label">Date of birth</span>
+              <span class="sum-value">{{ selectedPatientInfo.dateOfBirth | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (selectedPatientInfo.gender) {
+            <div class="sum-field">
+              <span class="sum-label">Gender</span>
+              <span class="sum-value" style="text-transform:capitalize">{{ selectedPatientInfo.gender }}</span>
+            </div>
+          }
+          @if (bloodType) {
+            <div class="sum-field">
+              <span class="sum-label">Blood type</span>
+              <span class="sum-value sum-blood">{{ bloodType }}</span>
+            </div>
+          }
+          @if (height) {
+            <div class="sum-field">
+              <span class="sum-label">Height</span>
+              <span class="sum-value">{{ height }} cm</span>
+            </div>
+          }
+          @if (weight) {
+            <div class="sum-field">
+              <span class="sum-label">Weight</span>
+              <span class="sum-value">{{ weight }} kg</span>
+            </div>
+          }
+          @if (selectedPatientInfo.phone) {
+            <div class="sum-field">
+              <span class="sum-label">Phone</span>
+              <span class="sum-value">{{ selectedPatientInfo.phone }}</span>
+            </div>
+          }
+          @if (selectedPatientInfo.emergencyContact) {
+            <div class="sum-field">
+              <span class="sum-label">Emergency contact</span>
+              <span class="sum-value">{{ selectedPatientInfo.emergencyContact }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Medical History -->
+    @if (medicalHistory.diabetes || medicalHistory.hypertension || medicalHistory.heartDisease || medicalHistory.asthmaOrCOPD || medicalHistory.cancer || medicalHistory.otherConditions || pastMedicalHistory || familyHistory) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="notes-medical" class="icon-15"></i-tabler> Medical History
+        </div>
+        <div class="sum-tag-list m-b-8">
+          @if (medicalHistory.diabetes) { <span class="sum-tag sum-tag-cond">Diabetes</span> }
+          @if (medicalHistory.hypertension) { <span class="sum-tag sum-tag-cond">Hypertension</span> }
+          @if (medicalHistory.heartDisease) { <span class="sum-tag sum-tag-cond">Heart Disease</span> }
+          @if (medicalHistory.asthmaOrCOPD) { <span class="sum-tag sum-tag-cond">Asthma / COPD</span> }
+          @if (medicalHistory.cancer) { <span class="sum-tag sum-tag-cond">Cancer</span> }
+        </div>
+        @if (medicalHistory.otherConditions) {
+          <div class="sum-text-block"><span class="sum-label">Other conditions</span><p>{{ medicalHistory.otherConditions }}</p></div>
+        }
+        @if (pastMedicalHistory) {
+          <div class="sum-text-block"><span class="sum-label">Past medical history</span><p>{{ pastMedicalHistory }}</p></div>
+        }
+        @if (familyHistory) {
+          <div class="sum-text-block"><span class="sum-label">Family history</span><p>{{ familyHistory }}</p></div>
+        }
+        @if (substanceUse && substanceUse !== 'None') {
+          <div class="sum-text-block"><span class="sum-label">Substance use</span><p>{{ substanceUse }}</p></div>
+        }
+      </div>
+    }
+
+    <!-- Allergies -->
+    @if (allergies) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="alert-triangle" class="icon-15"></i-tabler> Allergies
+        </div>
+        <div class="sum-tag-list">
+          @for (a of selectedAllergies; track a) {
+            <span class="sum-tag sum-tag-allergy">{{ a }}</span>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Medications -->
+    @if (medicationsList.length) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="pill" class="icon-15"></i-tabler> Medications
+          <span class="sum-count">{{ medicationsList.length }}</span>
+        </div>
+        <div class="sum-med-table">
+          <div class="sum-med-header">
+            <span>Medication</span><span>Dose</span><span>Frequency</span><span>Since</span>
+          </div>
+          @for (m of medicationsList; track $index) {
+            <div class="sum-med-row">
+              <span class="sum-med-name">{{ m.medication }}</span>
+              <span>{{ m.dose || '—' }}</span>
+              <span>{{ m.frequency || '—' }}</span>
+              <span>{{ m.startDate ? (m.startDate | date: 'mediumDate') : '—' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Monitoring -->
+    @if (monitoringConfig.isMonitoringActive || monitoringConfig.glucoseMonitoring || monitoringConfig.monitoringStartDate) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="activity" class="icon-15"></i-tabler> Monitoring
+        </div>
+        <div class="sum-grid">
+          <div class="sum-field">
+            <span class="sum-label">Status</span>
+            @if (monitoringConfig.isMonitoringActive) {
+              <span class="sum-value sum-active">Active</span>
+            } @else {
+              <span class="sum-value sum-inactive">Inactive</span>
+            }
+          </div>
+          @if (monitoringConfig.monitoringStartDate) {
+            <div class="sum-field">
+              <span class="sum-label">Start date</span>
+              <span class="sum-value">{{ monitoringConfig.monitoringStartDate | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (monitoringConfig.glucoseMonitoring) {
+            <div class="sum-field">
+              <span class="sum-label">Glucose monitoring</span>
+              <span class="sum-tag sum-tag-monitor">Active</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Latest Hospitalization -->
+    @if (diagnosisEntries.length) {
+      <div class="sum-section">
+        <div class="sum-section-title">
+          <i-tabler name="building-hospital" class="icon-15"></i-tabler> Hospitalizations
+          <span class="sum-count">{{ diagnosisEntries.length }}</span>
+        </div>
+        @for (entry of diagnosisEntries; track entry.id; let last = $last) {
+          @if (last) {
+            <div class="sum-visit-card">
+              <div class="sum-grid m-b-8">
+                @if (entry.admissionDate) {
+                  <div class="sum-field">
+                    <span class="sum-label">Admission</span>
+                    <span class="sum-value">{{ entry.admissionDate | date: 'mediumDate' }}</span>
+                  </div>
+                }
+                @if (entry.dischargeDate) {
+                  <div class="sum-field">
+                    <span class="sum-label">Discharge</span>
+                    <span class="sum-value">{{ entry.dischargeDate | date: 'mediumDate' }}</span>
+                  </div>
+                }
+                @if (entry.dischargeUnit) {
+                  <div class="sum-field">
+                    <span class="sum-label">Unit</span>
+                    <span class="sum-value">{{ entry.dischargeUnit }}</span>
+                  </div>
+                }
+              </div>
+              @if (entry.primaryDiagnosis) {
+                <div class="sum-text-block"><span class="sum-label">Discharge diagnosis</span><p>{{ entry.primaryDiagnosis }}</p></div>
+              }
+              @if (entry.hospitalizationReason) {
+                <div class="sum-text-block"><span class="sum-label">Reason</span><p>{{ entry.hospitalizationReason }}</p></div>
+              }
+              @if (entry.dischargeSummaryNotes) {
+                <div class="sum-text-block"><span class="sum-label">Discharge notes</span><p>{{ entry.dischargeSummaryNotes }}</p></div>
+              }
+            </div>
+          }
+        }
+        @if (diagnosisEntries.length > 1) {
+          <p class="sum-more-visits f-s-12 text-muted">+ {{ diagnosisEntries.length - 1 }} earlier visit(s)</p>
+        }
+      </div>
+    }
+
+    @if (lastUpdatedAt) {
+      <p class="sum-updated text-muted f-s-11">Last updated: {{ lastUpdatedAt | date: 'medium' }}</p>
+    }
+
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end" class="sum-dialog-actions">
+    <button mat-stroked-button type="button" (click)="printMedicalFilePdf()">
+      <i-tabler name="printer" class="icon-16 m-r-6"></i-tabler>
+      Print PDF
+    </button>
+    <button mat-flat-button color="primary" mat-dialog-close>Close</button>
+  </mat-dialog-actions>
+</ng-template>
 
 <mat-card class="cardWithShadow m-t-16">
   <mat-card-content class="p-24">

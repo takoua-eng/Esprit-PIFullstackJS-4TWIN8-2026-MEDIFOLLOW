@@ -1,0 +1,369 @@
+<h2 mat-dialog-title class="mf-dialog-title">
+  <i-tabler name="clipboard-text" class="icon-20 m-r-8"></i-tabler>
+  {{ data.patientName }}
+  <span class="mf-dialog-subtitle">Medical File</span>
+</h2>
+
+<mat-dialog-content class="mf-dialog-content">
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       VITAL PARAMETERS HISTORY
+  ════════════════════════════════════════════════════════════════════ -->
+  <div class="mf-section">
+    <div class="mf-section-title">
+      <i-tabler name="chart-line" class="icon-16"></i-tabler>
+      Vital Parameters over Time
+    </div>
+
+    <!-- Controls row -->
+    <div class="vitals-controls">
+      <div class="param-tabs">
+        @for (opt of paramOptions; track opt.value) {
+          <button
+            type="button"
+            class="param-tab"
+            [class.active]="selectedParameter === opt.value"
+            (click)="onParamChange(opt.value)"
+          >
+            <i-tabler [name]="opt.icon" class="icon-13"></i-tabler>
+            {{ opt.label }}
+          </button>
+        }
+      </div>
+      <div class="range-tabs">
+        @for (r of rangeOptions; track r.value) {
+          <button
+            type="button"
+            class="range-tab"
+            [class.active]="rangeDays === r.value"
+            (click)="onRangeChange(r.value)"
+          >{{ r.label }}</button>
+        }
+      </div>
+    </div>
+
+    @if (vitalsLoading) {
+      <div class="vitals-placeholder">
+        <mat-spinner diameter="32"></mat-spinner>
+        <span class="text-muted f-s-13">Loading vitals…</span>
+      </div>
+    } @else if (vitalChartOptions) {
+      <apx-chart
+        [series]="vitalChartOptions.series"
+        [chart]="vitalChartOptions.chart"
+        [stroke]="vitalChartOptions.stroke"
+        [dataLabels]="vitalChartOptions.dataLabels"
+        [markers]="vitalChartOptions.markers"
+        [colors]="vitalChartOptions.colors"
+        [xaxis]="vitalChartOptions.xaxis"
+        [yaxis]="vitalChartOptions.yaxis"
+        [legend]="vitalChartOptions.legend"
+        [grid]="vitalChartOptions.grid"
+        [tooltip]="vitalChartOptions.tooltip"
+      ></apx-chart>
+      @if (trendInsight) {
+        <div class="trend-insight">
+          <i-tabler name="trending-up" class="icon-14"></i-tabler>
+          {{ trendInsight }}
+        </div>
+      }
+    } @else {
+      <div class="vitals-placeholder text-muted">
+        <i-tabler name="chart-off" class="icon-28"></i-tabler>
+        <span class="f-s-13">No {{ selectedParameter === 'heartRate' ? 'heart rate' : selectedParameter === 'temperature' ? 'temperature' : selectedParameter === 'weight' ? 'weight' : 'blood pressure' }} data in the last {{ rangeDays }} days.</span>
+      </div>
+    }
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       MEDICAL FILE
+  ════════════════════════════════════════════════════════════════════ -->
+  @if (loading) {
+    <div class="mf-loading">
+      <mat-spinner diameter="36"></mat-spinner>
+      <span class="text-muted">Loading medical file…</span>
+    </div>
+  } @else if (error) {
+    <div class="mf-error">
+      <i-tabler name="alert-circle" class="icon-20"></i-tabler>
+      <span>{{ error }}</span>
+    </div>
+  } @else if (!hasAnyDossierData()) {
+    <div class="mf-empty">
+      <i-tabler name="file-off" class="icon-28 text-muted"></i-tabler>
+      <p class="text-muted f-s-13 m-t-8">No medical file recorded yet for this patient.</p>
+    </div>
+  } @else {
+
+    <!-- ── Demographics + Physical Profile ─────────────────────────── -->
+    @if (patient) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="user" class="icon-16"></i-tabler> Patient
+        </div>
+        <div class="mf-row-grid">
+          @if (patient.dateOfBirth) {
+            <div class="mf-field">
+              <span class="mf-label">Date of birth</span>
+              <span class="mf-value">{{ patient.dateOfBirth | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (patient.gender) {
+            <div class="mf-field">
+              <span class="mf-label">Gender</span>
+              <span class="mf-value" style="text-transform:capitalize">{{ patient.gender }}</span>
+            </div>
+          }
+          @if (patient.medicalRecordNumber) {
+            <div class="mf-field">
+              <span class="mf-label">MRN</span>
+              <span class="mf-value mf-mono">{{ patient.medicalRecordNumber }}</span>
+            </div>
+          }
+          @if (dossier?.bloodType) {
+            <div class="mf-field">
+              <span class="mf-label">Blood type</span>
+              <span class="mf-value mf-blood">{{ dossier!.bloodType }}</span>
+            </div>
+          }
+          @if (dossier?.height) {
+            <div class="mf-field">
+              <span class="mf-label">Height</span>
+              <span class="mf-value">{{ dossier!.height }} cm</span>
+            </div>
+          }
+          @if (dossier?.weight) {
+            <div class="mf-field">
+              <span class="mf-label">Weight</span>
+              <span class="mf-value">{{ dossier!.weight }} kg</span>
+            </div>
+          }
+          @if (patient.phone) {
+            <div class="mf-field">
+              <span class="mf-label">Phone</span>
+              <span class="mf-value">{{ patient.phone }}</span>
+            </div>
+          }
+          @if (patient.emergencyContact) {
+            <div class="mf-field">
+              <span class="mf-label">Emergency contact</span>
+              <span class="mf-value">{{ patient.emergencyContact }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Medical History (flags + text) ───────────────────────────── -->
+    @if (medicalHistoryFlags.length || dossier?.medicalHistory?.otherConditions || dossier?.pastMedicalHistory || substanceList.length || dossier?.familyHistory) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="notes-medical" class="icon-16"></i-tabler> Medical History
+        </div>
+        @if (medicalHistoryFlags.length) {
+          <div class="mf-tag-list m-b-8">
+            @for (f of medicalHistoryFlags; track f.key) {
+              <span class="mf-tag mf-tag-antecedent">{{ f.label }}</span>
+            }
+          </div>
+        }
+        @if (dossier?.medicalHistory?.otherConditions) {
+          <div class="mf-text-block">
+            <span class="mf-label">Other conditions</span>
+            <p>{{ dossier!.medicalHistory!.otherConditions }}</p>
+          </div>
+        }
+        @if (dossier?.pastMedicalHistory) {
+          <div class="mf-text-block">
+            <span class="mf-label">Past medical history</span>
+            <p>{{ dossier!.pastMedicalHistory }}</p>
+          </div>
+        }
+        @if (substanceList.length && !substanceList.includes('None')) {
+          <div class="mf-field-full">
+            <span class="mf-label">Substance use</span>
+            <div class="mf-tag-list">
+              @for (s of substanceList; track s) {
+                <span class="mf-tag mf-tag-substance">{{ s }}</span>
+              }
+            </div>
+          </div>
+        }
+        @if (dossier?.familyHistory) {
+          <div class="mf-text-block">
+            <span class="mf-label">Family history</span>
+            <p>{{ dossier!.familyHistory }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Diagnosis ─────────────────────────────────────────────────── -->
+    @if (dossier?.primaryDiagnosisInfo?.condition || dossier?.primaryDiagnosisInfo?.notes) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="stethoscope" class="icon-16"></i-tabler> Diagnosis
+        </div>
+        @if (dossier!.primaryDiagnosisInfo!.condition) {
+          <div class="mf-text-block mf-diagnosis">
+            <span class="mf-label">Condition</span>
+            <p>{{ dossier!.primaryDiagnosisInfo!.condition }}</p>
+          </div>
+        }
+        @if (dossier!.primaryDiagnosisInfo!.notes) {
+          <div class="mf-text-block">
+            <span class="mf-label">Notes</span>
+            <p>{{ dossier!.primaryDiagnosisInfo!.notes }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Medications & Allergies (structured list + free text + allergies) ── -->
+    @if (medicationsList.length || dossier?.currentMedications || allergiesList.length) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="pill" class="icon-16"></i-tabler>
+          Medications & Allergies
+          @if (medicationsList.length) {
+            <span class="mf-count-badge">{{ medicationsList.length }}</span>
+          }
+        </div>
+        @if (medicationsList.length) {
+          <div class="med-table">
+            <div class="med-table-header">
+              <span>Medication</span><span>Dose</span><span>Frequency</span><span>Since</span>
+            </div>
+            @for (m of medicationsList; track $index) {
+              <div class="med-table-row">
+                <span class="med-name">{{ m.medication }}</span>
+                <span>{{ m.dose || '—' }}</span>
+                <span>{{ m.frequency || '—' }}</span>
+                <span>{{ m.startDate ? (m.startDate | date: 'mediumDate') : '—' }}</span>
+              </div>
+            }
+          </div>
+        }
+        @if (dossier?.currentMedications) {
+          <div class="mf-text-block m-t-8">
+            <span class="mf-label">Additional notes</span>
+            <p class="mf-medications">{{ dossier!.currentMedications }}</p>
+          </div>
+        }
+        @if (allergiesList.length) {
+          <div class="mf-field-full m-t-8">
+            <span class="mf-label">Known allergies</span>
+            <div class="mf-tag-list">
+              @for (a of allergiesList; track a) {
+                <span class="mf-tag mf-tag-allergy">{{ a }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- ── Monitoring ────────────────────────────────────────────────── -->
+    @if (dossier?.monitoringConfig) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="activity" class="icon-16"></i-tabler> Monitoring
+        </div>
+        <div class="mf-row-grid">
+          <div class="mf-field">
+            <span class="mf-label">Status</span>
+            @if (dossier!.monitoringConfig!.isMonitoringActive) {
+              <span class="mf-value monitoring-active">Active</span>
+            } @else {
+              <span class="mf-value monitoring-inactive">Inactive</span>
+            }
+          </div>
+          @if (dossier!.monitoringConfig!.monitoringStartDate) {
+            <div class="mf-field">
+              <span class="mf-label">Start date</span>
+              <span class="mf-value">{{ dossier!.monitoringConfig!.monitoringStartDate | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (dossier!.monitoringConfig!.glucoseMonitoring) {
+            <div class="mf-field">
+              <span class="mf-label">Glucose monitoring</span>
+              <span class="mf-tag mf-tag-monitoring">Active</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- ── Latest Hospitalization ────────────────────────────────────── -->
+    @if (latestEntry) {
+      <div class="mf-section">
+        <div class="mf-section-title">
+          <i-tabler name="building-hospital" class="icon-16"></i-tabler>
+          Latest Hospitalization
+          @if (latestEntry.dischargeUnit) {
+            <span class="mf-unit-badge">{{ latestEntry.dischargeUnit }}</span>
+          }
+        </div>
+        <div class="mf-row-grid">
+          @if (latestEntry.admissionDate) {
+            <div class="mf-field">
+              <span class="mf-label">Admission</span>
+              <span class="mf-value">{{ latestEntry.admissionDate | date: 'mediumDate' }}</span>
+            </div>
+          }
+          @if (latestEntry.dischargeDate) {
+            <div class="mf-field">
+              <span class="mf-label">Discharge</span>
+              <span class="mf-value">{{ latestEntry.dischargeDate | date: 'mediumDate' }}</span>
+            </div>
+          }
+        </div>
+        @if (latestEntry.primaryDiagnosis) {
+          <div class="mf-text-block mf-diagnosis">
+            <span class="mf-label">Discharge diagnosis</span>
+            <p>{{ latestEntry.primaryDiagnosis }}</p>
+          </div>
+        }
+        @if (latestEntry.hospitalizationReason) {
+          <div class="mf-text-block">
+            <span class="mf-label">Reason</span>
+            <p>{{ latestEntry.hospitalizationReason }}</p>
+          </div>
+        }
+        @if (latestEntry.proceduresPerformed) {
+          <div class="mf-text-block">
+            <span class="mf-label">Procedures</span>
+            <p>{{ latestEntry.proceduresPerformed }}</p>
+          </div>
+        }
+        @if (latestEntry.dischargeSummaryNotes) {
+          <div class="mf-text-block">
+            <span class="mf-label">Discharge notes</span>
+            <p>{{ latestEntry.dischargeSummaryNotes }}</p>
+          </div>
+        }
+      </div>
+    }
+
+    @if (dossier?.updatedAt) {
+      <p class="mf-updated-at text-muted">
+        Last updated: {{ dossier!.updatedAt | date: 'medium' }}
+      </p>
+    }
+  }
+
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="mf-dialog-actions">
+  <a
+    mat-stroked-button
+    [attr.href]="nurseFileUrl"
+    target="_blank"
+    rel="noopener noreferrer"
+    class="btn-open-full"
+  >
+    <i-tabler name="external-link" class="icon-16 m-r-6"></i-tabler>
+    Open full file
+  </a>
+  <button mat-flat-button color="primary" (click)="close()">Close</button>
+</mat-dialog-actions>

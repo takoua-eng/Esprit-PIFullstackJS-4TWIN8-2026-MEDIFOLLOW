@@ -32,8 +32,58 @@
 }
 
 .doctor-alerts-table {
-  min-width: 720px;
+  min-width: 780px;
 }
+
+/* ── Type cell (shared with nurse) ──────────────────────────────────── */
+.type-cell {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.type-source-badge {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  border-radius: 4px;
+}
+
+.src-vital,
+.src-vitals                { background: rgba(9, 132, 227, 0.12); color: #0984e3; }
+.src-symptom,
+.src-symptoms              { background: rgba(108, 92, 231, 0.12); color: #6c5ce7; }
+.src-physician_instruction { background: rgba(46, 213, 115, 0.15); color: #27ae60; }
+.src-auto                  { background: rgba(253, 203, 110, 0.35); color: #b7791f; }
+
+.type-param {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2d3436;
+}
+
+/* ── Status badge ────────────────────────────────────────────────────── */
+.status-badge {
+  display: inline-block;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.status-open     { background: rgba(214, 48, 49,  0.12); color: #c0392b; }
+.status-seen     { background: rgba(9, 132, 227,  0.12); color: #0984e3; }
+.status-reported { background: rgba(253, 203, 110, 0.40); color: #b7791f; }
+.status-done     { background: rgba(46, 213, 115,  0.15); color: #27ae60; }
+
+.col-date    { white-space: nowrap; }
+.col-patient { font-weight: 500; }
+.col-message { max-width: 260px; white-space: normal; word-break: break-word; font-size: 13px; }
 
 .doctor-review-table {
   min-width: 1040px;
@@ -96,3 +146,210 @@
 .m-r-8 {
   margin-right: 8px;
 }
+
+/* ── Issued Alerts header ──────────────────────────────────────────── */
+.issued-alerts-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.issued-alerts-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-top: 4px;
+}
+
+.results-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: rgba(116, 185, 255, 0.2);
+  color: #0984e3;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ── Filter bar ─────────────────────────────────────────────────────── */
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-select {
+  width: 148px;
+}
+
+.filter-search {
+  width: 210px;
+}
+
+.btn-clear-filters {
+  height: 40px;
+  font-size: 13px;
+  color: #636e72;
+  border-color: #b2bec3;
+}
+
+/* ── Paginator ──────────────────────────────────────────────────────── */
+.alerts-paginator {
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* ── Clinical Review Queue — card list ──────────────────────────────── */
+.queue-card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.queue-card {
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 14px 16px 12px;
+  border-left-width: 4px;
+  transition: box-shadow 0.15s ease;
+  background: #fff;
+
+  &:hover {
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  }
+}
+
+/* urgency left-border color */
+.queue-card-sev-high  { border-left-color: #c0392b; }
+.queue-card-sev-medium { border-left-color: #f39c12; }
+.queue-card-sev-low   { border-left-color: #27ae60; }
+
+/* Card header */
+.queue-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.queue-card-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.queue-card-patient {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  color: #2d3436;
+}
+
+.queue-card-time {
+  font-size: 12px;
+  color: #b2bec3;
+}
+
+/* Type badge */
+.type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.type-vital {
+  background: rgba(9, 132, 227, 0.12);
+  color: #0984e3;
+}
+
+.type-symptom {
+  background: rgba(108, 92, 231, 0.12);
+  color: #6c5ce7;
+}
+
+/* Summary */
+.queue-card-summary {
+  font-size: 14px;
+  line-height: 1.5;
+  color: #2d3436;
+  margin-bottom: 6px;
+}
+
+/* Parameter meta */
+.queue-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: #636e72;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
+.meta-sep  { color: #b2bec3; }
+.meta-value { font-weight: 700; color: #2d3436; }
+.meta-threshold { color: #b2bec3; }
+.meta-score {
+  margin-left: auto;
+  font-size: 11px;
+  color: #b2bec3;
+  font-style: italic;
+}
+
+/* Action row */
+.queue-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  padding-top: 10px;
+  margin-top: 4px;
+}
+
+.actions-sep {
+  flex: 1;
+}
+
+.btn-card-action {
+  font-size: 12px;
+  height: 32px;
+  line-height: 32px;
+  padding: 0 12px;
+}
+
+.btn-video {
+  color: #0984e3;
+  border-color: #74b9ff;
+}
+
+.btn-medical-file {
+  color: #6c5ce7;
+  border-color: #a29bfe;
+}
+
+.btn-card-sev {
+  font-size: 12px;
+  height: 32px;
+  line-height: 30px;
+  padding: 0 12px;
+}
+
+.icon-13 { width: 13px; height: 13px; vertical-align: middle; }
+.icon-15 { width: 15px; height: 15px; vertical-align: middle; }
