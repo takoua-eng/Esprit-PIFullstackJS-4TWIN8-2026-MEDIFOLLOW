@@ -70,11 +70,12 @@ export class UsersService {
         delete cleanDto[field];
       }
     }
+    // Remove password from cleanDto to avoid overriding the hash
+    delete cleanDto.password;
 
     return this.userModel.create({
-      ...dto,
-      password: hashedPassword,
       ...cleanDto,
+      password: hashedPassword,
       role: role._id,
       photo: file ? file.filename : '',
       isActive: dto.isActive ?? true,
@@ -220,12 +221,14 @@ export class UsersService {
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     // Clean all ObjectId reference fields — remove if empty or invalid
-    const cleanDto = { ...dto };
+    const cleanDto: any = { ...dto };
     for (const field of ['serviceId', 'doctorId', 'coordinatorId', 'nurseId']) {
       if (!cleanDto[field] || !Types.ObjectId.isValid(cleanDto[field])) {
         delete cleanDto[field];
       }
     }
+    // Remove password from cleanDto to avoid overriding the hash
+    delete cleanDto.password;
 
     // Validate serviceId exists in DB
     if (cleanDto.serviceId) {

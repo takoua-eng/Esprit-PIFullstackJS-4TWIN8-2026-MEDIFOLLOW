@@ -117,14 +117,17 @@ export class AuthService {
     const accessToken = this.jwtService.sign(payload);
 
     await this.auditService.create({
-      userId: user._id.toString(),
+      userId:    user._id.toString(),
       userEmail: user.email,
-      action: 'LOGIN',
+      userRole:  roleName,
+      userName:  `${(user as any).firstName ?? ''} ${(user as any).lastName ?? ''}`.trim() || user.email,
+      action:    'LOGIN',
       entityType: 'AUTH',
-      entityId: user._id.toString(),
+      entityId:  user._id.toString(),
       before: null,
-      after: null,
+      after:  null,
       ipAddress: req?.ip ?? 'unknown',
+      userAgent: (req as any)?.headers?.['user-agent'] ?? 'unknown',
     });
 
     return {

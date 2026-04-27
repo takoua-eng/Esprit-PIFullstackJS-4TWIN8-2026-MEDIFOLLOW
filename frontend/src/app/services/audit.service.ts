@@ -4,22 +4,29 @@ import { Observable } from 'rxjs';
 
 export interface AuditLog {
   _id: string;
-  // QUI
+  // 1. ESSENTIELS
   userId:    string;
   userEmail: string;
   userRole:  string;
   userName:  string;
-  // QUOI
-  action: string;
-  // SUR QUOI
+  action:    string;
   entityType: string;
   entityId:   string;
-  // CHANGEMENTS
+  // 2. TRAÇABILITÉ
   before: any;
   after:  any;
-  // OÙ + QUAND
+  // 3. SÉCURITÉ
+  status:    'SUCCESS' | 'FAILED';
   ipAddress: string;
   userAgent: string;
+  // 4. ANALYSE
+  riskLevel:     'NORMAL' | 'SUSPICIOUS' | 'CRITICAL';
+  loginAttempts: number;
+  sessionId:     string;
+  // 5. CONTEXTE
+  description: string;
+  module:      string;
+  // META
   createdAt: string;
 }
 

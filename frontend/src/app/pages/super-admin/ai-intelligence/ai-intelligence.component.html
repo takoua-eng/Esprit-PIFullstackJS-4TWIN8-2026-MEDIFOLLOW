@@ -1,15 +1,13 @@
 <div class="ai-page p-24">
 
   <!-- Header -->
-  <div class="ai-header m-b-24">
-    <div class="d-flex align-items-center gap-16">
-      <div class="ai-logo">
-        <i-tabler name="brain" class="icon-32"></i-tabler>
-      </div>
-      <div>
-        <h1 class="m-0 f-w-700 f-s-24">AI Medical Intelligence</h1>
-        <p class="m-0 f-s-14" style="opacity:.7">Analyse intelligente — Super Admin uniquement</p>
-      </div>
+  <div class="d-flex align-items-center gap-16 m-b-24">
+    <div class="ai-logo">
+      <i-tabler name="brain" class="icon-26"></i-tabler>
+    </div>
+    <div>
+      <h1 class="m-0 f-w-700 f-s-22" style="color:#1a1a2e">AI Medical Intelligence</h1>
+      <p class="m-0 f-s-13" style="color:#999">Analyse intelligente — Super Admin uniquement</p>
     </div>
   </div>
 
@@ -52,12 +50,15 @@
       <div class="col-lg-8 m-b-16">
         <mat-card class="cardWithShadow h-100">
           <mat-card-content class="p-24">
+            
+            <!-- Loading -->
             <div *ngIf="loading" class="text-center p-40">
               <i-tabler name="brain" class="icon-48 ai-thinking" style="color:#6c5ce7;opacity:.6"></i-tabler>
               <p class="f-s-14 text-muted m-t-12">Analyse en cours...</p>
               <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
             </div>
 
+            <!-- Result -->
             <div *ngIf="!loading && result">
               <div class="d-flex align-items-center gap-12 m-b-20">
                 <div class="type-icon" [style.background]="getTypeInfo(result.type).color + '18'">
@@ -68,35 +69,61 @@
                   <div class="text-muted f-s-12">{{ result.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
                 </div>
               </div>
+
+              <!-- Résumé -->
               <div class="ai-result-box m-b-16">
                 <div class="d-flex align-items-center gap-8 m-b-8">
                   <i-tabler name="sparkles" class="icon-14" style="color:#6c5ce7"></i-tabler>
                   <span class="f-s-12 f-w-600" style="color:#6c5ce7">Résumé exécutif</span>
                 </div>
-                <p class="f-s-14 m-0" style="line-height:1.8">{{ result.report.resume }}</p>
+                <p class="f-s-14 m-0" style="line-height:1.8">{{ result?.report?.resume }}</p>
               </div>
-              <div class="ai-section m-b-12" *ngIf="result.report.problemes?.length">
-                <div class="ai-section-title" style="color:#d63031"><i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes</div>
-                <ul class="ai-list"><li *ngFor="let p of result.report.problemes">{{ p }}</li></ul>
+
+              <!-- Problèmes -->
+              <div class="ai-section m-b-12" *ngIf="result?.report?.problemes?.length">
+                <div class="ai-section-title" style="color:#d63031">
+                  <i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes
+                </div>
+                <ul class="ai-list"><li *ngFor="let p of result?.report?.problemes">{{ p }}</li></ul>
               </div>
-              <div class="ai-section m-b-12" *ngIf="result.report.causes?.length">
-                <div class="ai-section-title" style="color:#e17055"><i-tabler name="search" class="icon-14"></i-tabler> Causes</div>
-                <ul class="ai-list"><li *ngFor="let c of result.report.causes">{{ c }}</li></ul>
+
+              <!-- Causes -->
+              <div class="ai-section m-b-12" *ngIf="result?.report?.causes?.length">
+                <div class="ai-section-title" style="color:#e17055">
+                  <i-tabler name="search" class="icon-14"></i-tabler> Causes
+                </div>
+                <ul class="ai-list"><li *ngFor="let c of result?.report?.causes">{{ c }}</li></ul>
               </div>
-              <div class="ai-section" *ngIf="result.report.recommandations?.length">
-                <div class="ai-section-title" style="color:#00b894"><i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations</div>
-                <ul class="ai-list"><li *ngFor="let r of result.report.recommandations">{{ r }}</li></ul>
+
+              <!-- Recommandations -->
+              <div class="ai-section" *ngIf="result?.report?.recommandations?.length">
+                <div class="ai-section-title" style="color:#00b894">
+                  <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations
+                </div>
+                <ul class="ai-list"><li *ngFor="let r of result?.report?.recommandations">{{ r }}</li></ul>
+              </div>
+
+              <!-- ✅ BOUTON PDF UNIQUE -->
+              <div class="m-t-24 p-16" style="background:#f8f9fa; border-radius:10px; border-left:4px solid #667eea;">
+                <button mat-raised-button color="primary" (click)="downloadPDF()" [disabled]="loading">
+                  <i-tabler name="file-export" class="icon-18 m-r-6"></i-tabler>
+                  Télécharger le rapport PDF
+                </button>
+                <span class="text-muted f-s-12 m-l-12">Format A4 • Logo inclus • Prêt à imprimer</span>
               </div>
             </div>
 
+            <!-- Empty state -->
             <div *ngIf="!loading && !result" class="text-center p-40">
               <i-tabler name="brain" class="icon-56" style="color:#dfe6e9"></i-tabler>
               <p class="text-muted f-s-14 m-t-12">Sélectionnez un type d'analyse</p>
             </div>
+
           </mat-card-content>
         </mat-card>
       </div>
 
+      <!-- History sidebar -->
       <div class="col-lg-4 m-b-16">
         <mat-card class="cardWithShadow h-100">
           <mat-card-content class="p-20">

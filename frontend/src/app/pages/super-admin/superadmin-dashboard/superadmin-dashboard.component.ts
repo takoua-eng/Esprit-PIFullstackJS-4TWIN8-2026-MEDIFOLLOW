@@ -16,11 +16,12 @@ import { RemindersApiService } from '../../../services/reminders-api.service';
 import { VitalsApiService } from '../../../services/vitals-api.service';
 import { HttpClient } from '@angular/common/http';
 import { API_BASE_URL } from '../../../core/api.config';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-superadmin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule, NgApexchartsModule],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule, NgApexchartsModule, TranslateModule],
   templateUrl: './superadmin-dashboard.component.html',
   styleUrls: ['./superadmin-dashboard.component.scss'],
 })
@@ -77,6 +78,11 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
   // Users by role (from backend stats)
   usersByRole: { role: string; count: number; color: string; icon: string }[] = [];
 
+  // AI Intelligence
+  intel: any = null;
+  intelLoading = false;
+  Math = Math;
+
   private sub?: Subscription;
 
   constructor(
@@ -88,6 +94,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     private remindersService: RemindersApiService,
     private vitalsService: VitalsApiService,
     private http: HttpClient,
+    private translate: TranslateService,
   ) {}
 
   ngOnInit(): void {
@@ -251,9 +258,9 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
 
     this.serviceStaffChart = {
       series: [
-        { name: 'Doctors',  data: items.map(i => i.doctors)  },
-        { name: 'Nurses',   data: items.map(i => i.nurses)   },
-        { name: 'Patients', data: items.map(i => i.patients) },
+        { name: this.translate.instant('PHYSICIANS'),  data: items.map(i => i.doctors)  },
+        { name: this.translate.instant('NURSES'),      data: items.map(i => i.nurses)   },
+        { name: this.translate.instant('PATIENTS'),    data: items.map(i => i.patients) },
       ],
       chart: { type: 'bar', height: 240, toolbar: { show: false }, stacked: false },
       plotOptions: { bar: { borderRadius: 3, columnWidth: '60%', grouped: true } },
@@ -274,7 +281,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     });
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
     this.remindersByCoordChart = {
-      series: [{ name: 'Reminders', data: sorted.map(e => e[1]) }],
+      series: [{ name: this.translate.instant('REMINDERS'), data: sorted.map(e => e[1]) }],
       chart: { type: 'bar', height: 220, toolbar: { show: false } },
       plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
       colors: ['#6c5ce7'],
@@ -293,7 +300,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     });
     const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
     this.remindersByPatientChart = {
-      series: [{ name: 'Reminders reçus', data: sorted.map(e => e[1]) }],
+      series: [{ name: this.translate.instant('REMINDERS'), data: sorted.map(e => e[1]) }],
       chart: { type: 'bar', height: 220, toolbar: { show: false } },
       plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '55%' } },
       colors: ['#0984e3'],
@@ -311,7 +318,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       alerts.filter(a => a.createdAt?.startsWith(d)).length
     );
     this.alertsChart = {
-      series: [{ name: 'Alertes', data: counts }],
+      series: [{ name: this.translate.instant('ALERTS'), data: counts }],
       chart: { type: 'bar', height: 180, toolbar: { show: false }, sparkline: { enabled: false } },
       plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
       colors: ['#d63031'],
@@ -339,7 +346,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     const days = this.last7DayLabels();
     const counts = days.map(d => last7.find(x => x._id === d)?.count ?? 0);
     this.activityChart = {
-      series: [{ name: 'Evenements', data: counts }],
+      series: [{ name: this.translate.instant('EVENTS'), data: counts }],
       chart: { type: 'area', height: 180, toolbar: { show: false } },
       stroke: { curve: 'smooth', width: 2 },
       fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.02 } },
@@ -359,6 +366,27 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       d.setDate(d.getDate() - (6 - i));
       return d.toISOString().split('T')[0];
     });
+  }
+
+  loadServiceIntelligence(): void {
+    this.intelLoading = true;
+    this.http.get<any>(`${API_BASE_URL}/ai/service-intelligence`)
+      .pipe(catchError(() => of(null)))
+      .subscribe(data => { this.intel = data; this.intelLoading = false; });
+  }
+
+  logDisplayName(log: AuditLog): string {
+    if (log.userName && log.userName !== 'anonymous' && log.userName !== log.userEmail) {
+      return log.userName;
+    }
+    return log.userEmail || 'Inconnu';
+  }
+
+  logRoleColor(role: string): string {
+    return ({
+      'super-admin': '#6c5ce7', admin: '#0984e3', doctor: '#00b894',
+      nurse: '#00cec9', coordinator: '#e17055', auditor: '#a29bfe', patient: '#fdcb6e',
+    } as any)[role?.toLowerCase()] ?? '#b2bec3';
   }
 
   severityColor(s: string): string {
