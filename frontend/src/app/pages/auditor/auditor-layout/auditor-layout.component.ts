@@ -50,6 +50,13 @@ const auditorNav: NavItem[] = [
     bgcolor: 'error',
     permission: 'audit:read',
   },
+  {
+    displayName: 'Audit Logs',
+    iconName: 'clipboard-list',
+    route: '/auditor/logs',
+    bgcolor: 'primary',
+    permission: 'audit:read',
+  },
 ];
 
 @Component({

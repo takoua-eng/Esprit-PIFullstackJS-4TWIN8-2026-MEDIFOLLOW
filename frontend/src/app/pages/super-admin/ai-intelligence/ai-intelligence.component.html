@@ -7,7 +7,7 @@
     </div>
     <div>
       <h1 class="m-0 f-w-700 f-s-22" style="color:#1a1a2e">AI Medical Intelligence</h1>
-      <p class="m-0 f-s-13" style="color:#999">Analyse intelligente — Super Admin uniquement</p>
+      <p class="m-0 m-t-6 f-s-13" style="color:#999">Analyse intelligente — Super Admin uniquement</p>
     </div>
   </div>
 
@@ -27,11 +27,11 @@
   <ng-container *ngIf="activeTab === 'report'">
 
     <!-- Type cards -->
-    <div class="row m-b-32">
-      <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes">
+    <div class="row m-b-32" style="align-items: stretch">
+      <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes" style="display:flex">
         <mat-card class="type-card" [class.active]="activeType === t.key"
           [style.border-color]="activeType === t.key ? t.color : 'transparent'"
-          (click)="generate(t.key)" style="cursor:pointer">
+          (click)="generate(t.key)" style="cursor:pointer;width:100%">
           <mat-card-content class="p-20">
             <div class="type-icon m-b-12" [style.background]="t.color + '18'">
               <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-24"></i-tabler>
