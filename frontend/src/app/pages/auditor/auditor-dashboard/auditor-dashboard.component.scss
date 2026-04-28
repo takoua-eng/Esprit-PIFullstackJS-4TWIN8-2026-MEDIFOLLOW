@@ -1,16 +1,24 @@
 .aud-page { padding: 16px; }
 
-.aud-banner {
-  display: flex; align-items: center; justify-content: space-between;
-  background: linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);
-  color:#fff; border-radius:14px; padding:20px 28px;
-  box-shadow:0 6px 24px rgba(0,0,0,.3);
-  .banner-ico { font-size:2rem; width:2rem; height:2rem; opacity:.9; }
-  h2 { font-size:1.3rem; font-weight:700; }
-  .live-dot { width:9px; height:9px; border-radius:50%; background:#00b894; animation:blink 1s infinite; }
-  .live-lbl { font-weight:700; color:#00b894; letter-spacing:2px; font-size:.8rem; }
+.aud-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .aud-header-left { display: flex; align-items: center; gap: 14px; }
+
+  .aud-header-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+    color: #fff; display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 4px 12px rgba(108,92,231,.3); flex-shrink: 0;
+  }
+
+  .aud-header-title { margin: 0; font-size: 1.35rem; font-weight: 800; color: #1a1a2e; }
+  .aud-header-sub   { margin: 2px 0 0; font-size: .8rem; color: #999; }
 }
-@keyframes blink { 0%,100%{opacity:1} 50%{opacity:.2} }
 
 .kpi-card {
   border-radius:14px !important; color:#fff !important;

@@ -1,18 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AddAuditorDialog } from './add-auditor';
 
-import { AddAuditor } from './add-auditor';
-
-describe('AddAuditor', () => {
-  let component: AddAuditor;
-  let fixture: ComponentFixture<AddAuditor>;
+describe('AddAuditorDialog', () => {
+  let component: AddAuditorDialog;
+  let fixture: ComponentFixture<AddAuditorDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddAuditor]
-    })
-    .compileComponents();
+      imports: [AddAuditorDialog]
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(AddAuditor);
+    fixture = TestBed.createComponent(AddAuditorDialog);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

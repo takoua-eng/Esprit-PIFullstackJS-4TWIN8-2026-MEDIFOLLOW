@@ -1,18 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AddServiceDialog } from './add-service';
 
-import { AddService } from './add-service';
-
-describe('AddService', () => {
-  let component: AddService;
-  let fixture: ComponentFixture<AddService>;
+describe('AddServiceDialog', () => {
+  let component: AddServiceDialog;
+  let fixture: ComponentFixture<AddServiceDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddService]
-    })
-    .compileComponents();
+      imports: [AddServiceDialog]
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(AddService);
+    fixture = TestBed.createComponent(AddServiceDialog);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
