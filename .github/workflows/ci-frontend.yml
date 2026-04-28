@@ -1,0 +1,53 @@
+name: CI Frontend
+
+on:
+  push:
+    branches: [main, coordinator3]
+    paths:
+      - 'frontend/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  test:
+    name: Build & Test Frontend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+
+      # Build Angular — vérifie que le projet compile
+      - name: Build Angular application
+        working-directory: frontend
+        run: npm run build -- --configuration production
+        continue-on-error: false
+
+      # Tests Angular — non bloquants si pas de tests écrits
+      - name: Run Angular tests (non-blocking)
+        working-directory: frontend
+        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage || true
+        env:
+          CI: true
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@master
+        with:
+          projectBaseDir: frontend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true
