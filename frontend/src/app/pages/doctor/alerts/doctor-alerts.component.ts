@@ -70,8 +70,8 @@ export class DoctorAlertsComponent implements OnInit {
   displayedColumns: string[] = [
     'createdAt',
     'patientName',
-    'severity',
     'parameter',
+    'severity',
     'message',
     'status',
   ];
@@ -319,8 +319,26 @@ export class DoctorAlertsComponent implements OnInit {
   severityClass(sev: string): string {
     const s = (sev || '').toLowerCase();
     if (s === 'critical' || s === 'high') return 'sev-high';
-    if (s === 'medium') return 'sev-medium';
+    if (s === 'medium' || s === 'warning') return 'sev-medium';
     return 'sev-low';
+  }
+
+  issuedStatusLabel(status: string): string {
+    switch (status) {
+      case 'seen':         return 'Seen';
+      case 'reported':     return 'Reported';
+      case 'acknowledged': return 'Confirmed';
+      default:             return 'Pending';
+    }
+  }
+
+  issuedStatusClass(status: string): string {
+    switch (status) {
+      case 'seen':         return 'status-seen';
+      case 'reported':     return 'status-reported';
+      case 'acknowledged': return 'status-done';
+      default:             return 'status-open';
+    }
   }
 
   queueSeverityClass(row: ClinicalReviewQueueItemDto): string {

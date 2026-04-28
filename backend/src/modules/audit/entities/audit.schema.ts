@@ -5,26 +5,38 @@ export type AuditLogDocument = AuditLog & Document;
 
 @Schema({ timestamps: true })
 export class AuditLog {
-  // QUI
-  @Prop() userId:    string;
-  @Prop() userEmail: string;
-  @Prop() userRole:  string;   // doctor, nurse, admin...
-  @Prop() userName:  string;   // firstName + lastName
+  // ── 1. ESSENTIELS ─────────────────────────────────────────────
+  @Prop() userId:     string;
+  @Prop() userEmail:  string;
+  @Prop() userRole:   string;   // Admin, Doctor, Nurse...
+  @Prop() userName:   string;   // firstName + lastName
 
-  // QUOI
-  @Prop() action: string;      // CREATE, UPDATE, DELETE, LOGIN...
-
-  // SUR QUOI
-  @Prop() entityType: string;  // USERS_PATIENTS, VITALS...
+  @Prop() action:     string;   // CREATE, UPDATE, DELETE, LOGIN...
+  @Prop() entityType: string;   // PATIENTS, VITALS, AUTH...
   @Prop() entityId:   string;
 
-  // CHANGEMENTS
-  @Prop({ type: Object }) before: any;
-  @Prop({ type: Object }) after:  any;
+  // ── 2. TRAÇABILITÉ ────────────────────────────────────────────
+  @Prop({ type: Object }) before: any;   // old_value
+  @Prop({ type: Object }) after:  any;   // new_value
 
-  // OÙ
+  // ── 3. SÉCURITÉ ───────────────────────────────────────────────
+  @Prop({ default: 'SUCCESS' }) status: 'SUCCESS' | 'FAILED';
   @Prop() ipAddress:  string;
-  @Prop() userAgent:  string;  // browser/device info
+  @Prop() userAgent:  string;   // device_info (browser/OS)
+
+  // ── 4. ANALYSE ────────────────────────────────────────────────
+  @Prop({ default: 'NORMAL' }) riskLevel: 'NORMAL' | 'SUSPICIOUS' | 'CRITICAL';
+  @Prop({ default: 0 })        loginAttempts: number;
+  @Prop()                      sessionId: string;
+
+  // ── 5. CONTEXTE ───────────────────────────────────────────────
+  @Prop() description: string;  // "Updated patient heart rate"
+  @Prop() module:      string;  // Auth, Patients, Alerts, Services...
 }
 
 export const AuditLogSchema = SchemaFactory.createForClass(AuditLog);
+
+AuditLogSchema.index({ userEmail: 1, createdAt: -1 });
+AuditLogSchema.index({ action: 1, createdAt: -1 });
+AuditLogSchema.index({ riskLevel: 1 });
+AuditLogSchema.index({ module: 1 });

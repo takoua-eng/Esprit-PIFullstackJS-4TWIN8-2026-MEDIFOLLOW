@@ -159,6 +159,79 @@
   color: #6c5ce7;
 }
 
+.mf-tag-antecedent {
+  background: rgba(214, 48, 49, 0.12);
+  color: #c0392b;
+}
+
+.mf-tag-monitoring {
+  background: rgba(39, 174, 96, 0.12);
+  color: #27ae60;
+}
+
+/* ── Count badge ─────────────────────────────────────────────────── */
+.mf-count-badge {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: rgba(9, 132, 227, 0.15);
+  color: #0984e3;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+/* ── Medication table ────────────────────────────────────────────── */
+.med-table {
+  width: 100%;
+  font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.med-table-header {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr;
+  background: rgba(9, 132, 227, 0.07);
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #636e72;
+  gap: 8px;
+}
+
+.med-table-row {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1.5fr 1.2fr;
+  padding: 7px 12px;
+  gap: 8px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  align-items: center;
+
+  &:hover {
+    background: rgba(9, 132, 227, 0.03);
+  }
+}
+
+.med-name {
+  font-weight: 600;
+  color: #2d3436;
+}
+
+/* ── Monitoring status ───────────────────────────────────────────── */
+.monitoring-active {
+  color: #27ae60;
+  font-weight: 600;
+}
+
+.monitoring-inactive {
+  color: #b2bec3;
+  font-weight: 500;
+}
+
 /* ── Hospital badge ──────────────────────────────────────────────── */
 .mf-unit-badge {
   font-size: 11px;
@@ -287,4 +360,5 @@
 .m-r-8  { margin-right: 8px; }
 .m-r-6  { margin-right: 6px; }
 .m-t-8  { margin-top: 8px; }
+.m-b-8  { margin-bottom: 8px; }
 .f-s-13 { font-size: 13px; }

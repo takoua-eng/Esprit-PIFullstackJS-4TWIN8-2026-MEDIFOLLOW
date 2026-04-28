@@ -1,13 +1,10 @@
-.ai-header {
-  background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460);
-  border-radius: 16px; padding: 28px 32px; color: #fff;
-}
-
 .ai-logo {
-  width: 60px; height: 60px; border-radius: 16px;
-  background: rgba(108,92,231,.3); display: flex;
-  align-items: center; justify-content: center;
-  color: #a29bfe;
+  width: 48px; height: 48px; border-radius: 12px;
+  background: linear-gradient(135deg, #6c5ce7, #a29bfe);
+  display: flex; align-items: center; justify-content: center;
+  color: #fff;
+  box-shadow: 0 4px 12px rgba(108,92,231,.3);
+  flex-shrink: 0;
 }
 
 .type-card {

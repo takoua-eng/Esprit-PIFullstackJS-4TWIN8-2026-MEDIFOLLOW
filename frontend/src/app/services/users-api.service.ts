@@ -38,6 +38,33 @@ export interface DiagnosisEntry {
   updatedAt?: string;
 }
 
+export interface MedicationItem {
+  medication: string;
+  dose?: string;
+  frequency?: string;
+  startDate?: string;
+}
+
+export interface MedicalHistoryFlags {
+  diabetes?: boolean;
+  hypertension?: boolean;
+  heartDisease?: boolean;
+  asthmaOrCOPD?: boolean;
+  cancer?: boolean;
+  otherConditions?: string;
+}
+
+export interface PrimaryDiagnosisInfo {
+  condition?: string;
+  notes?: string;
+}
+
+export interface MonitoringConfig {
+  glucoseMonitoring?: boolean;
+  isMonitoringActive?: boolean;
+  monitoringStartDate?: string;
+}
+
 /** Nurse medical dossier fields (API + local cache). */
 export interface NurseDossierPayload {
   /** @deprecated Legacy flat block; migrated into diagnosisEntries when missing. */
@@ -50,8 +77,27 @@ export interface NurseDossierPayload {
   proceduresPerformed?: string;
   dischargeSummaryNotes?: string;
   diagnosisEntries?: DiagnosisEntry[];
+
+  // ── Physical profile ─────────────────────────────────────────────────
+  height?: number;
+  weight?: number;
   bloodType?: string;
+
+  // ── Antécédents (structured) ─────────────────────────────────────────
+  medicalHistory?: MedicalHistoryFlags;
+
+  // ── Diagnostic (structured, separate from hospitalization entries) ────
+  primaryDiagnosisInfo?: PrimaryDiagnosisInfo;
+
+  // ── Medications (structured list) ────────────────────────────────────
+  medicationsList?: MedicationItem[];
+
+  // ── Medications (legacy free-text, kept for backwards compat) ─────────
   currentMedications?: string;
+
+  // ── Monitoring config ─────────────────────────────────────────────────
+  monitoringConfig?: MonitoringConfig;
+
   allergies?: string;
   pastMedicalHistory?: string;
   substanceUse?: string;

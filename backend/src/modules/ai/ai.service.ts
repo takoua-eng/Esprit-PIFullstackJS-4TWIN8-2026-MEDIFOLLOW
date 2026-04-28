@@ -103,6 +103,176 @@ export class AiService {
     return { totalPatients, totalCoordinators, complianceToday, complianceYesterday, responseRate, sentReminders, alerts };
   }
 
+  // ─── SERVICE INTELLIGENCE (5 analyses) ──────────────────────
+
+  async getServiceIntelligence() {
+    const since7d    = new Date(Date.now() - 7  * 24 * 60 * 60 * 1000);
+    const since2d    = new Date(Date.now() - 2  * 24 * 60 * 60 * 1000);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+
+    // Roles
+    const [patientRole, doctorRole, nurseRole] = await Promise.all([
+      this.roleModel.findOne({ name: 'patient' }).lean(),
+      this.roleModel.findOne({ name: 'doctor' }).lean(),
+      this.roleModel.findOne({ name: 'nurse' }).lean(),
+    ]);
+
+    // Users
+    const [patients, doctors, nurses] = await Promise.all([
+      patientRole ? this.userModel.find({ role: patientRole._id, isArchived: { $ne: true } }).lean() : [],
+      doctorRole  ? this.userModel.find({ role: doctorRole._id,  isArchived: { $ne: true } }).lean() : [],
+      nurseRole   ? this.userModel.find({ role: nurseRole._id,   isArchived: { $ne: true } }).lean() : [],
+    ]);
+
+    const patientIds = (patients as any[]).map(p => p._id);
+
+    // Vitals + Symptoms today & last 7 days
+    const [vitalsToday, symptomsToday, vitals7d, symptoms7d, reminders7d] = await Promise.all([
+      this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: todayStart, $lte: todayEnd } }).lean(),
+      this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: todayStart, $lte: todayEnd } }).lean(),
+      this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: since7d } }).lean(),
+      this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: since7d } }).lean(),
+      this.reminderModel.find({ createdAt: { $gte: since7d } }).lean(),
+    ]);
+
+    const totalPatients = (patients as any[]).length;
+    const totalDoctors  = (doctors as any[]).length;
+    const totalNurses   = (nurses as any[]).length;
+
+    // ── 1. Détection surcharge services ──────────────────────────
+    const serviceMap: Record<string, { patients: number; alerts: number; name: string }> = {};
+    (patients as any[]).forEach(p => {
+      const sid = p.serviceId?.toString() || 'unknown';
+      if (!serviceMap[sid]) serviceMap[sid] = { patients: 0, alerts: 0, name: p.serviceName || sid.slice(-4) };
+      serviceMap[sid].patients++;
+    });
+    (symptoms7d as any[]).forEach(s => {
+      const p = (patients as any[]).find(pt => pt._id.toString() === s.patientId?.toString());
+      if (p) {
+        const sid = p.serviceId?.toString() || 'unknown';
+        if (serviceMap[sid]) serviceMap[sid].alerts++;
+      }
+    });
+
+    const avgPatientsPerService = totalPatients / Math.max(Object.keys(serviceMap).length, 1);
+    const overloadedServices = Object.entries(serviceMap)
+      .filter(([, v]) => v.patients > avgPatientsPerService * 1.4 || v.alerts > 5)
+      .map(([id, v]) => ({
+        serviceId: id,
+        name: v.name,
+        patients: v.patients,
+        alerts: v.alerts,
+        overloadScore: Math.round((v.patients / Math.max(avgPatientsPerService, 1)) * 50 + (v.alerts / 10) * 50),
+      }))
+      .sort((a, b) => b.overloadScore - a.overloadScore)
+      .slice(0, 3);
+
+    // ── 2. Score de performance des services ─────────────────────
+    const vitalTodaySet   = new Set((vitalsToday   as any[]).map((v: any) => v.patientId?.toString()));
+    const symptomTodaySet = new Set((symptomsToday as any[]).map((s: any) => s.patientId?.toString()));
+    const sentReminders   = (reminders7d as any[]).filter(r => r.status === 'sent').length;
+    const respondedCount  = (patients as any[]).filter(p =>
+      vitalTodaySet.has(p._id.toString()) && symptomTodaySet.has(p._id.toString())
+    ).length;
+
+    const complianceRate  = totalPatients ? Math.round((respondedCount / totalPatients) * 100) : 0;
+    const responseRate    = sentReminders ? Math.round((respondedCount / sentReminders) * 100) : 0;
+
+    const serviceScores = Object.entries(serviceMap).map(([id, v]) => {
+      const svcPatients = (patients as any[]).filter(p => p.serviceId?.toString() === id);
+      const svcCompliant = svcPatients.filter(p =>
+        vitalTodaySet.has(p._id.toString()) && symptomTodaySet.has(p._id.toString())
+      ).length;
+      const score = svcPatients.length > 0
+        ? Math.round((svcCompliant / svcPatients.length) * 70 + (v.alerts < 3 ? 30 : v.alerts < 6 ? 15 : 0))
+        : 50;
+      return { name: v.name, score, patients: v.patients, status: score >= 70 ? 'good' : score >= 40 ? 'warning' : 'critical' };
+    }).sort((a, b) => b.score - a.score).slice(0, 5);
+
+    // ── 3. Prédiction surcharge (tendance 7j) ────────────────────
+    const days = Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(); d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+    const dailySymptoms = days.map(day =>
+      (symptoms7d as any[]).filter(s => s.reportedAt?.toISOString?.()?.startsWith(day) || s.reportedAt?.toString?.()?.startsWith(day)).length
+    );
+    const trend = dailySymptoms.length >= 3
+      ? dailySymptoms.slice(-3).reduce((a, b) => a + b, 0) / 3 - dailySymptoms.slice(0, 3).reduce((a, b) => a + b, 0) / 3
+      : 0;
+    const predictionRisk = trend > 2 ? 'HIGH' : trend > 0.5 ? 'MEDIUM' : 'LOW';
+    const predictionMsg  = trend > 2
+      ? `Surcharge probable dans 2 jours (+${Math.round(trend * 2)} symptômes/jour)`
+      : trend > 0.5
+      ? `Légère hausse détectée — surveiller les prochains jours`
+      : `Charge stable — aucune surcharge prévue`;
+
+    // ── 4. Tendances symptômes ────────────────────────────────────
+    const symptomCount: Record<string, number> = {};
+    (symptoms7d as any[]).forEach(s => {
+      const type = s.type || s.symptomType || s.name || 'inconnu';
+      symptomCount[type] = (symptomCount[type] ?? 0) + 1;
+    });
+    const topSymptoms = Object.entries(symptomCount)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5)
+      .map(([name, count]) => ({ name, count }));
+
+    // ── 5. Résumé automatique IA ──────────────────────────────────
+    const criticalSymptoms = (symptoms7d as any[]).filter(s =>
+      ['chest_pain', 'difficulty_breathing', 'severe_headache', 'high_fever'].includes(s.type?.toLowerCase?.() || '')
+    ).length;
+
+    const summaryData = {
+      totalPatients, totalDoctors, totalNurses,
+      complianceRate, responseRate, sentReminders,
+      criticalSymptoms, topSymptoms: topSymptoms.slice(0, 3).map(s => `${s.name}(${s.count})`).join(', '),
+      overloadedCount: overloadedServices.length,
+      predictionRisk,
+    };
+
+    const summaryPrompt = `Tu es un système d'intelligence médicale. Génère un résumé quotidien COURT et PROFESSIONNEL.
+DONNÉES: ${JSON.stringify(summaryData)}
+FORMAT STRICT JSON:
+{
+  "titre": "Résumé du ${new Date().toLocaleDateString('fr-FR')}",
+  "statut": "STABLE|ATTENTION|CRITIQUE",
+  "resume": "2-3 phrases max",
+  "points": ["point clé 1 avec emoji", "point clé 2", "point clé 3"],
+  "action_prioritaire": "1 action concrète"
+}
+NO TEXT OUTSIDE JSON.`;
+
+    let summary: any = {
+      titre: `Résumé du ${new Date().toLocaleDateString('fr-FR')}`,
+      statut: criticalSymptoms > 5 || overloadedServices.length > 2 ? 'CRITIQUE' : complianceRate < 30 ? 'ATTENTION' : 'STABLE',
+      resume: `${totalPatients} patients actifs. Compliance: ${complianceRate}%. ${overloadedServices.length} service(s) sous pression.`,
+      points: [
+        `📊 ${complianceRate}% de compliance aujourd'hui`,
+        `🔔 ${sentReminders} rappels envoyés cette semaine`,
+        `⚕️ ${topSymptoms[0]?.name || 'Aucun'} symptôme dominant`,
+      ],
+      action_prioritaire: overloadedServices[0]
+        ? `Réaffecter des ressources au service ${overloadedServices[0].name}`
+        : 'Système stable — maintenir la surveillance',
+    };
+
+    try {
+      const raw = await this.callAI(summaryPrompt);
+      summary = this.cleanJson(raw);
+    } catch { /* use fallback */ }
+
+    return {
+      overloadedServices,
+      serviceScores,
+      prediction: { risk: predictionRisk, message: predictionMsg, trend: Math.round(trend * 10) / 10, dailySymptoms, days },
+      topSymptoms,
+      summary,
+      generatedAt: new Date().toISOString(),
+    };
+  }
+
   // ─── SUPER ADMIN REPORT ───────────────────────────────────────
 
   async generateReport(type: string) {
@@ -126,9 +296,13 @@ Coordinateurs: ${d.totalCoordinators}
 Alerts: ${d.alerts.length > 0 ? d.alerts.join(', ') : 'Aucune'}
 
 FOCUS: ${focus[type] ?? focus['monthly']}
-
-FORMAT STRICT:
-{"resume":"string","problemes":["string"],"causes":["string"],"recommandations":["string"]}
+FORMAT STRICT JSON :
+{
+  "resume": "Phrase d'accroche professionnelle + contexte",
+  "problemes": ["Problème 1 avec chiffre clé", "..."],
+  "causes": ["Cause racine identifiée", "..."],
+  "recommandations": ["Action concrète + priorité + délai", "..."]
+}
 NO TEXT OUTSIDE JSON.`;
 
     try {

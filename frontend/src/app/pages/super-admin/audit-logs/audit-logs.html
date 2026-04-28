@@ -1,188 +1,355 @@
 <div class="audit-page">
 
-  <!-- BANNER -->
-  <div class="surveillance-banner m-b-24">
-    <div class="banner-left">
-      <i-tabler name="camera" class="banner-ico"></i-tabler>
+  <!-- HEADER -->
+  <div class="audit-header">
+    <div class="header-left">
+      <div class="header-icon-wrap">
+        <i-tabler name="shield-check" class="icon-26"></i-tabler>
+      </div>
       <div>
-        <h2 class="banner-title">AUDIT LOGS — SUPER ADMIN DASHBOARD</h2>
-        <p class="banner-sub">All actions are recorded and traced in real time</p>
+        <h1 class="header-title">Audit Logs</h1>
+        <p class="header-sub">Toutes les actions sont enregistrées et tracées en temps réel</p>
       </div>
     </div>
-    <div class="banner-right">
-      <span class="live-dot"></span>
-      <span class="live-label">LIVE</span>
-      <span class="refresh-time">{{ lastRefresh | date:'HH:mm:ss' }}</span>
-      <button mat-icon-button (click)="refresh()" matTooltip="Refresh">
-        <i-tabler name="refresh" class="icon-18"></i-tabler>
+    <div class="header-right">
+      <div class="live-chip">
+        <span class="live-dot"></span>
+        <span>LIVE</span>
+        <span class="live-time">{{ lastRefresh | date:'HH:mm:ss' }}</span>
+      </div>
+      <button mat-stroked-button (click)="refresh()" class="refresh-btn">
+        <i-tabler name="refresh" class="icon-15 m-r-6"></i-tabler> Actualiser
       </button>
     </div>
   </div>
 
-  <!-- STATS (7 derniers jours) -->
-  <mat-card class="cardWithShadow m-b-24">
-    <mat-card-content class="p-20">
-      <div class="stats-header m-b-16">
-        <i-tabler name="chart-bar" class="icon-18 m-r-6" style="color:#6c5ce7"></i-tabler>
-        <span class="f-w-600">Statistics — last 7 days</span>
+  <!-- KPI CARDS -->
+  <div class="kpi-grid">
+    <div class="kpi-card" style="--c:#6c5ce7">
+      <div class="kpi-icon c-purple"><i-tabler name="activity" class="icon-20"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ totalActions }}</div>
+        <div class="kpi-lbl">Total actions</div>
+        <div class="kpi-sub">7 derniers jours</div>
       </div>
-      <div class="stats-grid">
-        <div class="stat-item">
-          <div class="stat-val">{{ totalActions }}</div>
-          <div class="stat-lbl">Total actions</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val">{{ loginCount }}</div>
-          <div class="stat-lbl">Connexions</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val">{{ patientModifications }}</div>
-          <div class="stat-lbl">Patient modifications</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val">{{ alertsGenerated }}</div>
-          <div class="stat-lbl">Alerts generated</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-val">{{ criticalChanges }}</div>
-          <div class="stat-lbl">Critical changes</div>
-        </div>
+    </div>
+    <div class="kpi-card" style="--c:#0984e3">
+      <div class="kpi-icon c-blue"><i-tabler name="login" class="icon-20"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ loginCount }}</div>
+        <div class="kpi-lbl">Connexions</div>
+        <div class="kpi-sub">Sessions actives</div>
       </div>
-    </mat-card-content>
-  </mat-card>
+    </div>
+    <div class="kpi-card" style="--c:#00b894">
+      <div class="kpi-icon c-green"><i-tabler name="user-edit" class="icon-20"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ patientModifications }}</div>
+        <div class="kpi-lbl">Modif. patients</div>
+        <div class="kpi-sub">Créations & mises à jour</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--c:#e17055">
+      <div class="kpi-icon c-orange"><i-tabler name="bell" class="icon-20"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ alertsGenerated }}</div>
+        <div class="kpi-lbl">Alertes générées</div>
+        <div class="kpi-sub">Notifications système</div>
+      </div>
+    </div>
+    <div class="kpi-card" style="--c:#d63031">
+      <div class="kpi-icon c-red"><i-tabler name="alert-triangle" class="icon-20"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ criticalChanges }}</div>
+        <div class="kpi-lbl">Actions critiques</div>
+        <div class="kpi-sub">Suppressions & archives</div>
+      </div>
+    </div>
+  </div>
 
   <!-- FILTERS -->
-  <mat-card class="cardWithShadow m-b-24">
-    <mat-card-content class="p-20">
-      <div class="filters-header m-b-12">
-        <i-tabler name="filter" class="icon-18" style="color:#0984e3"></i-tabler>
-        <span class="f-w-600 m-l-6">Filters</span>
-        <button mat-button color="warn" class="m-l-auto" (click)="clearFilters()">
-          <i-tabler name="x" class="icon-14 m-r-4"></i-tabler> Clear
+  <mat-card class="cardWithShadow m-b-20">
+    <mat-card-content class="p-16">
+
+      <!-- Search global -->
+      <mat-form-field appearance="outline" class="search-global">
+        <mat-label>Recherche globale</mat-label>
+        <input matInput [(ngModel)]="filterSearch" (ngModelChange)="applyFilters()"
+               placeholder="Email, nom, action, ressource..." />
+        <mat-icon matPrefix>search</mat-icon>
+      </mat-form-field>
+
+      <div class="filter-bar">
+        <div class="filter-title">
+          <i-tabler name="filter" class="icon-15" style="color:#6c5ce7"></i-tabler>
+          <span>Filtres avancés</span>
+          <span class="filter-count">{{ dataSource.data.length }} résultats</span>
+        </div>
+        <button mat-button color="warn" (click)="clearFilters()" class="clear-btn">
+          <i-tabler name="x" class="icon-13 m-r-4"></i-tabler> Réinitialiser
         </button>
       </div>
+
       <div class="filters-row">
-        <mat-form-field appearance="outline">
-          <mat-label>User (email)</mat-label>
-          <input matInput [(ngModel)]="filterUser" (ngModelChange)="applyFilters()" placeholder="dr.ahmed@..." />
-          <mat-icon matPrefix>person</mat-icon>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Utilisateur</mat-label>
+          <input matInput [(ngModel)]="filterUser" (ngModelChange)="applyFilters()" placeholder="email ou nom..." />
+          <mat-icon matPrefix>person_outline</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
+        <mat-form-field appearance="outline" class="filter-field">
           <mat-label>Action</mat-label>
           <mat-select [(ngModel)]="filterAction" (ngModelChange)="applyFilters()">
-            <mat-option value="">All</mat-option>
-            <mat-option *ngFor="let a of actions" [value]="a">{{ a || 'All' }}</mat-option>
+            <mat-option value="">Toutes</mat-option>
+            <mat-option *ngFor="let a of actions" [value]="a">
+              <span [style.color]="actionColor(a)">● </span>{{ a }}
+            </mat-option>
           </mat-select>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>Resource / Module</mat-label>
-          <input matInput [(ngModel)]="filterEntity" (ngModelChange)="applyFilters()" placeholder="USERS, VITALS..." />
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Ressource</mat-label>
+          <input matInput [(ngModel)]="filterEntity" (ngModelChange)="applyFilters()" placeholder="PATIENTS, VITALS..." />
           <mat-icon matPrefix>category</mat-icon>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>From date</mat-label>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date début</mat-label>
           <input matInput [matDatepicker]="dpFrom" [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()" />
           <mat-datepicker-toggle matSuffix [for]="dpFrom"></mat-datepicker-toggle>
           <mat-datepicker #dpFrom></mat-datepicker>
         </mat-form-field>
 
-        <mat-form-field appearance="outline">
-          <mat-label>To date</mat-label>
+        <mat-form-field appearance="outline" class="filter-field">
+          <mat-label>Date fin</mat-label>
           <input matInput [matDatepicker]="dpTo" [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()" />
           <mat-datepicker-toggle matSuffix [for]="dpTo"></mat-datepicker-toggle>
           <mat-datepicker #dpTo></mat-datepicker>
         </mat-form-field>
       </div>
-
-      <div class="total-info">
-        <i-tabler name="shield" class="icon-16 m-r-4" style="color:#6c5ce7"></i-tabler>
-        Total: <strong>{{ dataSource.data.length }}</strong> events
-      </div>
     </mat-card-content>
   </mat-card>
 
-  <!-- TABLE -->
-  <mat-card class="cardWithShadow">
+  <!-- VIEW TOGGLE -->
+  <div class="view-toggle m-b-16">
+    <button mat-stroked-button [class.active-view]="activeView === 'table'" (click)="activeView = 'table'">
+      <i-tabler name="table" class="icon-15 m-r-6"></i-tabler> Tableau
+    </button>
+    <button mat-stroked-button [class.active-view]="activeView === 'timeline'" (click)="activeView = 'timeline'">
+      <i-tabler name="timeline" class="icon-15 m-r-6"></i-tabler> Timeline
+    </button>
+  </div>
+
+  <!-- ══ TABLE VIEW ══ -->
+  <mat-card class="cardWithShadow" *ngIf="activeView === 'table'">
     <mat-card-content class="p-0">
-      <div *ngIf="dataSource.data.length === 0" class="empty-state text-center p-40">
-        <i-tabler name="camera-off" class="icon-48" style="color:#ccc"></i-tabler>
-        <p class="text-muted m-t-8">No events recorded yet.</p>
+
+      <div *ngIf="dataSource.data.length === 0" class="empty-state">
+        <i-tabler name="database-off" class="icon-52" style="color:#dee2e6"></i-tabler>
+        <p class="empty-title">Aucun événement enregistré</p>
+        <p class="empty-sub">Les actions apparaîtront ici en temps réel</p>
       </div>
 
-      <table mat-table [dataSource]="dataSource" matSort *ngIf="dataSource.data.length > 0">
+      <div class="table-wrap" *ngIf="dataSource.data.length > 0">
+        <table mat-table [dataSource]="dataSource" matSort>
 
-        <ng-container matColumnDef="createdAt">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Date / Time</th>
-          <td mat-cell *matCellDef="let row" class="f-s-12 text-muted">
-            {{ row.createdAt | date:'dd/MM/yyyy HH:mm:ss' }}
-          </td>
-        </ng-container>
+          <!-- Date -->
+          <ng-container matColumnDef="createdAt">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Date / Heure</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="date-cell">
+                <span class="date-main">{{ row.createdAt | date:'dd/MM/yyyy' }}</span>
+                <span class="date-time">{{ row.createdAt | date:'HH:mm:ss' }}</span>
+              </div>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="userEmail">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>User</th>
-          <td mat-cell *matCellDef="let row">
-            <div class="d-flex align-items-center gap-6">
-              <i-tabler name="user" class="icon-14 text-muted"></i-tabler>
-              <span class="f-s-13">{{ row.userEmail }}</span>
-            </div>
-          </td>
-        </ng-container>
+          <!-- User + Role -->
+          <ng-container matColumnDef="user">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Utilisateur</th>
+            <td mat-cell *matCellDef="let row">
+              <div class="user-cell">
+                <div class="user-avatar" [style.background]="roleColor(row.userRole)">
+                  {{ (row.userEmail || '?')[0].toUpperCase() }}
+                </div>
+                <div>
+                  <div class="user-name">{{ displayName(row) }}</div>
+                  <div class="user-email">{{ row.userEmail }}</div>
+                  <span class="role-chip" *ngIf="row.userRole && row.userRole !== 'unknown'"
+                        [style.background]="roleColor(row.userRole) + '18'"
+                        [style.color]="roleColor(row.userRole)">
+                    {{ row.userRole }}
+                  </span>
+                </div>
+              </div>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="action">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
-          <td mat-cell *matCellDef="let row">
-            <div class="action-pill" [style.--ac]="actionColor(row.action)">
-              <span class="action-dot"></span>
-              <i-tabler [name]="actionIcon(row.action)" class="icon-13"></i-tabler>
-              {{ row.action }}
-            </div>
-          </td>
-        </ng-container>
+          <!-- Action -->
+          <ng-container matColumnDef="action">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Action</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="action-badge"
+                    [style.--badge-color]="actionColor(row.action)"
+                    [style.color]="actionColor(row.action)">
+                {{ row.action }}
+              </span>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="entityType">
-          <th mat-header-cell *matHeaderCellDef mat-sort-header>Resource</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="entity-badge">{{ row.entityType }}</span>
-          </td>
-        </ng-container>
+          <!-- Resource -->
+          <ng-container matColumnDef="entityType">
+            <th mat-header-cell *matHeaderCellDef mat-sort-header>Module</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="module-badge" *ngIf="row.module">{{ row.module }}</span>
+              <span class="entity-badge" *ngIf="!row.module">{{ row.entityType }}</span>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="entityId">
-          <th mat-header-cell *matHeaderCellDef>Entity ID</th>
-          <td mat-cell *matCellDef="let row">
-            <span class="id-cell" [matTooltip]="row.entityId">
-              #{{ row.entityId | slice:0:8 }}
-            </span>
-          </td>
-        </ng-container>
+          <!-- Description -->
+          <ng-container matColumnDef="description">
+            <th mat-header-cell *matHeaderCellDef>Description</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="desc-text" [matTooltip]="row.description">
+                {{ row.description || (row.action + ' · ' + row.entityType) }}
+              </span>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="ipAddress">
-          <th mat-header-cell *matHeaderCellDef>IP</th>
-          <td mat-cell *matCellDef="let row" class="f-s-12 text-muted">
-            {{ row.ipAddress }}
-          </td>
-        </ng-container>
+          <!-- Entity ID -->
+          <ng-container matColumnDef="entityId">
+            <th mat-header-cell *matHeaderCellDef>ID Entité</th>
+            <td mat-cell *matCellDef="let row">
+              <span *ngIf="row.entityId && row.entityId !== 'unknown'" class="id-chip" [matTooltip]="row.entityId">
+                #{{ row.entityId | slice:0:8 }}
+              </span>
+              <span *ngIf="(!row.entityId || row.entityId === 'unknown') && row.action !== 'VIEW'" class="id-na">—</span>
+              <span *ngIf="row.action === 'VIEW' || row.action?.startsWith('VIEW_')" class="id-list-badge">liste</span>
+            </td>
+          </ng-container>
 
-        <ng-container matColumnDef="actions">
-          <th mat-header-cell *matHeaderCellDef class="text-center">Actions</th>
-          <td mat-cell *matCellDef="let row" class="text-center">
-            <button mat-icon-button color="primary" (click)="viewDetail(row)" matTooltip="Voir détails">
-              <i-tabler name="eye" class="icon-18"></i-tabler>
-            </button>
-            <button mat-icon-button color="warn" (click)="deleteLog(row)" matTooltip="Supprimer">
-              <i-tabler name="trash" class="icon-18"></i-tabler>
-            </button>
-          </td>
-        </ng-container>
+          <!-- IP -->
+          <ng-container matColumnDef="ipAddress">
+            <th mat-header-cell *matHeaderCellDef>IP</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="ip-text">{{ formatIp(row.ipAddress) }}</span>
+            </td>
+          </ng-container>
 
-        <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
-        <tr mat-row *matRowDef="let row; columns: displayedColumns" class="audit-row"></tr>
-      </table>
+          <!-- Status -->
+          <ng-container matColumnDef="status">
+            <th mat-header-cell *matHeaderCellDef>Statut</th>
+            <td mat-cell *matCellDef="let row">
+              <span class="status-badge" [class.status-success]="!row.status || row.status === 'SUCCESS'" [class.status-failed]="row.status === 'FAILED'">
+                <i-tabler [name]="row.status === 'FAILED' ? 'x' : 'check'" class="icon-11"></i-tabler>
+                {{ row.status || 'SUCCESS' }}
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Risk -->
+          <ng-container matColumnDef="risk">
+            <th mat-header-cell *matHeaderCellDef>Risque</th>
+            <td mat-cell *matCellDef="let row">
+              <span *ngIf="row.riskLevel && row.riskLevel !== 'NORMAL'" class="risk-badge"
+                    [style.background]="riskColor(row.riskLevel) + '15'"
+                    [style.color]="riskColor(row.riskLevel)"
+                    [matTooltip]="row.riskLevel">
+                <i-tabler [name]="riskIcon(row.riskLevel)" class="icon-12"></i-tabler>
+                {{ row.riskLevel }}
+              </span>
+              <span *ngIf="!row.riskLevel || row.riskLevel === 'NORMAL'" class="risk-normal">
+                <i-tabler name="circle-check" class="icon-12"></i-tabler>
+              </span>
+            </td>
+          </ng-container>
+
+          <!-- Actions -->
+          <ng-container matColumnDef="actions">
+            <th mat-header-cell *matHeaderCellDef class="text-center">Détails</th>
+            <td mat-cell *matCellDef="let row" class="text-center">
+              <button mat-icon-button (click)="viewDetail(row)" matTooltip="Voir détails" class="action-icon-btn view">
+                <i-tabler name="eye" class="icon-16"></i-tabler>
+              </button>
+              <button mat-icon-button (click)="deleteLog(row)" matTooltip="Supprimer" class="action-icon-btn del">
+                <i-tabler name="trash" class="icon-16"></i-tabler>
+              </button>
+            </td>
+          </ng-container>
+
+          <tr mat-header-row *matHeaderRowDef="displayedColumns; sticky: true"></tr>
+          <tr mat-row *matRowDef="let row; columns: displayedColumns" class="audit-row"
+              [class.row-critical]="row.riskLevel === 'CRITICAL'"
+              [class.row-suspicious]="row.riskLevel === 'SUSPICIOUS'"
+              [class.row-delete]="row.action === 'DELETE' || row.action === 'ARCHIVE'"
+              [class.row-create]="row.action === 'CREATE'"
+              [class.row-login]="row.action === 'LOGIN'">
+          </tr>
+        </table>
+      </div>
 
       <mat-paginator [pageSizeOptions]="[10, 25, 50, 100]" showFirstLastButtons></mat-paginator>
     </mat-card-content>
   </mat-card>
+
+  <!-- ══ TIMELINE VIEW ══ -->
+  <div *ngIf="activeView === 'timeline'" class="timeline-wrap">
+
+    <div *ngIf="dataSource.data.length === 0" class="empty-state">
+      <i-tabler name="timeline" class="icon-52" style="color:#dee2e6"></i-tabler>
+      <p class="empty-title">Aucun événement</p>
+    </div>
+
+    <div *ngFor="let group of timelineGroups" class="tl-group">
+      <div class="tl-date-label">
+        <i-tabler name="calendar" class="icon-14"></i-tabler>
+        {{ group.date }}
+      </div>
+
+      <div class="tl-items">
+        <div *ngFor="let log of group.logs" class="tl-item" (click)="viewDetail(log)">
+          <div class="tl-dot" [style.background]="actionColor(log.action)">
+            <i-tabler [name]="actionIcon(log.action)" class="icon-12"></i-tabler>
+          </div>
+          <div class="tl-line"></div>
+          <div class="tl-card">
+            <div class="tl-card-header">
+              <span class="tl-time">{{ log.createdAt | date:'HH:mm:ss' }}</span>
+              <span class="action-badge sm"
+                    [style.--badge-color]="actionColor(log.action)"
+                    [style.color]="actionColor(log.action)">
+                {{ log.action }}
+              </span>
+              <span class="entity-badge sm">{{ log.entityType }}</span>
+            </div>
+            <div class="tl-card-body">
+              <div class="user-cell sm">
+                <div class="user-avatar sm" [style.background]="roleColor(log.userRole)">
+                  {{ (log.userEmail || '?')[0].toUpperCase() }}
+                </div>
+                <div>
+                  <span class="user-name">{{ displayName(log) }}</span>
+                  <span class="role-chip sm" *ngIf="log.userRole && log.userRole !== 'unknown'"
+                        [style.background]="roleColor(log.userRole) + '18'"
+                        [style.color]="roleColor(log.userRole)">
+                    {{ log.userRole }}
+                  </span>
+                </div>
+              </div>
+              <span class="ip-text">{{ log.ipAddress }}</span>
+            </div>
+            <div class="tl-has-diff" *ngIf="log.after || log.before">
+              <i-tabler name="git-diff" class="icon-12"></i-tabler> Diff disponible
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tl-more" *ngIf="dataSource.data.length > 50">
+      <i-tabler name="dots" class="icon-16"></i-tabler>
+      Affichage limité aux 50 derniers événements filtrés
+    </div>
+  </div>
 
 </div>

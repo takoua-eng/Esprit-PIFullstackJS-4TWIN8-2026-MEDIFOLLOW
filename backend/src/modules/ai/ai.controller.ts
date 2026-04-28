@@ -36,7 +36,13 @@ export class AiController {
   predictAllPatientsRisk() {
     return this.aiService.predictAllPatientsRisk();
   }
-  	@Post('chat')
+  @Get('service-intelligence')
+  @Permissions('*')
+  getServiceIntelligence() {
+    return this.aiService.getServiceIntelligence();
+  }
+
+  @Post('chat')
 	async chat(@Body() body: { message: string; patientContext?: any }) {
 		const { message, patientContext } = body || { message: '', patientContext: undefined };
 		const response = await this.aiService.chatWithPatient(message, patientContext);

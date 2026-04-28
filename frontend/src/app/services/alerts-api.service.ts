@@ -46,9 +46,12 @@ export interface AlertDto {
   value?: number;
   threshold?: number;
   message: string;
+  /** open | seen | reported | acknowledged */
   status: string;
   acknowledgedBy?: string;
   acknowledgedAt?: string | null;
+  seenAt?: string | null;
+  reportedAt?: string | null;
   createdAt?: string;
 }
 
@@ -141,16 +144,20 @@ export class AlertsApiService {
 
   acknowledge(
     alertId: string,
-    opts?: {
-      nurseUserId?: string;
-      doctorUserId?: string;
-      patientUserId?: string;
-    },
+    opts?: { nurseUserId?: string; doctorUserId?: string; patientUserId?: string },
   ): Observable<AlertDto> {
     return this.http.patch<AlertDto>(`${this.base}/${alertId}/acknowledge`, {
       nurseUserId: opts?.nurseUserId,
       doctorUserId: opts?.doctorUserId,
       patientUserId: opts?.patientUserId,
     });
+  }
+
+  markAsSeen(alertId: string, nurseUserId?: string): Observable<AlertDto> {
+    return this.http.patch<AlertDto>(`${this.base}/${alertId}/seen`, { nurseUserId });
+  }
+
+  markAsReported(alertId: string, nurseUserId?: string): Observable<AlertDto> {
+    return this.http.patch<AlertDto>(`${this.base}/${alertId}/reported`, { nurseUserId });
   }
 }

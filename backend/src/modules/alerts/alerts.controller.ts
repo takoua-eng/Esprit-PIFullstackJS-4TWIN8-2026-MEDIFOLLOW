@@ -111,14 +111,22 @@ export class AlertsController {
     @Param('id') id: string,
     @Body() body: AcknowledgeAlertDto,
   ) {
-    return this.alertsService.acknowledge(
-      id,
-      body?.nurseUserId,
-      body?.doctorUserId,
-    );
+    return this.alertsService.acknowledge(id, body?.nurseUserId, body?.doctorUserId);
   }
 
+  @Patch(':id/seen')
+  markAsSeen(
+    @Param('id') id: string,
+    @Body() body: { nurseUserId?: string },
+  ) {
+    return this.alertsService.markAsSeen(id, body?.nurseUserId);
+  }
 
-
-
+  @Patch(':id/reported')
+  markAsReported(
+    @Param('id') id: string,
+    @Body() body: { nurseUserId?: string },
+  ) {
+    return this.alertsService.markAsReported(id, body?.nurseUserId);
+  }
 }
