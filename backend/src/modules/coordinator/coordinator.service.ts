@@ -594,11 +594,29 @@ export class CoordinatorService {
   // ─── AUDITOR: PATIENTS OVERVIEW ──────────────────────────────
 
   async getPatientsOverview() {
-    // 1. Resolve patient role _id
-    const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
+    // 1. Resolve patient role (case-insensitive)
+    const patientRole = await this.roleModel.findOne({ name: { $regex: /^patient$/i } }).lean();
     if (!patientRole) return [];
 
-    // 2. Fetch all non-archived patients
+    // 2. Fetch all users with assignedPatients (coordinators/doctors/nurses)
+    const allUsers = await this.userModel
+      .find({ isArchived: { $ne: true } })
+      .lean();
+
+    const coordinators = allUsers.filter((u: any) =>
+      Array.isArray(u.assignedPatients) && u.assignedPatients.length > 0
+    );
+
+    // Build map: patientId → coordinatorName
+    const coordNameMap = new Map<string, string>();
+    for (const c of coordinators as any[]) {
+      const name = `${c.firstName} ${c.lastName}`;
+      for (const pid of (c.assignedPatients || [])) {
+        coordNameMap.set(pid.toString(), name);
+      }
+    }
+
+    // 3. Fetch all non-archived patients
     const patients = await this.userModel
       .find({ role: patientRole._id, isArchived: { $ne: true } })
       .lean()
@@ -609,41 +627,36 @@ export class CoordinatorService {
     const patientIds = patients.map((p) => p._id as Types.ObjectId);
     const { start, end } = this.getTodayRange();
 
-    // 3. Fetch today's vitals + symptoms in parallel
-    const [vitalDocs, symptomDocs, coordinators] = await Promise.all([
+    // 4. Fetch today's vitals + symptoms in parallel
+    const [vitalDocs, symptomDocs] = await Promise.all([
       this.vitalModel
         .find({ patientId: { $in: patientIds }, recordedAt: { $gte: start, $lte: end } })
         .lean(),
       this.symptomModel
         .find({ patientId: { $in: patientIds }, reportedAt: { $gte: start, $lte: end } })
         .lean(),
-      this.userModel
-        .find({ role: (await this.roleModel.findOne({ name: 'coordinator' }).lean())?._id })
-        .lean()
-        .exec(),
     ]);
 
-    const vitalSet = new Set(vitalDocs.map((v: any) => v.patientId?.toString()));
+    const vitalSet   = new Set(vitalDocs.map((v: any) => v.patientId?.toString()));
     const symptomSet = new Set(symptomDocs.map((s: any) => s.patientId?.toString()));
-    const coordMap = new Map(coordinators.map((c) => [(c._id as any).toString(), `${c.firstName} ${c.lastName}`]));
 
     return patients.map((p) => {
-      const pid = (p._id as any).toString();
-      const hasVitals = vitalSet.has(pid);
+      const pid        = (p._id as any).toString();
+      const hasVitals  = vitalSet.has(pid);
       const hasSymptoms = symptomSet.has(pid);
       const status: 'OK' | 'INCOMPLETE' | 'NO DATA' =
         hasVitals && hasSymptoms ? 'OK' : !hasVitals && !hasSymptoms ? 'NO DATA' : 'INCOMPLETE';
 
       return {
-        _id: pid,
-        name: `${p.firstName} ${p.lastName}`,
-        email: p.email,
-        mrn: (p as any).medicalRecordNumber || '',
-        department: (p as any).department || '',
-        service: (p as any).assignedService || '',
-        coordinatorName: coordMap.get((p as any).coordinatorId?.toString()) || '',
-        vitalsToday: hasVitals,
-        symptomsToday: hasSymptoms,
+        _id:             pid,
+        name:            `${p.firstName} ${p.lastName}`,
+        email:           p.email,
+        mrn:             (p as any).medicalRecordNumber || '',
+        department:      (p as any).department || '',
+        service:         (p as any).assignedService || '',
+        coordinatorName: coordNameMap.get(pid) || '—',
+        vitalsToday:     hasVitals,
+        symptomsToday:   hasSymptoms,
         status,
       };
     });
@@ -653,49 +666,42 @@ export class CoordinatorService {
 
   async getAllPerformance() {
     try {
-      const coordRole = await this.roleModel.findOne({ name: 'coordinator' }).lean();
-      this.logger.log(`[getAllPerformance] coordRole found: ${JSON.stringify(coordRole?._id ?? 'NOT FOUND')}`);
-      if (!coordRole) return [];
-
-      const coordinators = await this.userModel
-        .find({ role: coordRole._id, isArchived: { $ne: true } })
-        .lean()
-        .exec();
-
-      this.logger.log(`[getAllPerformance] coordinators found: ${coordinators.length}`);
-
       const { start: todayStart, end: todayEnd } = this.getTodayRange();
       const { start: weekStart } = this.getDateRange(7);
 
+      // Fetch all users that have assignedPatients (regardless of role name)
+      const allUsers = await this.userModel
+        .find({ isArchived: { $ne: true } })
+        .lean()
+        .exec();
+
+      // Filter in JS: only users with non-empty assignedPatients
+      const coordinators = allUsers.filter((u: any) => 
+        Array.isArray(u.assignedPatients) && u.assignedPatients.length > 0
+      );
+
+      this.logger.log(`[getAllPerformance] coordinators found: ${coordinators.length}`);
+      if (!coordinators.length) return [];
+
       const coordIds = coordinators.map((c) => (c._id as any).toString());
 
-      // Fetch only users that have a coordinatorId set (= patients) + all reminders
-      const [allPatients, allReminders] = await Promise.all([
-        this.userModel
-          .find({ coordinatorId: { $exists: true, $ne: null } })
-          .lean()
-          .exec(),
-        this.reminderModel
-          .find({ sentBy: { $in: coordinators.map((c) => c._id) } })
-          .lean()
-          .exec(),
-      ]);
+      // Fetch all reminders for these coordinators
+      const allReminders = await this.reminderModel
+        .find({ sentBy: { $in: coordinators.map((c) => c._id) } })
+        .lean()
+        .exec();
 
       const rows = coordinators.map((c) => {
         const cid = (c._id as any).toString();
 
-        // Patients whose coordinatorId matches this coordinator's _id
-        const myPatients = allPatients.filter(
-          (p: any) => p.coordinatorId?.toString() === cid,
-        );
-        const patientCount = myPatients.length;
+        // Patients from assignedPatients array (source of truth)
+        const assignedIds: string[] = ((c as any).assignedPatients || []).map((id: any) => id.toString());
+        const patientCount = assignedIds.length;
 
-        // Completeness rate
-        const completeCount = myPatients.filter(
-          (p: any) => p.phone && p.address && p.emergencyContact,
-        ).length;
-        const completenessRate =
-          patientCount > 0 ? Math.round((completeCount / patientCount) * 100) : 0;
+        // Completeness rate — based on assignedPatients count vs reminders sent
+        const completenessRate = patientCount > 0
+          ? Math.min(100, Math.round((allReminders.filter((r: any) => r.sentBy?.toString() === cid && r.status === 'sent').length / patientCount) * 20))
+          : 0;
 
         // Reminders
         const myReminders = allReminders.filter(
