@@ -255,10 +255,4 @@ export const auditorNavItems: NavItem[] = [
     route: '/auditor/logs',
     bgcolor: 'primary',
   },
-  {
-    displayName: 'Verify Logs',
-    iconName: 'shield-check',
-    route: '/auditor/verify',
-    bgcolor: 'success',
-  },
 ];

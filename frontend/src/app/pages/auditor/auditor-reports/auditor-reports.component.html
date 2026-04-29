@@ -1,0 +1,57 @@
+<div class="rpts-page">
+
+  <!-- Header -->
+  <div class="rpts-header">
+    <div class="rpts-header-icon">
+      <i-tabler name="file-analytics" class="icon-24"></i-tabler>
+    </div>
+    <div>
+      <h1 class="rpts-title">Génération de Rapports</h1>
+      <p class="rpts-sub">Générez des rapports d'audit détaillés assistés par IA</p>
+    </div>
+  </div>
+
+  <!-- Cards -->
+  <div class="rpts-grid">
+    <div *ngFor="let r of reports" class="rpt-card" [style.--c]="r.color" [style.--bg]="r.bg">
+
+      <!-- Top -->
+      <div class="rpt-card-top">
+        <div class="rpt-card-icon" [style.background]="r.bg" [style.color]="r.color">
+          <i-tabler [name]="r.icon" class="icon-28"></i-tabler>
+        </div>
+        <div class="rpt-card-badge" [style.background]="r.bg" [style.color]="r.color">
+          IA
+        </div>
+      </div>
+
+      <!-- Content -->
+      <h2 class="rpt-card-title">{{ r.title }}</h2>
+      <p class="rpt-card-desc">{{ r.description }}</p>
+
+      <!-- Details list -->
+      <ul class="rpt-card-list">
+        <li *ngFor="let d of r.details">
+          <i-tabler name="check" class="icon-13" [style.color]="r.color"></i-tabler>
+          {{ d }}
+        </li>
+      </ul>
+
+      <!-- Button -->
+      <button class="rpt-card-btn" [style.background]="r.color"
+              (click)="generate(r.type)" [disabled]="loading === r.type">
+        <mat-spinner *ngIf="loading === r.type" diameter="16" style="margin-right:8px"></mat-spinner>
+        <i-tabler *ngIf="loading !== r.type" [name]="r.icon" class="icon-16" style="margin-right:8px"></i-tabler>
+        {{ loading === r.type ? 'Génération en cours...' : 'Générer le rapport' }}
+      </button>
+
+    </div>
+  </div>
+
+  <!-- Info -->
+  <div class="rpts-info">
+    <i-tabler name="info-circle" class="icon-16" style="color:#6c5ce7"></i-tabler>
+    <span>Les rapports sont générés en temps réel à partir des données système et analysés par l'IA. Le rapport s'ouvre dans une fenêtre avec option d'impression.</span>
+  </div>
+
+</div>

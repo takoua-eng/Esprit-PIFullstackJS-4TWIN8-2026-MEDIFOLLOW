@@ -332,7 +332,7 @@ NO TEXT OUTSIDE JSON.`;
     ]);
 
     const topUsers = await this.auditLogModel.aggregate([
-      { $match: { createdAt: { $gte: since7d } } },
+      { $match: { createdAt: { $gte: since7d }, userEmail: { $nin: ['anonymous', null, ''] } } },
       { $group: { _id: '$userEmail', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 3 },
@@ -340,7 +340,8 @@ NO TEXT OUTSIDE JSON.`;
 
     const coordRole    = await this.roleModel.findOne({ name: 'coordinator' }).lean();
     const coordinators = coordRole ? await this.userModel.find({ role: coordRole._id, isArchived: { $ne: true } }).lean() : [];
-    const activeCoordIds = await this.reminderModel.distinct('sentBy', { sentAt: { $gte: since3d } });
+    // Use createdAt instead of sentAt — scheduled reminders don't have sentAt set
+    const activeCoordIds = await this.reminderModel.distinct('sentBy', { createdAt: { $gte: since3d } });
     const inactiveCoords = (coordinators as any[]).filter(c => !activeCoordIds.map((id: any) => id.toString()).includes(c._id.toString()));
 
     const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
@@ -358,7 +359,7 @@ NO TEXT OUTSIDE JSON.`;
 
     const data = {
       totalAuditLogs: total, last24hEvents: last24h, deletionsLast7d: deletions, criticalActionsLast24h: criticals,
-      topActiveUsers: topUsers.map((u: any) => `${u._id} (${u.count} actions)`),
+      topActiveUsers: topUsers.map((u: any) => `${u._id ?? 'unknown'} — ${u.count} actions`),
       inactiveCoordinators: inactiveCoords.length,
       inactiveCoordNames: (inactiveCoords as any[]).slice(0, 3).map((c: any) => `${c.firstName} ${c.lastName}`),
       totalPatients: patients.length, noDataToday: noDataCount,
@@ -371,27 +372,222 @@ NO TEXT OUTSIDE JSON.`;
     ));
     const riskLevel = riskScore >= 70 ? 'HIGH' : riskScore >= 40 ? 'MEDIUM' : 'LOW';
 
-    const prompt = `Tu es un auditeur médical expert. Retourne STRICTEMENT un JSON valide.
+    const prompt = `Tu es un auditeur médical expert. Analyse ces données et retourne STRICTEMENT un JSON valide sans aucun texte avant ou après.
 
-DONNÉES:
-- Total logs: ${data.totalAuditLogs} | Activité 24h: ${data.last24hEvents}
-- Suppressions (7j): ${data.deletionsLast7d} | Actions critiques (24h): ${data.criticalActionsLast24h}
-- Coordinateurs inactifs (3j): ${data.inactiveCoordinators} — ${data.inactiveCoordNames.join(', ') || 'aucun'}
-- Patients sans données: ${data.noDataToday}/${data.totalPatients}
-- Top utilisateurs: ${data.topActiveUsers.join(' | ')}
-- Risk Score: ${riskScore}/100 (${riskLevel})
+DONNÉES SYSTÈME:
+- Total logs audit: ${data.totalAuditLogs} | Activité 24h: ${data.last24hEvents} événements
+- Suppressions/Archives (7j): ${data.deletionsLast7d} | Actions critiques (24h): ${data.criticalActionsLast24h}
+- Coordinateurs inactifs (3j sans reminder): ${data.inactiveCoordinators}/${(coordinators as any[]).length} — ${data.inactiveCoordNames.join(', ') || 'aucun'}
+- Patients sans données aujourd'hui: ${data.noDataToday}/${data.totalPatients}
+- Top utilisateurs actifs: ${data.topActiveUsers.join(' | ') || 'aucun'}
+- Risk Score calculé: ${riskScore}/100 (${riskLevel})
 
-FORMAT STRICT:
-{"riskScore":${riskScore},"riskLevel":"${riskLevel}","resume":"string","alertes":["string avec emoji"],"risques":["string"],"interpretation":"string","actions":["string avec emoji"],"topUsers":["string"]}
-NO TEXT OUTSIDE JSON.`;
+INSTRUCTIONS:
+- resume: 1 phrase résumant la situation globale
+- alertes: liste des problèmes urgents nécessitant action immédiate (max 4)
+- risques: liste des risques potentiels identifiés (max 3)
+- interpretation: paragraphe de 2-3 phrases analysant les tendances, causes probables et impact sur la qualité des soins
+- actions: liste de recommandations concrètes prioritaires (max 4)
+- topUsers: liste des utilisateurs à surveiller avec leur activité
+
+FORMAT JSON STRICT (NO TEXT OUTSIDE):
+{"riskScore":${riskScore},"riskLevel":"${riskLevel}","resume":"...","alertes":["🚨 ..."],"risques":["⚠️ ..."],"interpretation":"...","actions":["✅ ..."],"topUsers":["..."]}`;
 
     try {
       const raw    = await this.callAI(prompt);
       const report = this.cleanJson(raw);
+
+      // Sanitize arrays — ensure all items are strings (AI sometimes returns objects)
+      const sanitizeArr = (arr: any[]): string[] =>
+        (arr || []).map(item =>
+          typeof item === 'string' ? item :
+          typeof item === 'object' && item !== null
+            ? (item.email ?? item.name ?? item.text ?? item.label ?? JSON.stringify(item))
+            : String(item ?? '')
+        ).filter(Boolean);
+
+      report.alertes  = sanitizeArr(report.alertes);
+      report.risques  = sanitizeArr(report.risques);
+      report.actions  = sanitizeArr(report.actions);
+      report.topUsers = sanitizeArr(report.topUsers);
+
       return { report: { ...report, riskScore, riskLevel }, data, generatedAt: new Date().toISOString() };
     } catch (err: any) {
       this.logger.error(err.message);
       return { report: { resume: 'AI indisponible', riskScore, riskLevel, alertes: [], risques: [], interpretation: '', actions: [], topUsers: [] }, data, generatedAt: new Date().toISOString() };
+    }
+  }
+
+  // ─── AUDITOR REPORTS ─────────────────────────────────────────
+
+  async generateDailyAuditReport() {
+    const since24h   = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+
+    const [total24h, byAction, byUser, criticals, logins, deletions] = await Promise.all([
+      this.auditLogModel.countDocuments({ createdAt: { $gte: since24h } }),
+      this.auditLogModel.aggregate([
+        { $match: { createdAt: { $gte: since24h } } },
+        { $group: { _id: '$action', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+      ]),
+      this.auditLogModel.aggregate([
+        { $match: { createdAt: { $gte: since24h }, userEmail: { $nin: ['anonymous', null, ''] } } },
+        { $group: { _id: '$userEmail', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]),
+      this.auditLogModel.countDocuments({ createdAt: { $gte: since24h }, action: { $in: ['DELETE', 'ARCHIVE', 'DEACTIVATE', 'RESET_PASSWORD'] } }),
+      this.auditLogModel.countDocuments({ createdAt: { $gte: since24h }, action: 'LOGIN' }),
+      this.auditLogModel.countDocuments({ createdAt: { $gte: since24h }, action: { $in: ['DELETE', 'ARCHIVE'] } }),
+    ]);
+
+    const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
+    const patients = patientRole ? await this.userModel.find({ role: (patientRole as any)._id, isArchived: { $ne: true } }).lean() : [];
+    const patientIds = (patients as any[]).map(p => p._id);
+    const [vitalsToday, symptomsToday] = await Promise.all([
+      this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: todayStart, $lte: todayEnd } }).lean(),
+      this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: todayStart, $lte: todayEnd } }).lean(),
+    ]);
+    const vitalSet   = new Set((vitalsToday as any[]).map((v: any) => v.patientId?.toString()));
+    const symptomSet = new Set((symptomsToday as any[]).map((s: any) => s.patientId?.toString()));
+    const compliantToday = (patients as any[]).filter(p => vitalSet.has(p._id.toString()) && symptomSet.has(p._id.toString())).length;
+    const complianceRate = patients.length ? Math.round(compliantToday / patients.length * 100) : 0;
+
+    const data = {
+      date: new Date().toLocaleDateString('fr-FR'),
+      totalEvents: total24h, criticalActions: criticals, logins, deletions,
+      topUsers: (byUser as any[]).map((u: any) => `${u._id} (${u.count} actions)`),
+      actionBreakdown: (byAction as any[]).map((a: any) => `${a._id}: ${a.count}`).join(', '),
+      totalPatients: patients.length, compliantToday, complianceRate,
+    };
+
+    const prompt = `Tu es un auditeur médical. Génère un rapport d'audit journalier professionnel en JSON strict.
+
+DONNÉES DU JOUR (${data.date}):
+- Événements système: ${data.totalEvents} | Actions critiques: ${data.criticalActions}
+- Connexions: ${data.logins} | Suppressions/Archives: ${data.deletions}
+- Répartition: ${data.actionBreakdown}
+- Utilisateurs actifs: ${data.topUsers.join(' | ') || 'aucun'}
+- Compliance patients: ${data.compliantToday}/${data.totalPatients} (${data.complianceRate}%)
+
+FORMAT JSON STRICT:
+{"title":"Rapport d'Audit Journalier — ${data.date}","summary":"...","highlights":["..."],"concerns":["..."],"recommendations":["..."],"complianceRate":${data.complianceRate},"criticalCount":${data.criticalActions},"totalEvents":${data.totalEvents}}`;
+
+    try {
+      const raw = await this.callAI(prompt);
+      const report = this.cleanJson(raw);
+      return { type: 'daily', report, data, generatedAt: new Date().toISOString() };
+    } catch {
+      return { type: 'daily', report: { title: `Rapport Journalier — ${data.date}`, summary: `${data.totalEvents} événements, ${data.criticalActions} critiques, compliance ${data.complianceRate}%.`, highlights: [], concerns: [], recommendations: [], complianceRate: data.complianceRate, criticalCount: data.criticalActions, totalEvents: data.totalEvents }, data, generatedAt: new Date().toISOString() };
+    }
+  }
+
+  async generateMonthlyComplianceReport() {
+    const since30d = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+
+    const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
+    const coordRole   = await this.roleModel.findOne({ name: 'coordinator' }).lean();
+    const patients    = patientRole ? await this.userModel.find({ role: (patientRole as any)._id, isArchived: { $ne: true } }).lean() : [];
+    const coordinators = coordRole ? await this.userModel.find({ role: (coordRole as any)._id, isArchived: { $ne: true } }).lean() : [];
+    const patientIds  = (patients as any[]).map(p => p._id);
+
+    const [vitals30d, symptoms30d, reminders30d, auditEvents] = await Promise.all([
+      this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: since30d } }).lean(),
+      this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: since30d } }).lean(),
+      this.reminderModel.find({ createdAt: { $gte: since30d } }).lean(),
+      this.auditLogModel.countDocuments({ createdAt: { $gte: since30d } }),
+    ]);
+
+    const vitalPatients   = new Set((vitals30d as any[]).map((v: any) => v.patientId?.toString()));
+    const symptomPatients = new Set((symptoms30d as any[]).map((s: any) => s.patientId?.toString()));
+    const activePatients  = (patients as any[]).filter(p => vitalPatients.has(p._id.toString()) || symptomPatients.has(p._id.toString())).length;
+    const sentReminders   = (reminders30d as any[]).filter((r: any) => r.status === 'sent').length;
+    const complianceRate  = patients.length ? Math.round(activePatients / patients.length * 100) : 0;
+
+    const data = {
+      month: new Date().toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+      totalPatients: patients.length, activePatients, complianceRate,
+      totalCoordinators: coordinators.length,
+      vitalsSubmitted: vitals30d.length, symptomsSubmitted: symptoms30d.length,
+      remindersSent: sentReminders, totalReminders: reminders30d.length,
+      auditEvents,
+    };
+
+    const prompt = `Tu es un auditeur médical. Génère un rapport de compliance mensuel professionnel en JSON strict.
+
+DONNÉES DU MOIS (${data.month}):
+- Patients actifs: ${data.activePatients}/${data.totalPatients} (${data.complianceRate}% compliance)
+- Coordinateurs: ${data.totalCoordinators}
+- Vitaux soumis: ${data.vitalsSubmitted} | Symptômes soumis: ${data.symptomsSubmitted}
+- Rappels envoyés: ${data.remindersSent}/${data.totalReminders}
+- Événements audit: ${data.auditEvents}
+
+FORMAT JSON STRICT:
+{"title":"Rapport de Compliance Mensuel — ${data.month}","executiveSummary":"...","complianceAnalysis":"...","strengths":["..."],"weaknesses":["..."],"recommendations":["..."],"kpis":{"complianceRate":${data.complianceRate},"activePatients":${data.activePatients},"remindersSent":${data.remindersSent}}}`;
+
+    try {
+      const raw = await this.callAI(prompt);
+      const report = this.cleanJson(raw);
+      return { type: 'monthly', report, data, generatedAt: new Date().toISOString() };
+    } catch {
+      return { type: 'monthly', report: { title: `Rapport Mensuel — ${data.month}`, executiveSummary: `Compliance ${data.complianceRate}% sur ${data.totalPatients} patients.`, complianceAnalysis: '', strengths: [], weaknesses: [], recommendations: [], kpis: { complianceRate: data.complianceRate, activePatients: data.activePatients, remindersSent: data.remindersSent } }, data, generatedAt: new Date().toISOString() };
+    }
+  }
+
+  async generateSuspiciousActivityReport() {
+    const since7d  = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+    const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+    const [suspiciousLogs, criticalLogs, topAnonymous, multiIpUsers, massDeletes] = await Promise.all([
+      this.auditLogModel.find({ riskLevel: { $in: ['SUSPICIOUS', 'CRITICAL'] }, createdAt: { $gte: since7d } }).sort({ createdAt: -1 }).limit(20).lean(),
+      this.auditLogModel.find({ action: { $in: ['DELETE', 'ARCHIVE', 'DEACTIVATE', 'RESET_PASSWORD'] }, createdAt: { $gte: since24h } }).lean(),
+      this.auditLogModel.countDocuments({ userEmail: 'anonymous', createdAt: { $gte: since7d } }),
+      this.auditLogModel.aggregate([
+        { $match: { createdAt: { $gte: since7d }, userEmail: { $nin: ['anonymous', null, ''] } } },
+        { $group: { _id: '$userEmail', ips: { $addToSet: '$ipAddress' }, count: { $sum: 1 } } },
+        { $match: { $expr: { $gt: [{ $size: '$ips' }, 2] } } },
+        { $sort: { count: -1 } },
+        { $limit: 5 },
+      ]),
+      this.auditLogModel.aggregate([
+        { $match: { action: { $in: ['DELETE', 'ARCHIVE'] }, createdAt: { $gte: since7d } } },
+        { $group: { _id: '$userEmail', count: { $sum: 1 } } },
+        { $match: { count: { $gte: 3 } } },
+        { $sort: { count: -1 } },
+      ]),
+    ]);
+
+    const data = {
+      period: '7 derniers jours',
+      suspiciousCount: suspiciousLogs.length,
+      criticalCount24h: criticalLogs.length,
+      anonymousActions: topAnonymous,
+      multiIpUsers: (multiIpUsers as any[]).map((u: any) => `${u._id} (${u.ips.length} IPs, ${u.count} actions)`),
+      massDeleteUsers: (massDeletes as any[]).map((u: any) => `${u._id} (${u.count} suppressions)`),
+      topSuspicious: (suspiciousLogs as any[]).slice(0, 5).map((l: any) => `${l.userEmail} — ${l.action} sur ${l.entityType}`),
+    };
+
+    const prompt = `Tu es un expert en sécurité médicale. Génère un rapport d'activités suspectes en JSON strict.
+
+DONNÉES (${data.period}):
+- Événements suspects/critiques: ${data.suspiciousCount}
+- Actions critiques 24h: ${data.criticalCount24h}
+- Actions anonymes: ${data.anonymousActions}
+- Utilisateurs multi-IP: ${data.multiIpUsers.join(' | ') || 'aucun'}
+- Suppressions massives: ${data.massDeleteUsers.join(' | ') || 'aucun'}
+- Top événements suspects: ${data.topSuspicious.join(' | ') || 'aucun'}
+
+FORMAT JSON STRICT:
+{"title":"Rapport d'Activités Suspectes — ${data.period}","riskLevel":"${data.suspiciousCount > 10 ? 'HIGH' : data.suspiciousCount > 3 ? 'MEDIUM' : 'LOW'}","summary":"...","threats":["..."],"suspiciousUsers":["..."],"recommendations":["..."],"immediateActions":["..."]}`;
+
+    try {
+      const raw = await this.callAI(prompt);
+      const report = this.cleanJson(raw);
+      return { type: 'suspicious', report, data, generatedAt: new Date().toISOString() };
+    } catch {
+      return { type: 'suspicious', report: { title: `Rapport Activités Suspectes — ${data.period}`, riskLevel: data.suspiciousCount > 10 ? 'HIGH' : 'LOW', summary: `${data.suspiciousCount} événements suspects détectés.`, threats: [], suspiciousUsers: [], recommendations: [], immediateActions: [] }, data, generatedAt: new Date().toISOString() };
     }
   }
 
@@ -461,47 +657,52 @@ NO TEXT OUTSIDE JSON.`;
     const patient = await this.userModel.findById(patientId).lean();
     if (!patient) throw new Error('Patient not found');
 
-    // Latest vitals
     const latestVital = await this.vitalModel
       .findOne({ patientId: (patient as any)._id })
       .sort({ recordedAt: -1 })
       .lean();
 
-    // Age from dateOfBirth
-    const dob = (patient as any).dateOfBirth;
-    const age = dob
-      ? Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-      : 50;
+    // ── Age: stored field first, fallback to dateOfBirth calc ──
+    const storedAge = (patient as any).age;
+    const dob       = (patient as any).dateOfBirth;
+    const age: number = storedAge
+      ? Number(storedAge)
+      : dob
+        ? Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+        : 50;
 
-    // BMI
-    const weight = (latestVital as any)?.weight;
-    const heightCm = (patient as any)?.height;
-    const bmi = weight && heightCm
-      ? parseFloat((weight / ((heightCm / 100) ** 2)).toFixed(1))
-      : (latestVital as any)?.bmi || 28;
+    // ── BMI: weight only (no height field in schema — assume 1.75m) ──
+    const weight  = (latestVital as any)?.weight;
+    const bmi: number = weight ? parseFloat((weight / (1.75 ** 2)).toFixed(1)) : 28;
 
-    // Blood pressure — try both field name variants
-    const systolic = (latestVital as any)?.bloodPressureSystolic
-                  || 0;
+    // ── Blood pressure: handle both legacy & standard field names ──
+    const systolic: number =
+      (latestVital as any)?.bloodPressureSystolic ||
+      (latestVital as any)?.bloodPressuresystolic ||
+      0;
 
-    // Glucose — try multiple field names
-    const glucose = (latestVital as any)?.bloodGlucose
-                 || (age > 60 ? 180 + Math.floor(age * 0.5) : age > 45 ? 130 : 95);
+    // ── Glucose: bloodGlucose (mg/dL) preferred; glucoseLevel is g/L → ×100 ──
+    const glucoseRaw: number | undefined =
+      (latestVital as any)?.bloodGlucose ??
+      ((latestVital as any)?.glucoseLevel != null
+        ? Math.round((latestVital as any).glucoseLevel * 100)
+        : undefined);
+    const glucose: number = glucoseRaw ?? (age > 60 ? 180 : age > 45 ? 130 : 95);
 
-    // Use patient age as primary risk factor when vitals missing
-    const ageRiskFactor = age > 65 ? 1 : 0;
+    // ── Heart rate ──
+    const heartRate: number = (latestVital as any)?.heartRate ?? 0;
 
     const mlInput = {
       age,
       gender:            (patient as any).gender === 'male' ? 'Male' : 'Female',
-      hypertension:      systolic > 140 ? 1 : (age > 60 ? 1 : 0),
-      heart_disease:     ((latestVital as any)?.heartRate || 0) > 100 ? 1 : (age > 70 ? 1 : 0),
-      ever_married:      (patient as any).maritalStatus === 'married' ? 'Yes' : 'No',
+      hypertension:      systolic > 140 ? 1 : (age > 60 && systolic === 0 ? 1 : 0),
+      heart_disease:     heartRate > 100 ? 1 : (age > 70 ? 1 : 0),
+      ever_married:      age > 30 ? 'Yes' : 'No',   // maritalStatus not in schema
       work_type:         'Private',
       Residence_type:    'Urban',
       avg_glucose_level: glucose,
       bmi,
-      smoking_status:    'Unknown',
+      smoking_status:    'Unknown',                  // smokingStatus not in schema
     };
 
     try {

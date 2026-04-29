@@ -24,6 +24,31 @@
     </div>
   </div>
 
+  <!-- GÉNÉRATION DE RAPPORTS -->
+  <div class="rpt-section-bar m-b-16">
+    <div class="rpt-section-label">
+      <i-tabler name="file-analytics" class="icon-15"></i-tabler>
+      Génération de rapports
+    </div>
+    <div class="rpt-btns">
+      <button class="rpt-btn rpt-btn-blue" (click)="generateReport('daily')" [disabled]="reportLoading === 'daily'">
+        <i-tabler name="report" class="icon-15"></i-tabler>
+        <span>{{ reportLoading === 'daily' ? 'Génération...' : 'Rapport Journalier' }}</span>
+        <mat-spinner *ngIf="reportLoading === 'daily'" diameter="14" style="margin-left:6px"></mat-spinner>
+      </button>
+      <button class="rpt-btn rpt-btn-purple" (click)="generateReport('monthly')" [disabled]="reportLoading === 'monthly'">
+        <i-tabler name="chart-bar" class="icon-15"></i-tabler>
+        <span>{{ reportLoading === 'monthly' ? 'Génération...' : 'Compliance Mensuel' }}</span>
+        <mat-spinner *ngIf="reportLoading === 'monthly'" diameter="14" style="margin-left:6px"></mat-spinner>
+      </button>
+      <button class="rpt-btn rpt-btn-red" (click)="generateReport('suspicious')" [disabled]="reportLoading === 'suspicious'">
+        <i-tabler name="shield-exclamation" class="icon-15"></i-tabler>
+        <span>{{ reportLoading === 'suspicious' ? 'Génération...' : 'Activités Suspectes' }}</span>
+        <mat-spinner *ngIf="reportLoading === 'suspicious'" diameter="14" style="margin-left:6px"></mat-spinner>
+      </button>
+    </div>
+  </div>
+
   <!-- KPI CARDS -->
   <div class="av-kpi-grid">
     <div class="av-kpi" style="--c:#6c5ce7">

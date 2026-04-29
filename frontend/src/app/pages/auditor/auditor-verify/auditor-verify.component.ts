@@ -13,6 +13,9 @@ import { AuditApiService, AuditLog } from 'src/app/services/audit.service';
 import { interval, Subscription, forkJoin } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
 import { AuditorLogDetailDialog } from './auditor-log-detail.dialog';
+import { AuditorReportDialog } from './auditor-report.dialog';
+import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from 'src/app/core/api.config';
 
 type AuditRow = AuditLog & { verified?: boolean };
 
@@ -53,7 +56,7 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   private pollSub?: Subscription;
 
-  constructor(private auditService: AuditApiService, private dialog: MatDialog) {}
+  constructor(private auditService: AuditApiService, private dialog: MatDialog, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.pollSub = interval(20000).pipe(
@@ -82,6 +85,24 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   ngOnDestroy(): void { this.pollSub?.unsubscribe(); }
+
+  // ── Report Generation ─────────────────────────────────────
+  reportLoading: 'daily' | 'monthly' | 'suspicious' | null = null;
+
+  generateReport(type: 'daily' | 'monthly' | 'suspicious'): void {
+    this.reportLoading = type;
+    const endpoint = `${API_BASE_URL}/ai/audit-report/${type}`;
+    this.http.post<any>(endpoint, {}).subscribe({
+      next: (res) => {
+        this.reportLoading = null;
+        this.dialog.open(AuditorReportDialog, {
+          width: '780px', maxWidth: '96vw',
+          data: { ...res, type },
+        });
+      },
+      error: () => { this.reportLoading = null; },
+    });
+  }
 
   applyFilters(): void {
     let filtered = [...this.allLogs];

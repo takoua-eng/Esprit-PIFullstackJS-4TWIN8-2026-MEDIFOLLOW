@@ -261,21 +261,4 @@
     </div>
   </div>
 
-  <!-- ── Quick links ─────────────────────────────────────── -->
-  <div class="row">
-    <div class="col-md-3 col-6 m-b-16" *ngFor="let link of quickLinks">
-      <mat-card class="quick-card" [routerLink]="link.route" style="cursor:pointer">
-        <mat-card-content class="d-flex align-items-center gap-12 p-16">
-          <div class="quick-ico" [style.background]="link.color + '18'">
-            <i-tabler [name]="link.icon" [style.color]="link.color" class="icon-22"></i-tabler>
-          </div>
-          <div>
-            <div class="f-w-600 f-s-14">{{ link.label }}</div>
-            <div class="text-muted f-s-12">{{ link.desc }}</div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
 </div>
