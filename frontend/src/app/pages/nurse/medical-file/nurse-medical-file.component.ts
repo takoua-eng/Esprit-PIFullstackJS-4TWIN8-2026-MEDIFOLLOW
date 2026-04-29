@@ -391,8 +391,19 @@ export class NurseMedicalFileComponent implements OnInit {
       'substanceUse',
       'familyHistory',
       'updatedAt',
+      'height',
+      'weight',
+      'medicalHistory',
+      'primaryDiagnosisInfo',
+      'medicationsList',
+      'monitoringConfig',
     ];
-    return keys.some((k) => String(remote[k] ?? '').trim().length > 0);
+    return keys.some((k) => {
+      const val = remote[k];
+      if (val === undefined || val === null) return false;
+      if (typeof val === 'object') return Object.keys(val).length > 0;
+      return String(val).trim().length > 0;
+    });
   }
 
   private applyDossierFromRecord(

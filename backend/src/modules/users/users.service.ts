@@ -1,4 +1,4 @@
-﻿import {
+import {
   BadRequestException,
   Injectable,
   Logger,
@@ -511,8 +511,19 @@ export class UsersService {
       'substanceUse',
       'familyHistory',
       'updatedAt',
+      'height',
+      'weight',
+      'medicalHistory',
+      'primaryDiagnosisInfo',
+      'medicationsList',
+      'monitoringConfig',
     ];
-    return keys.some((k) => String(d[k] ?? '').trim().length > 0);
+    return keys.some((k) => {
+      const val = d[k];
+      if (val === undefined || val === null) return false;
+      if (typeof val === 'object') return Object.keys(val).length > 0;
+      return String(val).trim().length > 0;
+    });
   }
 
   private diagnosisDocToEntry(
@@ -671,6 +682,12 @@ export class UsersService {
       pastMedicalHistory: pick(dto.pastMedicalHistory),
       substanceUse: pick(dto.substanceUse),
       familyHistory: pick(dto.familyHistory),
+      height: dto.height,
+      weight: dto.weight,
+      medicalHistory: dto.medicalHistory,
+      primaryDiagnosisInfo: dto.primaryDiagnosisInfo,
+      medicationsList: dto.medicationsList,
+      monitoringConfig: dto.monitoringConfig,
       updatedAt,
     };
 
