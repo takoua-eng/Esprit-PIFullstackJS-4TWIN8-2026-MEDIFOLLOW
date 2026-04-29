@@ -135,7 +135,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
 
 
-
   /** Return true when current role has an alerts page we can navigate to */
   canNavigateToAlerts(): boolean {
     const r = (localStorage.getItem('user_role') || '').toLowerCase();

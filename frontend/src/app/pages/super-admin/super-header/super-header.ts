@@ -123,6 +123,17 @@ export class SuperHeaderComponent implements OnInit, OnDestroy {
 
   goToProfile() { this.router.navigate(['/super-admin/profile']); }
 
+  /** Return true if user is a patient */
+  isPatient(): boolean {
+    const r = (localStorage.getItem('user_role') || '').toLowerCase();
+    return r === 'patient';
+  }
+
+  /** Navigate to alerts page for patient */
+  goToAlerts(): void {
+    this.router.navigate(['/dashboard/patient/alerts']);
+  }
+
   logout() {
     clearAuthLocalStorage();
     this.core.clearRole();

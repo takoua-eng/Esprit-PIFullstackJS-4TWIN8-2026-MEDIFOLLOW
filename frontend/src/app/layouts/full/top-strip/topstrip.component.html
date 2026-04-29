@@ -27,8 +27,21 @@
       {{ highContrastEnabled ? ('DISABLE_HIGH_CONTRAST' | translate) : ('ENABLE_HIGH_CONTRAST' | translate) }}
     </button>
 
-    <!-- Notification Bell -->
-    <button mat-icon-button [matMenuTriggerFor]="notifMenu" class="text-white position-relative" matTooltip="Notifications" style="width: 44px; height: 44px;">
+    <!-- Notification Bell: Pour Patient -> navigate to alerts, Pour autres -> notification panel -->
+    <!-- Version Patient: Naviguer vers alerts -->
+    <button *ngIf="isPatient()" mat-icon-button (click)="goToAlerts()" class="text-white position-relative" matTooltip="Mes Alertes" style="width: 44px; height: 44px;">
+      <div class="d-flex align-items-center justify-content-center rounded-circle w-100 h-100" style="transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
+        <i-tabler name="bell" class="icon-22"></i-tabler>
+      </div>
+      <span *ngIf="unreadCount > 0"
+        class="position-absolute d-flex align-items-center justify-content-center rounded-circle shadow-sm"
+        style="top: 4px; right: 4px; background: #ff4757; color: #fff; width: 18px; height: 18px; font-size: 10px; font-weight: 700; border: 2px solid #468ecf;">
+        {{ unreadCount > 9 ? '9+' : unreadCount }}
+      </span>
+    </button>
+
+    <!-- Version autres rôles: Panel Notifications -->
+    <button *ngIf="!isPatient()" mat-icon-button [matMenuTriggerFor]="notifMenu" class="text-white position-relative" matTooltip="Notifications" style="width: 44px; height: 44px;">
       <div class="d-flex align-items-center justify-content-center rounded-circle w-100 h-100" style="transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
         <i-tabler name="bell" class="icon-22"></i-tabler>
       </div>

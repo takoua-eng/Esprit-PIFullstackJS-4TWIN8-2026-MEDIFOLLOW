@@ -184,6 +184,14 @@ export class DashboardComponent implements OnInit, OnDestroy {
     this.router.navigate([path]);
   }
 
+  /** Scroll to the RECENT ALERTS section */
+  scrollToRecentAlerts(): void {
+    const element = document.getElementById('recent-alerts-section');
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
   showKeyboardGuide(): void {
     this.kbService.toggleGuide();
   }

@@ -13,8 +13,17 @@
 
   <span class="flex-1-auto"></span>
 
-  <!-- 🔔 NOTIFICATION BELL -->
-  <button mat-icon-button [matMenuTriggerFor]="notifMenu" aria-label="Notifications">
+  <!-- 🔔 NOTIFICATION BELL: Pour Patient -> navigate to alerts, Pour autres -> notification panel -->
+  <!-- Version Patient: Naviguer vers alerts -->
+  <button *ngIf="isPatient()" mat-icon-button (click)="goToAlerts()" aria-label="Mes Alertes">
+    <span class="bell-wrapper">
+      <i-tabler name="bell" class="icon-20 d-flex"></i-tabler>
+      <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>
+    </span>
+  </button>
+
+  <!-- Version autres rôles: Panel Notifications -->
+  <button *ngIf="!isPatient()" mat-icon-button [matMenuTriggerFor]="notifMenu" aria-label="Notifications">
     <span class="bell-wrapper">
       <i-tabler name="bell" class="icon-20 d-flex"></i-tabler>
       <span *ngIf="unreadCount > 0" class="notif-badge">{{ unreadCount > 9 ? '9+' : unreadCount }}</span>

@@ -180,6 +180,17 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
     this.router.navigate([profileRoutes[role] || '/dashboard/profile']);
   }
 
+  /** Return true if user is a patient */
+  isPatient(): boolean {
+    const r = (localStorage.getItem('user_role') || '').toLowerCase();
+    return r === 'patient';
+  }
+
+  /** Navigate to alerts page for patient */
+  goToAlerts(): void {
+    this.router.navigate(['/dashboard/patient/alerts']);
+  }
+
   logout(): void {
     clearAuthLocalStorage();
     this.core.clearRole();

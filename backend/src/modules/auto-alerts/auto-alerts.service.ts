@@ -32,9 +32,14 @@ export class AutoAlertsService {
   }
 
   async countPending(patientId: string): Promise<number> {
+    // Count only today's pending alerts
+    const todayStart = new Date();
+    todayStart.setHours(0, 0, 0, 0);
+    
     return this.autoAlertModel.countDocuments({
       patientId: new Types.ObjectId(patientId),
       status: AutoAlertStatus.PENDING,
+      createdAt: { $gte: todayStart },
     });
   }
 

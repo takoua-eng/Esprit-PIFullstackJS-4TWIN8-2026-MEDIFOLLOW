@@ -9,10 +9,11 @@
     </div>
     <div class="hero-right" *ngIf="pendingAlertsCount > 0">
       <a
-        routerLink="/dashboard/patient/alerts"
+        (click)="scrollToRecentAlerts()"
         class="alert-chip"
         role="alert"
         aria-live="polite"
+        style="cursor: pointer;"
         [attr.aria-label]="pendingAlertsCount + ' alerts pending — press Enter to view'">
         <mat-icon>warning</mat-icon>
         {{ pendingAlertsCount }} {{ 'ALERTS' | translate }} {{ 'PENDING' | translate }}
@@ -174,7 +175,7 @@
 
       <div class="bottom-col bottom-col--narrow">
         <p class="section-label" id="alerts-label">{{ 'RECENT_ALERTS' | translate }}</p>
-        <div class="glass-card alerts-card" role="list" aria-labelledby="alerts-label">
+        <div id="recent-alerts-section" class="glass-card alerts-card" role="list" aria-labelledby="alerts-label">
           <div *ngIf="recentAlerts.length === 0" class="empty-box-sm" role="status">
             <mat-icon aria-hidden="true">notifications_none</mat-icon>
             <p>{{ 'NO_RECENT_ALERTS' | translate }}</p>
