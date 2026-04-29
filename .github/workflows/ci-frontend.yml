@@ -30,18 +30,23 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      # Build Angular — vérifie que le projet compile
       - name: Build Angular application
         working-directory: frontend
         run: npm run build -- --configuration production
         continue-on-error: false
 
-      # Tests Angular — non bloquants si pas de tests écrits
-      - name: Run Angular tests (non-blocking)
+      - name: Run all Angular tests
         working-directory: frontend
-        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage || true
+        run: npm run test -- --watch=false --browsers=ChromeHeadless --code-coverage
         env:
           CI: true
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-coverage
+          path: frontend/coverage/
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master

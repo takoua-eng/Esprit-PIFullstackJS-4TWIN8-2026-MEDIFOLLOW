@@ -30,17 +30,9 @@ jobs:
         working-directory: backend
         run: npm ci
 
-      # Tests coordinator — BLOQUANTS (doivent passer)
-      - name: Run coordinator unit tests
+      - name: Run all backend tests
         working-directory: backend
-        run: npx jest --testPathPattern=coordinator --coverage --coverageDirectory=coverage --passWithNoTests
-        env:
-          NODE_ENV: test
-
-      # Tous les autres tests — NON BLOQUANTS (ignorés si ils échouent)
-      - name: Run all other tests (non-blocking)
-        working-directory: backend
-        run: npx jest --testPathPattern="^(?!.*coordinator).*" --passWithNoTests || true
+        run: npx jest --coverage --coverageDirectory=coverage --passWithNoTests
         env:
           NODE_ENV: test
 
