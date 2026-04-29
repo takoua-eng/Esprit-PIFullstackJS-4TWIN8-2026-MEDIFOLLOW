@@ -1,6 +1,8 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoordinatorController } from './coordinator.controller';
 import { CoordinatorService } from './coordinator.service';
+import { NotificationService } from '../notifications/notification.service';
+
 
 // ── Mock CoordinatorService ───────────────────────────────
 
@@ -18,6 +20,12 @@ const mockCoordinatorService = {
   getPrediction: jest.fn(),
 };
 
+const mockNotificationService = {
+  sendEmail: jest.fn(),
+  sendSms: jest.fn(),
+  buildEmailHtml: jest.fn().mockReturnValue('<html>test</html>'),
+};
+
 // ── Tests ─────────────────────────────────────────────────
 
 describe('CoordinatorController', () => {
@@ -28,6 +36,7 @@ describe('CoordinatorController', () => {
       controllers: [CoordinatorController],
       providers: [
         { provide: CoordinatorService, useValue: mockCoordinatorService },
+        { provide: NotificationService, useValue: mockNotificationService },
       ],
     }).compile();
 
