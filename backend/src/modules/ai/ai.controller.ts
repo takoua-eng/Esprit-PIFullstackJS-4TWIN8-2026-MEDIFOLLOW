@@ -25,6 +25,24 @@ export class AiController {
     return this.aiService.generateAuditReport();
   }
 
+  @Post('audit-report/daily')
+  @Permissions('audit:read')
+  generateDailyReport() {
+    return this.aiService.generateDailyAuditReport();
+  }
+
+  @Post('audit-report/monthly')
+  @Permissions('audit:read')
+  generateMonthlyReport() {
+    return this.aiService.generateMonthlyComplianceReport();
+  }
+
+  @Post('audit-report/suspicious')
+  @Permissions('audit:read')
+  generateSuspiciousReport() {
+    return this.aiService.generateSuspiciousActivityReport();
+  }
+
   @Get('stroke-risk/:patientId')
   @Permissions('*')
   predictStrokeRisk(@Param('patientId') patientId: string) {

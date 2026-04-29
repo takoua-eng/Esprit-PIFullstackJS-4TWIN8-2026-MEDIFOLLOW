@@ -6,6 +6,7 @@ import { TablerIconsModule } from 'angular-tabler-icons';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
+import { MatDialog } from '@angular/material/dialog';
 import { API_BASE_URL } from 'src/app/core/api.config';
 
 @Component({

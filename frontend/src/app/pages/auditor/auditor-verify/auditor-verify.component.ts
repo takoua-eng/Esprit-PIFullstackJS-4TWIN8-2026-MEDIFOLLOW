@@ -13,6 +13,8 @@ import { AuditApiService, AuditLog } from 'src/app/services/audit.service';
 import { interval, Subscription, forkJoin } from 'rxjs';
 import { startWith, switchMap } from 'rxjs/operators';
 import { AuditorLogDetailDialog } from './auditor-log-detail.dialog';
+import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from 'src/app/core/api.config';
 
 type AuditRow = AuditLog & { verified?: boolean };
 
@@ -53,7 +55,7 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   private pollSub?: Subscription;
 
-  constructor(private auditService: AuditApiService, private dialog: MatDialog) {}
+  constructor(private auditService: AuditApiService, private dialog: MatDialog, private http: HttpClient) {}
 
   ngOnInit(): void {
     this.pollSub = interval(20000).pipe(

@@ -249,4 +249,10 @@ export const auditorNavItems: NavItem[] = [
     route: '/auditor/anomalies',
     bgcolor: 'error',
   },
+  {
+    displayName: 'Audit Logs',
+    iconName: 'clipboard-list',
+    route: '/auditor/logs',
+    bgcolor: 'primary',
+  },
 ];

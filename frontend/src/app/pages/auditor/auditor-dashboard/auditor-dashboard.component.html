@@ -1,18 +1,15 @@
 <div class="aud-page p-24">
 
-  <!-- BANNER -->
-  <div class="aud-banner m-b-28">
-    <div class="d-flex align-items-center gap-12">
-      <i-tabler name="shield-check" class="banner-ico"></i-tabler>
-      <div>
-        <h2 class="m-0">Auditor Dashboard</h2>
-        <p class="m-0 f-s-13" style="opacity:.7">Real-time monitoring overview</p>
+  <!-- HEADER -->
+  <div class="aud-header m-b-24">
+    <div class="aud-header-left">
+      <div class="aud-header-icon">
+        <i-tabler name="shield-check" class="icon-24"></i-tabler>
       </div>
-    </div>
-    <div class="d-flex align-items-center gap-8">
-      <span class="live-dot"></span>
-      <span class="live-lbl">LIVE</span>
-      <span class="f-s-12" style="opacity:.7">{{ lastRefresh | date:"HH:mm:ss" }}</span>
+      <div>
+        <h1 class="aud-header-title">Auditor Dashboard</h1>
+        <p class="aud-header-sub">Vue d'ensemble de la surveillance</p>
+      </div>
     </div>
   </div>
 
@@ -258,23 +255,6 @@
                 [style.background]="successRate >= 70 ? '#00b894' : successRate >= 40 ? '#fdcb6e' : '#d63031'">
               </div>
             </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- ── Quick links ─────────────────────────────────────── -->
-  <div class="row">
-    <div class="col-md-3 col-6 m-b-16" *ngFor="let link of quickLinks">
-      <mat-card class="quick-card" [routerLink]="link.route" style="cursor:pointer">
-        <mat-card-content class="d-flex align-items-center gap-12 p-16">
-          <div class="quick-ico" [style.background]="link.color + '18'">
-            <i-tabler [name]="link.icon" [style.color]="link.color" class="icon-22"></i-tabler>
-          </div>
-          <div>
-            <div class="f-w-600 f-s-14">{{ link.label }}</div>
-            <div class="text-muted f-s-12">{{ link.desc }}</div>
           </div>
         </mat-card-content>
       </mat-card>

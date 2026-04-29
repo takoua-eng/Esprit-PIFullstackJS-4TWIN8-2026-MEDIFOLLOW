@@ -1,18 +1,16 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { AddCoordinatorDialog } from './add-coordinateur-dialog';
 
-import { AddCoordinateurDialog } from './add-coordinateur-dialog';
-
-describe('AddCoordinateurDialog', () => {
-  let component: AddCoordinateurDialog;
-  let fixture: ComponentFixture<AddCoordinateurDialog>;
+describe('AddCoordinatorDialog', () => {
+  let component: AddCoordinatorDialog;
+  let fixture: ComponentFixture<AddCoordinatorDialog>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddCoordinateurDialog]
-    })
-    .compileComponents();
+      imports: [AddCoordinatorDialog]
+    }).compileComponents();
 
-    fixture = TestBed.createComponent(AddCoordinateurDialog);
+    fixture = TestBed.createComponent(AddCoordinatorDialog);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

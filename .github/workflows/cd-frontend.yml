@@ -1,15 +1,15 @@
-name: CD Backend
+name: CD Frontend
 
 on:
   workflow_run:
-    workflows: ["CI Backend"]
+    workflows: ["CI Frontend"]
     types:
       - completed
     branches: [main]
 
 jobs:
   deploy:
-    name: Build & Push Docker Image
+    name: Build & Push Frontend Docker Image
     runs-on: ubuntu-latest
     if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
@@ -20,11 +20,11 @@ jobs:
       - name: Check if Dockerfile exists
         id: check_dockerfile
         run: |
-          if [ -f "./backend/Dockerfile" ]; then
+          if [ -f "./frontend/Dockerfile" ]; then
             echo "exists=true" >> $GITHUB_OUTPUT
           else
             echo "exists=false" >> $GITHUB_OUTPUT
-            echo "⚠️ No Dockerfile found — skipping Docker build"
+            echo "⚠️ No Dockerfile found in frontend/ — skipping Docker build"
           fi
 
       - name: Login to DockerHub
@@ -34,19 +34,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Build and push backend image
+      - name: Build and push frontend image
         if: steps.check_dockerfile.outputs.exists == 'true'
         uses: docker/build-push-action@v5
         with:
-          context: ./backend
-          file: ./backend/Dockerfile
+          context: ./frontend
+          file: ./frontend/Dockerfile
           push: true
-          tags: takouanaceur/medifolllow-backend:latest
+          tags: takouanaceur/medifolllow-frontend:latest
 
       - name: Deployment summary
         run: |
           if [ "${{ steps.check_dockerfile.outputs.exists }}" == "true" ]; then
-            echo "✅ Backend image pushed to DockerHub"
+            echo "✅ Frontend image pushed to DockerHub"
           else
             echo "⏭️ Docker build skipped — Dockerfile not found yet"
           fi

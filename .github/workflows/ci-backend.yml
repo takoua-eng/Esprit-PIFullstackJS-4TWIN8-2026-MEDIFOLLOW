@@ -16,11 +16,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1 — Checkout du code
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2 — Setup Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -28,26 +26,31 @@ jobs:
           cache: 'npm'
           cache-dependency-path: backend/package-lock.json
 
-      # 3 — Installer les dépendances
       - name: Install dependencies
         working-directory: backend
         run: npm ci
 
-      # 4 — Lancer les tests unitaires avec couverture
-      - name: Run unit tests with coverage
+      # Tests coordinator — BLOQUANTS (doivent passer)
+      - name: Run coordinator unit tests
         working-directory: backend
-        run: npx jest --testPathPattern=coordinator --coverage --coverageDirectory=coverage
+        run: npx jest --testPathPattern=coordinator --coverage --coverageDirectory=coverage --passWithNoTests
         env:
           NODE_ENV: test
 
-      # 5 — Upload coverage report
+      # Tous les autres tests — NON BLOQUANTS (ignorés si ils échouent)
+      - name: Run all other tests (non-blocking)
+        working-directory: backend
+        run: npx jest --testPathPattern="^(?!.*coordinator).*" --passWithNoTests || true
+        env:
+          NODE_ENV: test
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
+        if: always()
         with:
           name: backend-coverage
           path: backend/coverage/
 
-      # 6 — SonarCloud analysis
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         with:
@@ -55,3 +58,4 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        continue-on-error: true

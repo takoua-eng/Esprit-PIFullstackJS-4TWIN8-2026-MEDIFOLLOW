@@ -51,16 +51,16 @@
       <mat-card class="cardWithShadow">
         <mat-card-content class="p-20">
           <div class="f-s-12 text-muted m-b-8">Breakdown</div>
-          <div class="d-flex flex-column gap-4">
-            <div class="d-flex justify-content-between">
+          <div style="display:flex; flex-direction:column; gap:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="f-s-13" style="color:#00b894">Sent</span>
               <strong>{{ stats.sentCount }}</strong>
             </div>
-            <div class="d-flex justify-content-between">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="f-s-13" style="color:#0984e3">Scheduled</span>
               <strong>{{ stats.scheduledCount }}</strong>
             </div>
-            <div class="d-flex justify-content-between">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
               <span class="f-s-13" style="color:#d63031">Cancelled</span>
               <strong>{{ stats.cancelledCount }}</strong>
             </div>
