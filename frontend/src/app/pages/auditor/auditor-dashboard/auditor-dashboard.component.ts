@@ -8,7 +8,6 @@ import { startWith, switchMap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import { MatDialog } from '@angular/material/dialog';
 import { API_BASE_URL } from 'src/app/core/api.config';
-import { AuditorReportDialog } from '../auditor-verify/auditor-report.dialog';
 
 @Component({
   selector: 'app-auditor-dashboard',
@@ -64,7 +63,7 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
     { label: 'Anomalies',     desc: 'Missing data detection',  icon: 'alert-triangle', color: '#d63031', route: '/auditor/anomalies' },
   ];
 
-  constructor(private http: HttpClient, private dialog: MatDialog) {}
+  constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadAuditAI();
@@ -104,20 +103,6 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void { this.sub?.unsubscribe(); }
-
-  // ── Report Generation ─────────────────────────────────────
-  reportLoading: 'daily' | 'monthly' | 'suspicious' | null = null;
-
-  generateReport(type: 'daily' | 'monthly' | 'suspicious'): void {
-    this.reportLoading = type;
-    this.http.post<any>(`${API_BASE_URL}/ai/audit-report/${type}`, {}).subscribe({
-      next: (res) => {
-        this.reportLoading = null;
-        this.dialog.open(AuditorReportDialog, { width: '780px', maxWidth: '96vw', data: { ...res, type } });
-      },
-      error: () => { this.reportLoading = null; },
-    });
-  }
 
   loadAuditAI(): void {
     this.aiAuditLoading = true;
