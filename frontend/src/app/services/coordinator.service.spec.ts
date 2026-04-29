@@ -18,16 +18,12 @@ describe('CoordinatorService', () => {
   });
 
   afterEach(() => {
-    httpMock.verify(); // vérifie qu'aucune requête HTTP non attendue n'est en suspens
+    httpMock.verify();
   });
-
-  // ── 1. Service defined ───────────────────────────────────
 
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
-
-  // ── 2. getDashboard ──────────────────────────────────────
 
   describe('getDashboard', () => {
     it('should GET dashboard for coordinator', () => {
@@ -43,8 +39,6 @@ describe('CoordinatorService', () => {
     });
   });
 
-  // ── 3. getAssignedPatients ───────────────────────────────
-
   describe('getAssignedPatients', () => {
     it('should GET assigned patients list', () => {
       const mockPatients = [
@@ -52,7 +46,7 @@ describe('CoordinatorService', () => {
       ];
 
       service.getAssignedPatients(coordId).subscribe((res) => {
-        expect(res).toHaveLength(1);
+        expect(res.length).toBe(1); // ✔ corrigé : toHaveLength → .length).toBe()
         expect(res[0].name).toBe('Karim Sassi');
       });
 
@@ -61,8 +55,6 @@ describe('CoordinatorService', () => {
       req.flush(mockPatients);
     });
   });
-
-  // ── 4. getComplianceToday ────────────────────────────────
 
   describe('getComplianceToday', () => {
     it('should GET compliance data for today', () => {
@@ -80,8 +72,6 @@ describe('CoordinatorService', () => {
     });
   });
 
-  // ── 5. getReminders ──────────────────────────────────────
-
   describe('getReminders', () => {
     it('should GET reminders for coordinator', () => {
       const mockReminders = [
@@ -90,7 +80,7 @@ describe('CoordinatorService', () => {
       ];
 
       service.getReminders(coordId).subscribe((res) => {
-        expect(res).toHaveLength(2);
+        expect(res.length).toBe(2); // ✔ corrigé : toHaveLength → .length).toBe()
         expect(res[0].status).toBe('sent');
       });
 
@@ -99,8 +89,6 @@ describe('CoordinatorService', () => {
       req.flush(mockReminders);
     });
   });
-
-  // ── 6. createReminder ────────────────────────────────────
 
   describe('createReminder', () => {
     it('should POST a new reminder', () => {
@@ -119,8 +107,6 @@ describe('CoordinatorService', () => {
     });
   });
 
-  // ── 7. sendReminder ──────────────────────────────────────
-
   describe('sendReminder', () => {
     it('should PUT to send reminder', () => {
       const mockSent = { _id: 'r1', status: 'sent', emailSent: true };
@@ -136,8 +122,6 @@ describe('CoordinatorService', () => {
     });
   });
 
-  // ── 8. cancelReminder ────────────────────────────────────
-
   describe('cancelReminder', () => {
     it('should PUT to cancel reminder', () => {
       const mockCancelled = { _id: 'r1', status: 'cancelled' };
@@ -152,8 +136,6 @@ describe('CoordinatorService', () => {
     });
   });
 
-  // ── 9. deleteReminder ────────────────────────────────────
-
   describe('deleteReminder', () => {
     it('should DELETE a reminder', () => {
       service.deleteReminder('r1').subscribe((res: any) => {
@@ -165,8 +147,6 @@ describe('CoordinatorService', () => {
       req.flush({ message: 'Reminder deleted' });
     });
   });
-
-  // ── 10. updateReminder ───────────────────────────────────
 
   describe('updateReminder', () => {
     it('should PUT updated reminder fields', () => {
@@ -183,8 +163,6 @@ describe('CoordinatorService', () => {
       req.flush(mockUpdated);
     });
   });
-
-  // ── 11. getPersonalizedMessage ───────────────────────────
 
   describe('getPersonalizedMessage', () => {
     it('should GET personalized message for patient', () => {
@@ -204,8 +182,6 @@ describe('CoordinatorService', () => {
       req.flush(mockMsg);
     });
   });
-
-  // ── 12. buildReminderMessages (pure function) ────────────
 
   describe('buildReminderMessages', () => {
     it('should include combined message when both vitals and symptoms are missing', () => {
