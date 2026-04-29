@@ -73,20 +73,23 @@ function getDateRangeForMode(mode: TrafficStatsMode): { start: Date; end: Date }
   const now = new Date();
   switch (mode) {
     case 'day': {
-      const start = new Date(now);
-      start.setHours(0, 0, 0, 0);
-      const end = new Date(now);
-      end.setHours(23, 59, 59, 999);
+      const start = new Date(now); start.setHours(0, 0, 0, 0);
+      const end   = new Date(now); end.setHours(23, 59, 59, 999);
       return { start, end };
     }
     case 'month': {
       const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-      const end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      const end   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
       return { start, end };
     }
     case 'year': {
       const start = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
-      const end = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+      const end   = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+      return { start, end };
+    }
+    default: {
+      const start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+      const end   = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
       return { start, end };
     }
   }
@@ -264,16 +267,36 @@ export class AdminService {
       this.aggregatePeriodStats(patientRoleId),
     ]);
 
-    return {
-      totalPatients,
-      totalPhysicians,
-      totalNurses,
-      totalCoordinators,
-      totalAuditors,
-      patientsThisMonth: periodStats.patientsThisMonth,
-      newUsersThisWeek: periodStats.newUsersThisWeek,
-      activePatients: periodStats.activePatients,
-    };
+const complianceRate = await this.computeCompletedQuestionnaireRate(
+  startOfCurrentMonth(),
+  new Date(),
+);
+
+return {
+  // Champs existants
+  totalPatients,
+  totalPhysicians,
+  totalNurses,
+  totalCoordinators,
+  totalAuditors,
+  patientsThisMonth: periodStats.patientsThisMonth,
+  newUsersThisWeek:  periodStats.newUsersThisWeek,
+  activePatients:    periodStats.activePatients,
+
+  // Alias pour le frontend
+  patients:     totalPatients,
+  doctors:      totalPhysicians,
+  nurses:       totalNurses,
+  coordinators: totalCoordinators,
+
+  // Nouveaux champs dashboard
+  // Pour l'instant 0 car tu n'as pas encore de collection Alert
+  // → à brancher quand tu auras le module Alerts
+  activeAlerts:   0,
+  criticalAlerts: 0,
+  complianceRate,
+};
+
   }
 
   async getTrafficStats(mode: TrafficStatsMode): Promise<TrafficStatsResponseDto> {

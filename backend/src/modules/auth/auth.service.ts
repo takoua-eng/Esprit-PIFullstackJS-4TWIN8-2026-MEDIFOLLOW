@@ -54,6 +54,27 @@ export class AuthService {
     return { message: 'Mot de passe réinitialisé avec succès' };
   }
 
+  async changePassword(email: string, currentPassword: string, newPassword: string, token: string) {
+    const user = await this.userModel.findOne({ email, resetToken: token }).exec();
+    if (!user) throw new BadRequestException('Code de vérification invalide ou utilisateur introuvable');
+
+    if ((user as any).resetTokenExpiry < Date.now()) {
+      throw new BadRequestException('Code de vérification expiré');
+    }
+
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      throw new BadRequestException('Le mot de passe actuel est incorrect');
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    (user as any).resetToken = null;
+    (user as any).resetTokenExpiry = null;
+    await user.save();
+
+    return { message: 'Mot de passe modifié avec succès' };
+  }
+
   async signIn(
     signInDto: SignInDto,
     req: Request,
@@ -139,6 +160,12 @@ export class AuthService {
   }
 
   private async sendResetEmail(email: string, token: string) {
+    console.log('--- DEBUG SMTP CONFIG ---');
+    console.log('HOST:', this.configService.get<string>('SMTP_HOST'));
+    console.log('PORT:', this.configService.get<string>('SMTP_PORT'));
+    console.log('USER:', this.configService.get<string>('SMTP_USER'));
+    console.log('-------------------------');
+
     const transporter = nodemailer.createTransport({
       host: this.configService.get<string>('SMTP_HOST'),
       port: Number(this.configService.get<string>('SMTP_PORT')),
@@ -152,16 +179,21 @@ export class AuthService {
     // Code validation instead of Link
     // const resetLink = `${this.configService.get<string>('FRONTEND_URL')}/reset-password?token=${token}`;
 
-    await transporter.sendMail({
-      from: `"Mediflow" <${this.configService.get<string>('SMTP_USER')}>`,
-      to: email,
-      subject: 'Réinitialisation du mot de passe',
-      html: `
-        <h3>Réinitialisation du mot de passe</h3>
-        <p>Voici votre code de vérification pour réinitialiser votre mot de passe :</p>
-        <h2 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 2px;">${token}</h2>
-        <p>Ce code expirera dans 1 heure.</p>
-      `,
-    });
+    try {
+      await transporter.sendMail({
+        from: `"Mediflow" <${this.configService.get<string>('SMTP_USER')}>`,
+        to: email,
+        subject: 'Réinitialisation du mot de passe',
+        html: `
+          <h3>Réinitialisation du mot de passe</h3>
+          <p>Voici votre code de vérification pour réinitialiser votre mot de passe :</p>
+          <h2 style="background: #f4f4f4; padding: 10px; display: inline-block; letter-spacing: 2px;">${token}</h2>
+          <p>Ce code expirera dans 1 heure.</p>
+        `,
+      });
+    } catch (error) {
+      console.warn(`⚠️ ERREUR SMTP: Impossible d'envoyer l'email à ${email}.`);
+      console.warn(`👉 [MODE DÉVELOPPEMENT] Voici le code OTP généré pour vos tests : ${token}`);
+    }
   }
 }

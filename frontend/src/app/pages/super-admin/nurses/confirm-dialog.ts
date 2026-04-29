@@ -18,7 +18,7 @@ export interface ConfirmDialogData {
 }
 
 @Component({
-  selector: 'app-confirm-dialog',
+  selector: 'app-sa-nurse-confirm-dialog',
   standalone: true,
   template: `
     <div class="p-4">

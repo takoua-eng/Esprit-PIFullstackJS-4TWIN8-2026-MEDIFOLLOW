@@ -487,7 +487,7 @@ updateAuditor(
       if (user._id !== id) {
         throw new ForbiddenException('Access denied: you can only edit your own profile');
       }
-      const allowed = ['firstName', 'lastName', 'phone', 'address', 'photo'];
+      const allowed = ['firstName', 'lastName', 'phone', 'address', 'photo', 'email'];
       const filtered = Object.keys(dto)
         .filter(k => allowed.includes(k))
         .reduce((o: any, k) => { o[k] = dto[k]; return o; }, {});

@@ -7,11 +7,10 @@ export interface TrafficChartPointDto {
 }
 
 export interface TrafficStatsResponseDto {
-  visits: number;
+  visits:      number;
   uniqueUsers: number;
-  pageViews: number;
+  pageViews:   number;
   newPatients: number;
-  /** Entre 0 et 100 : part des questionnaires complétés (`status: completed`) sur la période. */
   followUpRate: number;
-  chartData: TrafficChartPointDto[];
+  chartData:   TrafficChartPointDto[];
 }
