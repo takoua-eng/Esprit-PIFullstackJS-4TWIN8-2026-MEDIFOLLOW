@@ -75,6 +75,12 @@ export class AuthController {
     return this.authService.resetPassword(body.token, body.newPassword);
   }
 
+  // ================= CHANGE PASSWORD (LOGGED IN) =================
+  @Post('change-password')
+  changePassword(@Body() body: any) {
+    return this.authService.changePassword(body.email, body.currentPassword, body.newPassword, body.token);
+  }
+
   // ================= FACE LOGIN =================
   @Post('face-login')
   async faceLogin(@Body() body: any) {

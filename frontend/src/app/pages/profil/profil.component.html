@@ -1,79 +1,97 @@
-﻿
-﻿<div class="profile-page">
+<div class="profile-page">
   <div class="profile-wrapper">
-    <mat-card class="profile-card cardWithShadow">
-      <mat-card-content>
+    <div class="profile-card">
+      <!-- Cover Banner -->
+      <div class="profile-cover"></div>
 
-        <!-- Header -->
+      <!-- Main Content -->
+      <div class="profile-content">
+        <!-- Header: Avatar + Info -->
         <div class="profile-header">
           <div class="avatar-wrapper">
-            <img [src]="profile.avatar" [alt]="profile.name" class="profile-avatar" />
-            <div class="role-dot"></div>
+            <ng-container *ngIf="profile.avatar; else initialsAvatar">
+              <img [src]="profile.avatar" [alt]="profile.name" class="profile-avatar" />
+            </ng-container>
+            <ng-template #initialsAvatar>
+              <div class="profile-avatar-initials">
+                {{ profile.initials }}
+              </div>
+            </ng-template>
+            <div class="role-status-pulse"></div>
           </div>
           <div class="profile-identity">
             <h2 class="profile-name">{{ profile?.name }}</h2>
-            <div class="profile-role-badge">{{ profile?.role }}</div>
-            <div class="profile-hospital">{{ profile?.hospital }}</div>
+            <div class="profile-meta">
+              <span class="profile-role-badge">{{ profile?.role }}</span>
+              <span class="profile-hospital">
+                <i-tabler name="building-hospital" class="icon-18"></i-tabler>
+                {{ profile?.hospital }}
+              </span>
+            </div>
           </div>
         </div>
 
-        <mat-divider class="m-t-16 m-b-24"></mat-divider>
-
-        <!-- Fields -->
-        <div class="profile-fields">
-
-          <div class="profile-field">
-            <div class="field-icon-wrap">
-              <i-tabler name="mail" class="field-icon"></i-tabler>
+        <!-- Details Grid -->
+        <div class="profile-fields-grid">
+          
+          <div class="profile-field-glass">
+            <div class="field-icon-wrap bg-light-primary text-primary">
+              <i-tabler name="mail" class="icon-20"></i-tabler>
             </div>
-            <div class="field-content">
+            <div class="field-data">
               <div class="field-label">{{ 'EMAIL' | translate }}</div>
               <div class="field-value">{{ profile.email }}</div>
             </div>
           </div>
 
-          <div class="profile-field">
-            <div class="field-icon-wrap">
-              <i-tabler name="phone" class="field-icon"></i-tabler>
+          <div class="profile-field-glass">
+            <div class="field-icon-wrap bg-light-success text-success">
+              <i-tabler name="phone" class="icon-20"></i-tabler>
             </div>
-            <div class="field-content">
+            <div class="field-data">
               <div class="field-label">{{ 'PHONE' | translate }}</div>
               <div class="field-value">{{ profile.phone || '—' }}</div>
             </div>
           </div>
 
-          <div class="profile-field">
-            <div class="field-icon-wrap">
-              <i-tabler name="building-hospital" class="field-icon"></i-tabler>
+          <div class="profile-field-glass">
+            <div class="field-icon-wrap bg-light-warning text-warning">
+              <i-tabler name="stethoscope" class="icon-20"></i-tabler>
             </div>
-            <div class="field-content">
+            <div class="field-data">
               <div class="field-label">{{ 'SERVICE_UNIT' | translate }}</div>
               <div class="field-value">{{ profile.service || '—' }}</div>
             </div>
           </div>
 
-          <div class="profile-field">
-            <div class="field-icon-wrap">
-              <i-tabler name="shield-check" class="field-icon"></i-tabler>
+          <div class="profile-field-glass">
+            <div class="field-icon-wrap bg-light-info text-info">
+              <i-tabler name="shield-check" class="icon-20"></i-tabler>
             </div>
-            <div class="field-content">
+            <div class="field-data">
               <div class="field-label">{{ 'STATUS' | translate }}</div>
               <div class="field-value">
-                <span class="active-badge">{{ 'ACTIVE' | translate }}</span>
+                <span class="status-indicator active">
+                  <span class="dot"></span> {{ 'ACTIVE' | translate }}
+                </span>
               </div>
             </div>
           </div>
 
         </div>
 
+        <!-- Actions -->
         <div class="profile-actions">
-          <button mat-flat-button color="primary">
-            <i-tabler name="edit" class="icon-16"></i-tabler>
+          <button mat-stroked-button color="primary" class="btn-premium-outline" (click)="openChangePasswordDialog()">
+            <i-tabler name="key" class="icon-18 m-r-8"></i-tabler>
+            Change Password
+          </button>
+          <button mat-flat-button color="primary" class="btn-premium" (click)="openEditProfileDialog()">
+            <i-tabler name="edit" class="icon-18 m-r-8"></i-tabler>
             {{ 'EDIT_PROFILE' | translate }}
           </button>
         </div>
-
-      </mat-card-content>
-    </mat-card>
+      </div>
+    </div>
   </div>
 </div>

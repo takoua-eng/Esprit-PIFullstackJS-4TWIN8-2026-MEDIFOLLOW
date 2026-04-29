@@ -1,0 +1,75 @@
+<h2 mat-dialog-title class="dialog-title">
+  <i-tabler name="user-edit" class="icon-24 m-r-8"></i-tabler>
+  Éditer le profil
+</h2>
+
+<mat-dialog-content>
+  <div class="message-box" *ngIf="message" [ngClass]="{'error': isError, 'success': !isError}">
+    <i-tabler *ngIf="isError" name="alert-triangle" class="m-r-8"></i-tabler>
+    <i-tabler *ngIf="!isError" name="check" class="m-r-8"></i-tabler>
+    <span>{{ message }}</span>
+  </div>
+
+  <div class="avatar-upload-container">
+    <div class="avatar-preview" (click)="triggerFileInput()">
+      <ng-container *ngIf="imagePreview; else initialsAvatar">
+        <img [src]="imagePreview" alt="Aperçu Avatar" class="profile-avatar" />
+      </ng-container>
+      <ng-template #initialsAvatar>
+        <div class="profile-avatar-initials">
+          {{ initials }}
+        </div>
+      </ng-template>
+      <div class="avatar-edit-overlay">
+        <i-tabler name="camera" class="icon-24"></i-tabler>
+      </div>
+    </div>
+    <input type="file" id="avatar-upload" class="d-none" accept="image/*" (change)="onFileSelected($event)">
+    <p class="upload-hint">Cliquez pour modifier la photo</p>
+  </div>
+
+  <form [formGroup]="form" (ngSubmit)="submit()" class="profile-form">
+    <div class="form-row">
+      <mat-form-field appearance="outline" class="w-100 m-r-8">
+        <mat-label>Prénom</mat-label>
+        <input matInput formControlName="firstName" />
+        <mat-error *ngIf="form.get('firstName')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+
+      <mat-form-field appearance="outline" class="w-100 m-l-8">
+        <mat-label>Nom</mat-label>
+        <input matInput formControlName="lastName" />
+        <mat-error *ngIf="form.get('lastName')?.hasError('required')">Requis</mat-error>
+      </mat-form-field>
+    </div>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Email</mat-label>
+      <input matInput formControlName="email" type="email" />
+      <mat-icon matPrefix>mail</mat-icon>
+      <mat-error *ngIf="form.get('email')?.hasError('required')">Requis</mat-error>
+      <mat-error *ngIf="form.get('email')?.hasError('email')">Format invalide</mat-error>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Téléphone</mat-label>
+      <input matInput formControlName="phone" />
+      <mat-icon matPrefix>phone</mat-icon>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="w-100">
+      <mat-label>Adresse</mat-label>
+      <input matInput formControlName="address" />
+      <mat-icon matPrefix>location_on</mat-icon>
+    </mat-form-field>
+
+  </form>
+</mat-dialog-content>
+
+<mat-dialog-actions align="end" class="dialog-actions">
+  <button mat-stroked-button (click)="close()" [disabled]="isLoading">Annuler</button>
+  <button mat-flat-button color="primary" (click)="submit()" [disabled]="form.invalid || isLoading" class="btn-premium">
+    <i-tabler *ngIf="isLoading" name="loader" class="spin m-r-8"></i-tabler>
+    Enregistrer
+  </button>
+</mat-dialog-actions>

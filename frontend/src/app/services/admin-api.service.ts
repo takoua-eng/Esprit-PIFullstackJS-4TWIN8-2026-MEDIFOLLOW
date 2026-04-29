@@ -10,6 +10,10 @@ export interface AdminStats {
   totalNurses?: number;
   totalCoordinators?: number;
   totalAuditors?: number;
+    // ── champs à ajouter ──
+  activeAlerts:   number;
+  criticalAlerts: number;
+  complianceRate: number;
 }
 
 export type TrafficViewMode = 'day' | 'month' | 'year';

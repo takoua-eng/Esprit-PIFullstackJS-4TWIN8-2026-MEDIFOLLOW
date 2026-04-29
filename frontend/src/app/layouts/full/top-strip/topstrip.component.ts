@@ -52,6 +52,44 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
 
   get unreadNotifs(): AppNotification[] { return this.notifications.filter(n => !n.isRead); }
 
+  get currentUserData(): any {
+    try { return JSON.parse(localStorage.getItem('medi_follow_user_data') || '{}'); }
+    catch { return {}; }
+  }
+
+  get userInitials(): string {
+    const data = this.currentUserData;
+    const first = data.firstName || data.name || '';
+    const last = data.lastName || '';
+    if (first && last) {
+      return (first.charAt(0) + last.charAt(0)).toUpperCase();
+    }
+    if (first) {
+      return first.substring(0, 2).toUpperCase();
+    }
+    if (data.email) {
+      return data.email.substring(0, 2).toUpperCase();
+    }
+    return 'U';
+  }
+
+  get userAvatar(): string | null {
+    const data = this.currentUserData;
+    const photoSource = data.photo || data.image || data.avatar;
+    
+    if (photoSource && typeof photoSource === 'string' && photoSource !== 'null' && photoSource !== 'undefined' && photoSource !== '') {
+      let photoPath = photoSource.replace(/\\/g, '/');
+      if (photoPath.startsWith('http')) {
+        return photoPath;
+      } else if (photoPath.startsWith('uploads/')) {
+        return `http://localhost:3000/${photoPath}`;
+      } else {
+        return `http://localhost:3000/uploads/${photoPath}`;
+      }
+    }
+    return null;
+  }
+
   constructor(
     private translate: TranslateService,
     private notifService: NotificationBellService,

@@ -1,13 +1,23 @@
-export interface AdminStatsDto {
-  totalPatients: number;
-  totalPhysicians: number;
-  totalNurses: number;
+// admin-stats.dto.ts — version complète
+export class AdminStatsDto {
+  // ── champs existants ────────────────────────────────
+  totalPatients:     number;
+  totalPhysicians:   number;
+  totalNurses:       number;
   totalCoordinators: number;
-  totalAuditors: number;
-  /** Patients inscrits depuis le 1er jour du mois courant (createdAt). */
+  totalAuditors:     number;
   patientsThisMonth: number;
-  /** Utilisateurs non archivés créés depuis le lundi 00:00 de la semaine courante (createdAt). */
-  newUsersThisWeek: number;
-  /** Patients dont la dernière activité (updatedAt) est dans les N derniers jours (voir ACTIVE_PATIENT_DAYS). */
-  activePatients: number;
+  newUsersThisWeek:  number;
+  activePatients:    number;
+
+  // ── alias frontend ───────────────────────────────────
+  patients:     number;
+  doctors:      number;
+  nurses:       number;
+  coordinators: number;
+
+  // ── nouveaux champs dashboard ────────────────────────
+  activeAlerts:   number;
+  criticalAlerts: number;
+  complianceRate: number;
 }
