@@ -397,6 +397,106 @@ export class CoordinatorService {
     };
   }
 
+
+  // ─── ML MODEL PREDICTION (RandomForest — not yet wired to router) ────────────
+
+private async getPredictionFromMLModel(coordinatorId: string): Promise<any> {
+  const coordinator = await this.userModel
+    .findById(coordinatorId)
+    .populate('assignedPatients')
+    .exec();
+
+  if (!coordinator) throw new NotFoundException('Coordinator not found');
+
+  const patients = (coordinator.assignedPatients || []) as unknown as UserDocument[];
+  const patientIds = patients.map((p) => p._id as Types.ObjectId);
+  const { start, end } = this.getDateRange(7);
+
+  const [vitalHistory, symptomHistory, recentReminders] = await Promise.all([
+    this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: start, $lte: end } }).lean(),
+    this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: start, $lte: end } }).lean(),
+    this.reminderModel.find({ sentBy: new Types.ObjectId(coordinatorId), sentAt: { $gte: start, $lte: end } }).lean(),
+  ]);
+
+  const { start: todayStart, end: todayEnd } = this.getTodayRange();
+  const todayVitals = await this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: todayStart, $lte: todayEnd } }).lean();
+  const todaySymptoms = await this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: todayStart, $lte: todayEnd } }).lean();
+
+  const features = patients.map((p) => {
+    const pid = p._id.toString();
+
+    const patientVitals7 = vitalHistory.filter((v: any) => v.patientId?.toString() === pid);
+    const patientSymptoms7 = symptomHistory.filter((s: any) => s.patientId?.toString() === pid);
+    const patientReminders7 = recentReminders.filter((r: any) => r.patientId?.toString() === pid);
+
+    const vitalDays = new Set(patientVitals7.map((v: any) => new Date(v.recordedAt).toISOString().split('T')[0]));
+    const symptomDays = new Set(patientSymptoms7.map((s: any) => new Date(s.reportedAt).toISOString().split('T')[0]));
+
+    const submittedLast7 = [...vitalDays].filter((d) => symptomDays.has(d)).length;
+    const missedLast7 = 7 - submittedLast7;
+
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = yesterday.toISOString().split('T')[0];
+    const submittedYesterday = vitalDays.has(yesterdayKey) && symptomDays.has(yesterdayKey) ? 1 : 0;
+
+    let consecutiveMissedDays = 0;
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      if (!vitalDays.has(key) && !symptomDays.has(key)) consecutiveMissedDays++;
+      else break;
+    }
+
+    const todayVitalDoc = todayVitals.find((v: any) => v.patientId?.toString() === pid);
+    const todaySymptomDoc = todaySymptoms.find((s: any) => s.patientId?.toString() === pid);
+    const missingVitals = todayVitalDoc ? this.checkVitalFields(todayVitalDoc) : ['Temperature', 'Heart Rate', 'Blood Pressure', 'Weight'];
+    const missingSymptoms = todaySymptomDoc ? this.checkSymptomFields(todaySymptomDoc) : ['Pain Level', 'Fatigue Level', 'Symptoms List'];
+
+    const dayOfWeek = new Date().getDay();
+
+    return {
+      patient_id: pid,
+      age: (p as any).age ?? 40,
+      gender: (p as any).gender ?? 'unknown',
+      department: p.department ?? 'General Medicine',
+      vitals_submitted_today: todayVitalDoc ? 1 : 0,
+      symptoms_submitted_today: todaySymptomDoc ? 1 : 0,
+      temperature_filled: missingVitals.includes('Temperature') ? 0 : 1,
+      heart_rate_filled: missingVitals.includes('Heart Rate') ? 0 : 1,
+      blood_pressure_filled: missingVitals.includes('Blood Pressure') ? 0 : 1,
+      weight_filled: missingVitals.includes('Weight') ? 0 : 1,
+      pain_level_filled: missingSymptoms.includes('Pain Level') ? 0 : 1,
+      fatigue_level_filled: missingSymptoms.includes('Fatigue Level') ? 0 : 1,
+      symptoms_list_filled: missingSymptoms.includes('Symptoms List') ? 0 : 1,
+      missing_vitals_count: missingVitals.length,
+      missing_symptoms_count: missingSymptoms.length,
+      total_missing_fields: missingVitals.length + missingSymptoms.length,
+      submitted_yesterday: submittedYesterday,
+      missed_yesterday: 1 - submittedYesterday,
+      missed_last_3_days: missedLast7 > 3 ? 3 : missedLast7,
+      missed_last_7_days: missedLast7,
+      submitted_last_7_days: submittedLast7,
+      compliance_rate_last_7_days: parseFloat((submittedLast7 / 7).toFixed(3)),
+      reminders_sent_last_7_days: patientReminders7.length,
+      last_reminder_days_ago: patientReminders7.length > 0 ? 1 : 14,
+      pending_reminders_count: patientReminders7.filter((r: any) => r.status === 'scheduled').length,
+      consecutive_missed_days: consecutiveMissedDays,
+      day_of_week: dayOfWeek,
+      is_weekend: dayOfWeek === 0 || dayOfWeek === 6 ? 1 : 0,
+    };
+  });
+
+  const mlResponse = await fetch('http://localhost:8001/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ patients: features }),
+  });
+
+  const mlResult = await mlResponse.json();
+  return mlResult.predictions;
+}
+
+
   // ─── AUDITOR: AI INSIGHTS ────────────────────────────────────
 
   async getAiInsights() {
