@@ -6,7 +6,7 @@ import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
 
-import { CoordinatorDashboard } from './coordinator-dashboard.component';
+import { CoordinatorDashboardComponent } from './coordinator-dashboard.component';
 import { CoordinatorService } from 'src/app/services/coordinator.service';
 import { CoreService } from 'src/app/services/core.service';
 
@@ -32,35 +32,41 @@ const mockDashboardData = {
 };
 
 const mockCoordinatorService = {
-  getDashboard: jest.fn().mockReturnValue(of(mockDashboardData)),
-  getAssignedPatients: jest.fn().mockReturnValue(of([])),
-  getComplianceToday: jest.fn().mockReturnValue(of([])),
-  getPatientsWithCompliance: jest.fn().mockReturnValue(of([])),
+  getDashboard:            jasmine.createSpy('getDashboard').and.returnValue(of(mockDashboardData)),
+  getAssignedPatients:     jasmine.createSpy('getAssignedPatients').and.returnValue(of([])),
+  getComplianceToday:      jasmine.createSpy('getComplianceToday').and.returnValue(of([])),
+  getPatientsWithCompliance: jasmine.createSpy('getPatientsWithCompliance').and.returnValue(of([])),
 };
 
 const mockCoreService = {
-  currentUser: jest.fn().mockReturnValue({ _id: 'coord123' }),
+  currentUser: jasmine.createSpy('currentUser').and.returnValue({ _id: 'coord123' }),
 };
 
-describe('CoordinatorDashboard', () => {
-  let component: CoordinatorDashboard;
-  let fixture: ComponentFixture<CoordinatorDashboard>;
+describe('CoordinatorDashboardComponent', () => {
+  let component: CoordinatorDashboardComponent;
+  let fixture: ComponentFixture<CoordinatorDashboardComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoordinatorDashboard, HttpClientTestingModule, NoopAnimationsModule],
+      imports: [CoordinatorDashboardComponent, HttpClientTestingModule, NoopAnimationsModule],
       providers: [
         { provide: CoordinatorService, useValue: mockCoordinatorService },
         { provide: CoreService, useValue: mockCoreService },
       ],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(CoordinatorDashboard);
+    fixture = TestBed.createComponent(CoordinatorDashboardComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  afterEach(() => jest.clearAllMocks());
+  afterEach(() => {
+    mockCoordinatorService.getDashboard.calls.reset();
+    mockCoordinatorService.getAssignedPatients.calls.reset();
+    mockCoordinatorService.getComplianceToday.calls.reset();
+    mockCoordinatorService.getPatientsWithCompliance.calls.reset();
+    mockCoreService.currentUser.calls.reset();
+  });
 
   it('should create', () => {
     expect(component).toBeTruthy();
@@ -74,4 +80,3 @@ describe('CoordinatorDashboard', () => {
     expect(component.coordinatorId).toBe('coord123');
   });
 });
-
