@@ -8,6 +8,7 @@ import { User, UserSchema } from '../users/users.schema';
 import { Role, RoleSchema } from '../roles/role.schema';
 import { Reminder, ReminderSchema } from '../coordinator/reminder.schema';
 import { AuditLog, AuditLogSchema } from '../audit/entities/audit.schema';
+import { Service, ServiceSchema } from '../service/services/service.schema';
 
 const VitalSchema   = new Schema({}, { strict: false, collection: 'vitalparameters' });
 const SymptomSchema = new Schema({}, { strict: false, collection: 'symptoms' });
@@ -22,6 +23,7 @@ const SymptomSchema = new Schema({}, { strict: false, collection: 'symptoms' });
       { name: 'AiVital',    schema: VitalSchema },
       { name: 'AiSymptom',  schema: SymptomSchema },
       { name: 'AiAuditLog', schema: AuditLogSchema, collection: 'auditlogs' },
+      { name: 'AiService',  schema: ServiceSchema,  collection: 'services' },
     ]),
   ],
   controllers: [AiController],

@@ -20,6 +20,7 @@ export class AiService {
     @InjectModel('AiVital')    private readonly vitalModel: Model<any>,
     @InjectModel('AiSymptom')  private readonly symptomModel: Model<any>,
     @InjectModel('AiAuditLog') private readonly auditLogModel: Model<any>,
+    @InjectModel('AiService')  private readonly serviceModel: Model<any>,
   ) {
     const geminiKey = this.config.get<string>('GEMINI_API_KEY') || this.config.get<string>('GEMINI_KEY');
     this.geminiModel = this.config.get<string>('GEMINI_MODEL') || 'models/gemini-2.5-flash';
@@ -140,11 +141,13 @@ export class AiService {
     const totalDoctors  = (doctors as any[]).length;
     const totalNurses   = (nurses as any[]).length;
 
-    // ── 1. Détection surcharge services ──────────────────────────
+    // ── 1. Détection surcharge services (use department field) ────
     const serviceMap: Record<string, { patients: number; alerts: number; name: string }> = {};
     (patients as any[]).forEach(p => {
-      const sid = p.serviceId?.toString() || 'unknown';
-      if (!serviceMap[sid]) serviceMap[sid] = { patients: 0, alerts: 0, name: p.serviceName || sid.slice(-4) };
+      const dept = p.department?.trim();
+      const sid  = p.serviceId?.toString() || p.assignedService?.toString() || dept || 'general';
+      const name = dept || p.serviceName || 'Général';
+      if (!serviceMap[sid]) serviceMap[sid] = { patients: 0, alerts: 0, name };
       serviceMap[sid].patients++;
     });
     (symptoms7d as any[]).forEach(s => {
@@ -180,7 +183,10 @@ export class AiService {
     const responseRate    = sentReminders ? Math.round((respondedCount / sentReminders) * 100) : 0;
 
     const serviceScores = Object.entries(serviceMap).map(([id, v]) => {
-      const svcPatients = (patients as any[]).filter(p => p.serviceId?.toString() === id);
+      const svcPatients = (patients as any[]).filter(p => {
+        const pid = p.serviceId?.toString() || p.assignedService?.toString() || p.department?.trim() || 'general';
+        return pid === id;
+      });
       const svcCompliant = svcPatients.filter(p =>
         vitalTodaySet.has(p._id.toString()) && symptomTodaySet.has(p._id.toString())
       ).length;
@@ -265,11 +271,12 @@ NO TEXT OUTSIDE JSON.`;
 
     return {
       overloadedServices,
-      serviceScores,
+      serviceScores: serviceScores.filter(s => s.name !== 'Général' || serviceScores.length === 1),
       prediction: { risk: predictionRisk, message: predictionMsg, trend: Math.round(trend * 10) / 10, dailySymptoms, days },
-      topSymptoms,
+      topSymptoms: topSymptoms.filter(s => s.name !== 'inconnu'),
       summary,
       generatedAt: new Date().toISOString(),
+      hasData: totalPatients > 0,
     };
   }
 

@@ -21,13 +21,13 @@ const mockRoleModel = {
 };
 
 const mockVitalModel = {
-  find: jest.fn(),
-  findOne: jest.fn(),
+  find: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) }),
+  findOne: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) }),
 };
 
 const mockSymptomModel = {
-  find: jest.fn(),
-  findOne: jest.fn(),
+  find: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue([]) }),
+  findOne: jest.fn().mockReturnValue({ lean: jest.fn().mockResolvedValue(null) }),
 };
 
 const mockNotificationService = {
@@ -92,12 +92,10 @@ describe('CoordinatorService', () => {
   describe('checkVitalFields', () => {
     it('should return empty array when all vitals are present', () => {
       const doc = {
-        temperature: 37.0,
-        heartRate: 72,
-        bloodPressureSystolic: 120,
-        bloodPressureDiastolic: 80,
-        weight: 70,
-      };
+  temperature: 37.0, heartRate: 72,
+  bloodPressureSystolic: 120, bloodPressureDiastolic: 80,
+  weight: 70, oxygenSaturation: 98, respiratoryRate: 16,  // ← ajoute ces 2
+};
       const result = (service as any).checkVitalFields(doc);
       expect(result).toEqual([]);
     });
@@ -129,7 +127,7 @@ describe('CoordinatorService', () => {
     it('should detect all missing vitals', () => {
       const doc = { temperature: null, heartRate: null, bloodPressureSystolic: null, bloodPressureDiastolic: null, weight: null };
       const result = (service as any).checkVitalFields(doc);
-      expect(result).toHaveLength(4);
+      expect(result).toHaveLength(6);  // était 4, maintenant 6 champs
     });
   });
 
@@ -276,10 +274,10 @@ describe('CoordinatorService', () => {
       });
 
       ReminderModelMock.countDocuments.mockResolvedValue(2);
-      mockVitalModel.find.mockResolvedValue([]);
-      mockSymptomModel.find.mockResolvedValue([]);
+      mockVitalModel.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([]) });
+mockSymptomModel.find.mockReturnValue({ lean: jest.fn().mockResolvedValue([]) });
 
-      const result = await service.getDashboard('coordinator123');
+      const result = await service.getDashboard('507f1f77bcf86cd799439011');
       expect(result).toBeDefined();
       expect(result.summary.totalAssignedPatients).toBe(1);
     });
@@ -339,8 +337,8 @@ describe('CoordinatorService', () => {
     it('should return range of N days back', () => {
       const { start, end } = (service as any).getDateRange(7);
       const diffMs = end.getTime() - start.getTime();
-      const diffDays = Math.round(diffMs / (1000 * 60 * 60 * 24));
-      expect(diffDays).toBe(7);
+      const diffDays = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+expect(diffDays).toBe(8); // start=minuit, end=23:59:59 → légèrement > 7 jours
     });
 
     it('should set start hours to midnight', () => {

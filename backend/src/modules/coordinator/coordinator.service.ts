@@ -397,6 +397,106 @@ export class CoordinatorService {
     };
   }
 
+
+  // ─── ML MODEL PREDICTION (RandomForest — not yet wired to router) ────────────
+
+private async getPredictionFromMLModel(coordinatorId: string): Promise<any> {
+  const coordinator = await this.userModel
+    .findById(coordinatorId)
+    .populate('assignedPatients')
+    .exec();
+
+  if (!coordinator) throw new NotFoundException('Coordinator not found');
+
+  const patients = (coordinator.assignedPatients || []) as unknown as UserDocument[];
+  const patientIds = patients.map((p) => p._id as Types.ObjectId);
+  const { start, end } = this.getDateRange(7);
+
+  const [vitalHistory, symptomHistory, recentReminders] = await Promise.all([
+    this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: start, $lte: end } }).lean(),
+    this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: start, $lte: end } }).lean(),
+    this.reminderModel.find({ sentBy: new Types.ObjectId(coordinatorId), sentAt: { $gte: start, $lte: end } }).lean(),
+  ]);
+
+  const { start: todayStart, end: todayEnd } = this.getTodayRange();
+  const todayVitals = await this.vitalModel.find({ patientId: { $in: patientIds }, recordedAt: { $gte: todayStart, $lte: todayEnd } }).lean();
+  const todaySymptoms = await this.symptomModel.find({ patientId: { $in: patientIds }, reportedAt: { $gte: todayStart, $lte: todayEnd } }).lean();
+
+  const features = patients.map((p) => {
+    const pid = p._id.toString();
+
+    const patientVitals7 = vitalHistory.filter((v: any) => v.patientId?.toString() === pid);
+    const patientSymptoms7 = symptomHistory.filter((s: any) => s.patientId?.toString() === pid);
+    const patientReminders7 = recentReminders.filter((r: any) => r.patientId?.toString() === pid);
+
+    const vitalDays = new Set(patientVitals7.map((v: any) => new Date(v.recordedAt).toISOString().split('T')[0]));
+    const symptomDays = new Set(patientSymptoms7.map((s: any) => new Date(s.reportedAt).toISOString().split('T')[0]));
+
+    const submittedLast7 = [...vitalDays].filter((d) => symptomDays.has(d)).length;
+    const missedLast7 = 7 - submittedLast7;
+
+    const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = yesterday.toISOString().split('T')[0];
+    const submittedYesterday = vitalDays.has(yesterdayKey) && symptomDays.has(yesterdayKey) ? 1 : 0;
+
+    let consecutiveMissedDays = 0;
+    for (let i = 1; i <= 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const key = d.toISOString().split('T')[0];
+      if (!vitalDays.has(key) && !symptomDays.has(key)) consecutiveMissedDays++;
+      else break;
+    }
+
+    const todayVitalDoc = todayVitals.find((v: any) => v.patientId?.toString() === pid);
+    const todaySymptomDoc = todaySymptoms.find((s: any) => s.patientId?.toString() === pid);
+    const missingVitals = todayVitalDoc ? this.checkVitalFields(todayVitalDoc) : ['Temperature', 'Heart Rate', 'Blood Pressure', 'Weight'];
+    const missingSymptoms = todaySymptomDoc ? this.checkSymptomFields(todaySymptomDoc) : ['Pain Level', 'Fatigue Level', 'Symptoms List'];
+
+    const dayOfWeek = new Date().getDay();
+
+    return {
+      patient_id: pid,
+      age: (p as any).age ?? 40,
+      gender: (p as any).gender ?? 'unknown',
+      department: p.department ?? 'General Medicine',
+      vitals_submitted_today: todayVitalDoc ? 1 : 0,
+      symptoms_submitted_today: todaySymptomDoc ? 1 : 0,
+      temperature_filled: missingVitals.includes('Temperature') ? 0 : 1,
+      heart_rate_filled: missingVitals.includes('Heart Rate') ? 0 : 1,
+      blood_pressure_filled: missingVitals.includes('Blood Pressure') ? 0 : 1,
+      weight_filled: missingVitals.includes('Weight') ? 0 : 1,
+      pain_level_filled: missingSymptoms.includes('Pain Level') ? 0 : 1,
+      fatigue_level_filled: missingSymptoms.includes('Fatigue Level') ? 0 : 1,
+      symptoms_list_filled: missingSymptoms.includes('Symptoms List') ? 0 : 1,
+      missing_vitals_count: missingVitals.length,
+      missing_symptoms_count: missingSymptoms.length,
+      total_missing_fields: missingVitals.length + missingSymptoms.length,
+      submitted_yesterday: submittedYesterday,
+      missed_yesterday: 1 - submittedYesterday,
+      missed_last_3_days: missedLast7 > 3 ? 3 : missedLast7,
+      missed_last_7_days: missedLast7,
+      submitted_last_7_days: submittedLast7,
+      compliance_rate_last_7_days: parseFloat((submittedLast7 / 7).toFixed(3)),
+      reminders_sent_last_7_days: patientReminders7.length,
+      last_reminder_days_ago: patientReminders7.length > 0 ? 1 : 14,
+      pending_reminders_count: patientReminders7.filter((r: any) => r.status === 'scheduled').length,
+      consecutive_missed_days: consecutiveMissedDays,
+      day_of_week: dayOfWeek,
+      is_weekend: dayOfWeek === 0 || dayOfWeek === 6 ? 1 : 0,
+    };
+  });
+
+  const mlResponse = await fetch('http://localhost:8001/predict', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ patients: features }),
+  });
+
+  const mlResult = await mlResponse.json();
+  return mlResult.predictions;
+}
+
+
   // ─── AUDITOR: AI INSIGHTS ────────────────────────────────────
 
   async getAiInsights() {
@@ -594,11 +694,29 @@ export class CoordinatorService {
   // ─── AUDITOR: PATIENTS OVERVIEW ──────────────────────────────
 
   async getPatientsOverview() {
-    // 1. Resolve patient role _id
-    const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
+    // 1. Resolve patient role (case-insensitive)
+    const patientRole = await this.roleModel.findOne({ name: { $regex: /^patient$/i } }).lean();
     if (!patientRole) return [];
 
-    // 2. Fetch all non-archived patients
+    // 2. Fetch all users with assignedPatients (coordinators/doctors/nurses)
+    const allUsers = await this.userModel
+      .find({ isArchived: { $ne: true } })
+      .lean();
+
+    const coordinators = allUsers.filter((u: any) =>
+      Array.isArray(u.assignedPatients) && u.assignedPatients.length > 0
+    );
+
+    // Build map: patientId → coordinatorName
+    const coordNameMap = new Map<string, string>();
+    for (const c of coordinators as any[]) {
+      const name = `${c.firstName} ${c.lastName}`;
+      for (const pid of (c.assignedPatients || [])) {
+        coordNameMap.set(pid.toString(), name);
+      }
+    }
+
+    // 3. Fetch all non-archived patients
     const patients = await this.userModel
       .find({ role: patientRole._id, isArchived: { $ne: true } })
       .lean()
@@ -609,41 +727,36 @@ export class CoordinatorService {
     const patientIds = patients.map((p) => p._id as Types.ObjectId);
     const { start, end } = this.getTodayRange();
 
-    // 3. Fetch today's vitals + symptoms in parallel
-    const [vitalDocs, symptomDocs, coordinators] = await Promise.all([
+    // 4. Fetch today's vitals + symptoms in parallel
+    const [vitalDocs, symptomDocs] = await Promise.all([
       this.vitalModel
         .find({ patientId: { $in: patientIds }, recordedAt: { $gte: start, $lte: end } })
         .lean(),
       this.symptomModel
         .find({ patientId: { $in: patientIds }, reportedAt: { $gte: start, $lte: end } })
         .lean(),
-      this.userModel
-        .find({ role: (await this.roleModel.findOne({ name: 'coordinator' }).lean())?._id })
-        .lean()
-        .exec(),
     ]);
 
-    const vitalSet = new Set(vitalDocs.map((v: any) => v.patientId?.toString()));
+    const vitalSet   = new Set(vitalDocs.map((v: any) => v.patientId?.toString()));
     const symptomSet = new Set(symptomDocs.map((s: any) => s.patientId?.toString()));
-    const coordMap = new Map(coordinators.map((c) => [(c._id as any).toString(), `${c.firstName} ${c.lastName}`]));
 
     return patients.map((p) => {
-      const pid = (p._id as any).toString();
-      const hasVitals = vitalSet.has(pid);
+      const pid        = (p._id as any).toString();
+      const hasVitals  = vitalSet.has(pid);
       const hasSymptoms = symptomSet.has(pid);
       const status: 'OK' | 'INCOMPLETE' | 'NO DATA' =
         hasVitals && hasSymptoms ? 'OK' : !hasVitals && !hasSymptoms ? 'NO DATA' : 'INCOMPLETE';
 
       return {
-        _id: pid,
-        name: `${p.firstName} ${p.lastName}`,
-        email: p.email,
-        mrn: (p as any).medicalRecordNumber || '',
-        department: (p as any).department || '',
-        service: (p as any).assignedService || '',
-        coordinatorName: coordMap.get((p as any).coordinatorId?.toString()) || '',
-        vitalsToday: hasVitals,
-        symptomsToday: hasSymptoms,
+        _id:             pid,
+        name:            `${p.firstName} ${p.lastName}`,
+        email:           p.email,
+        mrn:             (p as any).medicalRecordNumber || '',
+        department:      (p as any).department || '',
+        service:         (p as any).assignedService || '',
+        coordinatorName: coordNameMap.get(pid) || '—',
+        vitalsToday:     hasVitals,
+        symptomsToday:   hasSymptoms,
         status,
       };
     });
@@ -653,49 +766,42 @@ export class CoordinatorService {
 
   async getAllPerformance() {
     try {
-      const coordRole = await this.roleModel.findOne({ name: 'coordinator' }).lean();
-      this.logger.log(`[getAllPerformance] coordRole found: ${JSON.stringify(coordRole?._id ?? 'NOT FOUND')}`);
-      if (!coordRole) return [];
-
-      const coordinators = await this.userModel
-        .find({ role: coordRole._id, isArchived: { $ne: true } })
-        .lean()
-        .exec();
-
-      this.logger.log(`[getAllPerformance] coordinators found: ${coordinators.length}`);
-
       const { start: todayStart, end: todayEnd } = this.getTodayRange();
       const { start: weekStart } = this.getDateRange(7);
 
+      // Fetch all users that have assignedPatients (regardless of role name)
+      const allUsers = await this.userModel
+        .find({ isArchived: { $ne: true } })
+        .lean()
+        .exec();
+
+      // Filter in JS: only users with non-empty assignedPatients
+      const coordinators = allUsers.filter((u: any) => 
+        Array.isArray(u.assignedPatients) && u.assignedPatients.length > 0
+      );
+
+      this.logger.log(`[getAllPerformance] coordinators found: ${coordinators.length}`);
+      if (!coordinators.length) return [];
+
       const coordIds = coordinators.map((c) => (c._id as any).toString());
 
-      // Fetch only users that have a coordinatorId set (= patients) + all reminders
-      const [allPatients, allReminders] = await Promise.all([
-        this.userModel
-          .find({ coordinatorId: { $exists: true, $ne: null } })
-          .lean()
-          .exec(),
-        this.reminderModel
-          .find({ sentBy: { $in: coordinators.map((c) => c._id) } })
-          .lean()
-          .exec(),
-      ]);
+      // Fetch all reminders for these coordinators
+      const allReminders = await this.reminderModel
+        .find({ sentBy: { $in: coordinators.map((c) => c._id) } })
+        .lean()
+        .exec();
 
       const rows = coordinators.map((c) => {
         const cid = (c._id as any).toString();
 
-        // Patients whose coordinatorId matches this coordinator's _id
-        const myPatients = allPatients.filter(
-          (p: any) => p.coordinatorId?.toString() === cid,
-        );
-        const patientCount = myPatients.length;
+        // Patients from assignedPatients array (source of truth)
+        const assignedIds: string[] = ((c as any).assignedPatients || []).map((id: any) => id.toString());
+        const patientCount = assignedIds.length;
 
-        // Completeness rate
-        const completeCount = myPatients.filter(
-          (p: any) => p.phone && p.address && p.emergencyContact,
-        ).length;
-        const completenessRate =
-          patientCount > 0 ? Math.round((completeCount / patientCount) * 100) : 0;
+        // Completeness rate — based on assignedPatients count vs reminders sent
+        const completenessRate = patientCount > 0
+          ? Math.min(100, Math.round((allReminders.filter((r: any) => r.sentBy?.toString() === cid && r.status === 'sent').length / patientCount) * 20))
+          : 0;
 
         // Reminders
         const myReminders = allReminders.filter(
