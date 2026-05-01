@@ -34,8 +34,10 @@ export class AdminProfileComponent implements OnInit {
     this.userService.getProfile().subscribe({
       next: (user) => {
 
+        const roleName = (user.role?.name || user.role || '').toLowerCase();
+        const prefix = roleName === 'doctor' ? 'Dr. ' : '';
         this.profile = {
-          name: `${user.firstName} ${user.lastName}`,
+          name: `${prefix}${user.lastName} ${user.firstName}`,
           email: user.email,
           role: user.role?.name || user.role,
           phone: user.phone,

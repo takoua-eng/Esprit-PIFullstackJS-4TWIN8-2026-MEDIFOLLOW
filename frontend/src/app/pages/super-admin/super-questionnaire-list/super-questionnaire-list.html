@@ -1,0 +1,121 @@
+<main class="row questionnaire-list-page">
+  <div class="col-lg-12">
+    <mat-card class="cardWithShadow questionnaire-list-card">
+      <mat-card-content class="p-24">
+        <header class="header">
+          <div class="header__text">
+            <h2 class="title" id="questionnaire-templates-heading">
+              Modèles de questionnaire
+            </h2>
+            <p class="subtitle">Titre, catégorie et nombre de questions</p>
+          </div>
+          <a
+            mat-raised-button
+            color="primary"
+            routerLink="/super-admin/templates/create"
+            class="header__action"
+          >
+            <mat-icon aria-hidden="true">add</mat-icon>
+            Créer un modèle
+          </a>
+        </header>
+
+        <section
+          *ngIf="loading"
+          class="loading-panel"
+          aria-busy="true"
+          aria-live="polite"
+          aria-label="Chargement des modèles de questionnaire"
+        >
+          <mat-spinner diameter="48" aria-hidden="true"></mat-spinner>
+          <p class="loading-panel__text">Chargement des modèles…</p>
+        </section>
+
+        <div class="error-banner" *ngIf="!loading && loadError" role="alert">
+          <mat-icon aria-hidden="true">error_outline</mat-icon>
+          <span>{{ loadError }}</span>
+        </div>
+
+        <section
+          *ngIf="!loading && !loadError"
+          class="list-wrap"
+          aria-labelledby="questionnaire-templates-heading"
+        >
+          <p class="toolbar" *ngIf="templates.length">
+            <span class="count">{{ templates.length }} modèle(s)</span>
+          </p>
+
+          <ul class="template-list" *ngIf="templates.length; else emptyState">
+            <li class="template-list__item" *ngFor="let t of templates">
+              <article
+                class="template-card"
+                [attr.aria-labelledby]="'template-title-' + t._id"
+              >
+                <div class="template-card__inner">
+                  <div class="template-card__icon" aria-hidden="true">
+                    <mat-icon>assignment</mat-icon>
+                  </div>
+                  <div class="template-card__main">
+                    <h3
+                      class="template-card__title"
+                      [id]="'template-title-' + t._id"
+                    >
+                      {{ t.title }}
+                    </h3>
+                    <p class="template-card__category">{{ t.category }}</p>
+                  </div>
+                  <div class="template-card__actions">
+                    <p class="template-card__meta">
+                      <mat-icon
+                        class="template-card__meta-icon"
+                        aria-hidden="true"
+                        >quiz</mat-icon
+                      >
+                      <span>{{ questionCount(t) }} question(s)</span>
+                    </p>
+                    <a
+                      mat-stroked-button
+                      color="primary"
+                      [routerLink]="['/super-admin/templates/edit', t._id]"
+                      class="template-card__edit"
+                    >
+                      <mat-icon aria-hidden="true">edit</mat-icon>
+                      Modifier
+                    </a>
+                  </div>
+                </div>
+              </article>
+            </li>
+          </ul>
+
+          <ng-template #emptyState>
+            <section
+              class="empty-state"
+              aria-labelledby="empty-templates-title"
+            >
+              <div class="empty-state__icon-wrap" aria-hidden="true">
+                <mat-icon class="empty-state__icon">folder_open</mat-icon>
+              </div>
+              <h3 class="empty-state__title" id="empty-templates-title">
+                Aucun modèle pour le moment
+              </h3>
+              <p class="empty-state__hint">
+                Créez un premier modèle pour définir les questions réutilisables
+                par les médecins.
+              </p>
+              <a
+                mat-raised-button
+                color="primary"
+                routerLink="/super-admin/templates/create"
+                class="empty-state__cta"
+              >
+                <mat-icon aria-hidden="true">add</mat-icon>
+                Créer un modèle
+              </a>
+            </section>
+          </ng-template>
+        </section>
+      </mat-card-content>
+    </mat-card>
+  </div>
+</main>

@@ -66,42 +66,46 @@ export class EditNurse implements OnInit {
       return;
     }
 
+    const doc: any = (this.data as any).data || (this.data as any).user || this.data || {};
+
     // Extract serviceId correctly
     let serviceId = '';
-    if (this.data?.serviceId) {
-      if (typeof this.data.serviceId === 'object') {
-        serviceId = this.data.serviceId._id;
+    if (doc.serviceId) {
+      if (typeof doc.serviceId === 'object') {
+        serviceId = doc.serviceId._id || doc.serviceId.id;
         console.log('✅ serviceId extrait (objet):', serviceId);
       } else {
-        serviceId = this.data.serviceId;
+        serviceId = doc.serviceId;
         console.log('✅ serviceId extrait (string):', serviceId);
       }
+    } else if (doc.assignedService) {
+      serviceId = doc.assignedService;
     } else {
       console.warn('⚠️ serviceId manquant dans data');
     }
 
     // DEBUG: Afficher toutes les valeurs
     console.log('📝 Valeurs pour le formulaire:', {
-      firstName: this.data?.firstName,
-      lastName: this.data?.lastName,
-      email: this.data?.email,
-      phone: this.data?.phone,
-      address: this.data?.address,
-      nationalId: this.data?.nationalId,
-      gender: this.data?.gender,
+      firstName: doc.firstName,
+      lastName: doc.lastName,
+      email: doc.email,
+      phone: doc.phone,
+      address: doc.address,
+      nationalId: doc.nationalId,
+      gender: doc.gender,
       serviceId: serviceId,
     });
 
     // Initialize form with nurse data
     this.nurseForm = this.fb.group({
-      firstName: [this.data?.firstName || '', Validators.required],
-      lastName: [this.data?.lastName || '', Validators.required],
-      email: [this.data?.email || '', [Validators.required, Validators.email]],
+      firstName: [doc.firstName || '', Validators.required],
+      lastName: [doc.lastName || '', Validators.required],
+      email: [doc.email || '', [Validators.required, Validators.email]],
       password: [''], // Empty by default - optional
-      phone: [this.data?.phone || ''],
-      address: [this.data?.address || ''],
-      nationalId: [this.data?.nationalId || ''],
-      gender: [this.data?.gender || ''],
+      phone: [doc.phone || ''],
+      address: [doc.address || ''],
+      nationalId: [doc.nationalId || ''],
+      gender: [doc.gender || ''],
       serviceId: [serviceId],
     });
 

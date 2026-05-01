@@ -24,6 +24,7 @@ import { NurseService } from 'src/app/services/admin/nurse.service';
 import { ServiceService } from 'src/app/services/admin/service.service';
 
 import { AddNurse } from 'src/app/pages/admin/add-nurse-dialog/add-nurse-dialog';
+import { EditNurse } from 'src/app/pages/super-admin/edit-nurse/edit-nurse';
 import { ConfirmDialog } from 'src/app/pages/admin/nurses/confirm-dialog';
 import { CoreService } from 'src/app/services/core.service';
 
@@ -89,8 +90,20 @@ export class NursesComponent implements OnInit, AfterViewInit {
   private nursesData: any[] = [];
   private services: any[] = [];
 
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    if(ms) {
+      this.sort = ms;
+      this.dataSource.sort = this.sort;
+    }
+  }
+  sort!: MatSort;
+  @ViewChild(MatPaginator) set matPaginator(mp: MatPaginator) {
+    if(mp) {
+      this.paginator = mp;
+      this.dataSource.paginator = this.paginator;
+    }
+  }
+  paginator!: MatPaginator;
 
   ngOnInit(): void {
     this.serviceService.getServices().subscribe({
@@ -187,7 +200,7 @@ export class NursesComponent implements OnInit, AfterViewInit {
   }
 
   private openEditDialog(nurseData: any): void {
-    const dialogRef = this.dialog.open(AddNurse, {
+    const dialogRef = this.dialog.open(EditNurse, {
       width: '800px',
       data: nurseData,
     });

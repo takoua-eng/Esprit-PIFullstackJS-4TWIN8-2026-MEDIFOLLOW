@@ -48,8 +48,20 @@ export class AuditorsAComponent implements OnInit, AfterViewInit {
   displayedColumns: string[] = ['photo', 'name', 'email', 'status', 'actions'];
   dataSource = new MatTableDataSource<AuditorRow>([]);
 
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    if(ms) {
+      this.sort = ms;
+      this.dataSource.sort = this.sort;
+    }
+  }
+  sort!: MatSort;
+  @ViewChild(MatPaginator) set matPaginator(mp: MatPaginator) {
+    if(mp) {
+      this.paginator = mp;
+      this.dataSource.paginator = this.paginator;
+    }
+  }
+  paginator!: MatPaginator;
 
   ngOnInit(): void {
     this.loadAuditors();

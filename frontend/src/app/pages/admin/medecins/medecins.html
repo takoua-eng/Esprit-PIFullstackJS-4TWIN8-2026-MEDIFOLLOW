@@ -71,7 +71,7 @@
 
               <td mat-cell *matCellDef="let row">
                 <div class="doctor-name">
-                  {{ row?.firstName }} {{ row?.lastName }}
+                  <span class="dr-prefix">Dr.</span> {{ row?.lastName }} {{ row?.firstName }}
                 </div>
 
                 <div class="doctor-email">

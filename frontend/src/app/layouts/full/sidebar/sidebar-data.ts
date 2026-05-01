@@ -64,13 +64,6 @@ export const adminNavItems: NavItem[] = [
     route: '/admin/templates',
     bgcolor: 'secondary',
   },
-  {
-    displayName: 'Profil',
-    iconName: 'check',
-    route: 'profil',
-    bgcolor: 'transparent',
-
-  },
 ];
 
 // Sidebar pour le coordinator
@@ -213,6 +206,12 @@ export const superAdminNavItems: NavItem[] = [
     iconName: 'brain',
     route: '/super-admin/ai-intelligence',
     bgcolor: 'accent',
+  },
+  {
+    displayName: 'Questionnaires',
+    iconName: 'file-text',
+    route: '/super-admin/templates',
+    bgcolor: 'success',
   },
 ];
 

@@ -88,13 +88,23 @@ export const routes: Routes = [
         ],
       },
 
-      // ✅ Super Admin routes
       {
         path: 'super-admin',
         component: FullComponent,
         canActivate: [authGuard, roleGuard(['superadmin'])],
         loadChildren: () =>
           import('./pages/pages.routes').then((m) => m.SuperAdminRoutes),
+      },
+
+      // ✅ Super Admin Templates (protected)
+      {
+        path: 'super-admin/templates',
+        component: FullComponent,
+        canActivate: [authGuard, roleGuard(['superadmin'])],
+        loadChildren: () =>
+          import('./pages/super-admin/super-templates.routes').then(
+            (m) => m.SUPER_TEMPLATES_ROUTES
+          ),
       },
 
       {

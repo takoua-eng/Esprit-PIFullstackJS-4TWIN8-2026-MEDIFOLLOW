@@ -1,513 +1,448 @@
-import { HttpErrorResponse } from '@angular/common/http';
-import {
-  ChangeDetectorRef,
-  Component,
-  DestroyRef,
-  inject,
-  OnInit,
-  AfterViewInit,
-} from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { AppProfitExpensesComponent } from 'src/app/components/profit-expenses/profit-expenses.component';
 import { TablerIconsModule } from 'angular-tabler-icons';
-import {
-  BehaviorSubject,
-  catchError,
-  defer,
-  distinctUntilChanged,
-  EMPTY,
-  finalize,
-  switchMap,
-} from 'rxjs';
-import { DashboardService } from 'src/app/services/dashboard.service';
-import {
-  AdminApiService,
-  TrafficStatsResponse,
-  TrafficViewMode,
-} from 'src/app/services/admin-api.service';
-import { Chart } from 'chart.js/auto';
-import { RouterModule } from '@angular/router';
+import { NgApexchartsModule } from 'ng-apexcharts';
+import { interval, Subscription, forkJoin, of } from 'rxjs';
+import { startWith, switchMap, catchError } from 'rxjs/operators';
 
-// ─── Types locaux ────────────────────────────────────────────────────────────
-interface DashboardStats {
-  // Champs backend existants
-  totalPatients:     number;
-  totalPhysicians:   number;
-  totalNurses:       number;
-  totalCoordinators: number;
-  totalAuditors:     number;
-  patientsThisMonth: number;
-  newUsersThisWeek:  number;
-  activePatients:    number;
-
-  // Alias frontend
-  patients:     number;
-  doctors:      number;
-  nurses:       number;
-  coordinators: number;
-
-  // Nouveaux
-  activeAlerts:   number;
-  criticalAlerts: number;
-  complianceRate: number;
-
-  // Données imbriquées
-  alerts?:         any[];
-  recentPatients?: any[];
-  compliance?: {
-    vitals:        number;
-    symptoms:      number;
-    glucose:       number;
-    weight:        number;
-    questionnaire: number;
-  };
-}
-interface AdminUserRow {
-  name: string;
-  email: string;
-  role: string;
-  service: string;
-  status: 'Active' | 'Inactive';
-}
-
-interface AlertItem {
-  id: string;
-  type: 'CRITICAL' | 'WARNING';
-  patientName: string;
-  parameter: string;
-  value: string | number;
-  triggeredAt: Date;
-  /** Champ legacy conservé pour compatibilité avec l'ancienne section Alerts */
-  message?: string;
-  date?: Date;
-  severity?: string;
-}
-
-interface ComplianceItem {
-  label: string;
-  pct: number;
-}
-
-interface RecentPatient {
-  _id: string;
-  firstName: string;
-  lastName: string;
-  primaryDiagnosis?: { condition: string };
-  assignedNurse?: { firstName: string };
-  alertStatus?: 'CRITICAL' | 'WARNING' | 'STABLE';
-}
-
-interface ActivityItem {
-  user: string;
-  action: string;
-  service: string;
-  role: string;
-  time: Date;
-}
-
-interface DepartmentItem {
-  name: string;
-  percentage: number;
-  color: 'primary' | 'accent' | 'warn';
-}
-
-// ─── Composant ───────────────────────────────────────────────────────────────
+import { AuditApiService, AuditLog, AuditStats } from 'src/app/services/audit.service';
+import { UsersApiService } from 'src/app/services/users-api.service';
+import { AlertsApiService, AlertDto } from 'src/app/services/alerts-api.service';
+import { ServiceService } from 'src/app/services/superadmin/service.service';
+import { PatientService } from 'src/app/services/superadmin/patient.service';
+import { RemindersApiService } from 'src/app/services/reminders-api.service';
+import { VitalsApiService } from 'src/app/services/vitals-api.service';
+import { HttpClient } from '@angular/common/http';
+import { API_BASE_URL } from 'src/app/core/api.config';
+import { TranslateService, TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [
-    CommonModule,
-    MaterialModule,
-    AppProfitExpensesComponent,
-    TablerIconsModule,
-    TranslateModule,
-    RouterModule,
-  ],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule, NgApexchartsModule, TranslateModule],
   templateUrl: './admin-dashboard.component.html',
-  styleUrl: './admin-dashboard.component.scss',
+  styleUrls: ['./admin-dashboard.component.scss'],
 })
-export class AdminDashboardComponent implements OnInit, AfterViewInit {
+export class AdminDashboardComponent implements OnInit, OnDestroy {
 
-  // ── Injections ─────────────────────────────────────────────────────────────
-  private readonly adminApi        = inject(AdminApiService);
-  private readonly dashboardService = inject(DashboardService);
-  private readonly destroyRef      = inject(DestroyRef);
-  private readonly translate       = inject(TranslateService);
-  private readonly cdr             = inject(ChangeDetectorRef);
+  // KPIs
+  totalUsers = 0;
+  totalPatients = 0;
+  totalDoctors = 0;
+  totalNurses = 0;
+  activeAlerts = 0;
+  totalReminders = 0;
+  pendingReminders = 0;
+  criticalAlerts = 0;
+  totalServices = 0;
+  totalAuditEvents = 0;
+  // New
+  totalQuestionnaires = 0;
+  vitalsSubmittedToday = 0;
+  complianceRate = 0;
+  lastRefresh = new Date();
 
-  /** Émet à chaque changement de mode traffic (day / month / year). */
-  private readonly viewMode$ = new BehaviorSubject<TrafficViewMode>('month');
+  // Alerts
+  recentAlerts: AlertDto[] = [];
+  criticalAlertsList: AlertDto[] = [];
 
-  // ── Stats générales ────────────────────────────────────────────────────────
-  stats: any = {};
-  statsLoading = true;
-  statsError: string | null = null;
-  currentPeriod = "Aujourd'hui";
+  // Services
+  services: any[] = [];
 
-  // ── Traffic ────────────────────────────────────────────────────────────────
-  trafficStats: TrafficStatsResponse | null = null;
-  trafficLoading  = false;
-  trafficError: string | null = null;
-  trafficMetricsFlash = false;
-  private trafficPending = 0;
+  // Audit
+  recentLogs: AuditLog[] = [];
 
-  // ── KPI flash ──────────────────────────────────────────────────────────────
-  kpiStatsFlash = false;
+  // Charts
+  alertsChart: any = {};
+  usersRoleChart: any = {};
+  activityChart: any = {};
 
-  // ── Alertes ────────────────────────────────────────────────────────────────
-  alerts: AlertItem[] = [];
-  filteredAlerts: AlertItem[] = [];
-  alertFilter: 'all' | 'critical' | 'warning' = 'all';
+  // Reminders charts
+  remindersByCoordChart: any = {};
+  remindersByPatientChart: any = {};
 
-  // ── Compliance ────────────────────────────────────────────────────────────
-  complianceItems: ComplianceItem[] = [];
+  // Service staff chart
+  serviceStaffChart: any = {};
+  serviceStaffData: { serviceId: string; doctorCount: number; nurseCount: number; patientCount: number }[] = [];
 
-  // ── Patients récents ──────────────────────────────────────────────────────
-  recentPatients: RecentPatient[] = [];
+  // AI Report
+  aiReportText = '';
+  aiReportLoading = false;
+  aiReportGeneratedAt: string | null = null;
 
-  // ── Activité & départements ───────────────────────────────────────────────
-  recentActivity: ActivityItem[] = [
-    { user: 'Super Admin',    action: 'Logged in',      service: 'Global',    role: 'Admin',     time: new Date() },
-    { user: 'Dr. Ben Salah',  action: 'Updated record', service: 'Cardiology',role: 'Physician', time: new Date() },
-    { user: 'Nurse Amira',    action: 'Added notes',    service: 'Oncology',  role: 'Nurse',     time: new Date() },
-    { user: 'Auditor Sameh',  action: 'Exported report',service: 'Quality',   role: 'Auditor',   time: new Date() },
-  ];
+  // AI Insights (simulated from real data)
+  aiInsights: { icon: string; color: string; text: string }[] = [];
 
-  departmentOccupancy: DepartmentItem[] = [
-    { name: 'Cardiology', percentage: 85, color: 'primary' },
-    { name: 'Oncology',   percentage: 60, color: 'accent'  },
-    { name: 'Surgery',    percentage: 90, color: 'warn'    },
-  ];
+  // Users by role (from backend stats)
+  usersByRole: { role: string; count: number; color: string; icon: string }[] = [];
 
-  // ── KPI trends ─────────────────────────────────────────────────────────────
-  kpiTrends = {
-    patients:     { value: 5, isUp: true,  period: 'this week' },
-    doctors:      { value: 2, isUp: true,  period: 'this week' },
-    nurses:       { value: 1, isUp: true,  period: 'this week' },
-    coordinators: { value: 0, isUp: true,  period: 'this week' },
-    auditors:     { value: 0, isUp: false, period: 'this week' },
-  };
+  // AI Intelligence
+  intel: any = null;
+  intelLoading = false;
+  Math = Math;
 
-  // ── Table utilisateurs (conservée) ────────────────────────────────────────
-  displayedColumns: string[] = ['name', 'email', 'role', 'service', 'status', 'actions'];
-  users: AdminUserRow[] = [
-    { name: 'Super Admin',        email: 'super.admin@hospital.tn',       role: 'Admin',       service: 'Global',     status: 'Active'   },
-    { name: 'Admin Chirurgie',    email: 'admin.chirurgie@hospital.tn',   role: 'Admin',       service: 'Surgery',    status: 'Active'   },
-    { name: 'John Patient',       email: 'john.patient@hospital.tn',      role: 'Patient',     service: 'Cardiology', status: 'Active'   },
-    { name: 'Sarah Patient',      email: 'sarah.patient@hospital.tn',     role: 'Patient',     service: 'Oncology',   status: 'Inactive' },
-    { name: 'Dr. Ben Salah',      email: 'dr.bensalah@hospital.tn',       role: 'Physician',   service: 'Cardiology', status: 'Active'   },
-    { name: 'Nurse Amira',        email: 'amira.nurse@hospital.tn',       role: 'Nurse',       service: 'Oncology',   status: 'Active'   },
-    { name: 'Coordinator Anis',   email: 'anis.coordinator@hospital.tn',  role: 'Coordinator', service: 'Cardiology', status: 'Inactive' },
-    { name: 'Auditor Sameh',      email: 'sameh.audit@hospital.tn',       role: 'Auditor',     service: 'Quality',    status: 'Active'   },
-  ];
+  private sub?: Subscription;
 
-  // ── Chart ──────────────────────────────────────────────────────────────────
-  private chartInstance: Chart | null = null;
+  constructor(
+    private auditService: AuditApiService,
+    private usersService: UsersApiService,
+    private alertsService: AlertsApiService,
+    private serviceService: ServiceService,
+    private patientService: PatientService,
+    private remindersService: RemindersApiService,
+    private vitalsService: VitalsApiService,
+    private http: HttpClient,
+    private translate: TranslateService,
+    private router: Router,
+  ) {}
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // GETTERS
-  // ════════════════════════════════════════════════════════════════════════════
-
-  get viewMode(): TrafficViewMode { return this.viewMode$.value; }
-  set viewMode(value: TrafficViewMode) { this.viewMode$.next(value); }
-
-  get totalUsers():       number { return this.users.length; }
-  get totalPatients():    number { return this.users.filter(u => u.role === 'Patient').length; }
-  get totalPhysicians():  number { return this.users.filter(u => u.role === 'Physician').length; }
-  get totalNurses():      number { return this.users.filter(u => u.role === 'Nurse').length; }
-  get totalCoordinators():number { return this.users.filter(u => u.role === 'Coordinator').length; }
-  get totalAuditors():    number { return this.users.filter(u => u.role === 'Auditor').length; }
-
-  get trafficPeriodLabel(): string {
-    const now = new Date();
-    const loc = this.resolveTrafficLocale();
-    if (this.viewMode === 'day') {
-      return new Intl.DateTimeFormat(loc, {
-        weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
-      }).format(now);
+  // ── Keyboard Shortcuts ──────────────────────────────────────────
+  @HostListener('document:keydown', ['$event'])
+  handleKeyboard(e: KeyboardEvent): void {
+    if (!e.altKey) return;
+    const shortcuts: Record<string, string> = {
+      KeyP: '/dashboard/admin/patients',
+      KeyD: '/dashboard/admin/physicians',
+      KeyN: '/dashboard/admin/nurses',
+      KeyC: '/dashboard/admin/coordinators',
+      KeyU: '/dashboard/admin/auditors',
+      KeyT: '/admin/templates',
+    };
+    const route = shortcuts[e.code];
+    if (route) {
+      e.preventDefault();
+      e.stopPropagation();
+      this.router.navigate([route]);
     }
-    if (this.viewMode === 'month') {
-      return new Intl.DateTimeFormat(loc, { month: 'long', year: 'numeric' }).format(now);
-    }
-    const y = now.getFullYear();
-    const fmt = new Intl.DateTimeFormat(loc, { month: 'long' });
-    return `${this.capitalizeFirst(fmt.format(new Date(y, 0)))} – ${this.capitalizeFirst(fmt.format(new Date(y, 11)))} ${y}`;
   }
-
-  get trafficVolumeTotal(): number {
-    const t = this.trafficStats;
-    if (!t) return 0;
-    return (Number(t.visits) || 0)
-         + (Number(t.uniqueUsers) || 0)
-         + (Number(t.pageViews) || 0)
-         + (Number(t.newPatients) || 0);
-  }
-
-  trafficShare(value: number | null | undefined): number {
-    const v = Number(value);
-    const total = this.trafficVolumeTotal;
-    if (!Number.isFinite(v) || total <= 0) return 0;
-    return (v / total) * 100;
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // CONSTRUCTEUR — abonnement viewMode$ pour le trafic
-  // ════════════════════════════════════════════════════════════════════════════
-
-  constructor() {
-    // Rechargement i18n
-    this.translate.onLangChange
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => this.cdr.markForCheck());
-
-    // Trafic : rechargement à chaque changement de mode
-    this.viewMode$
-      .pipe(
-        distinctUntilChanged(),
-        switchMap((mode) =>
-          defer(() => {
-            this.trafficPending++;
-            this.trafficLoading = true;
-            return this.adminApi.getTrafficStats(mode).pipe(
-              catchError((err: unknown) => {
-                this.trafficError = this.resolveTrafficErrorMessage(err);
-                return EMPTY;
-              }),
-              finalize(() => {
-                this.trafficPending--;
-                this.trafficLoading = this.trafficPending > 0;
-              }),
-            );
-          }),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (data: any) => {
-          this.trafficError = null;
-          this.trafficStats = data;
-          this.triggerTrafficMetricsFlash();
-          setTimeout(() => this.initTrafficChart(), 0);
-        },
-      });
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // LIFECYCLE
-  // ════════════════════════════════════════════════════════════════════════════
 
   ngOnInit(): void {
-    this.loadDashboardData();
-  }
+    this.sub = interval(20000).pipe(
+      startWith(0),
+      switchMap(() => forkJoin({
+        users:          this.usersService.getAllUsers().pipe(catchError(() => of([]))),
+        alerts:         this.alertsService.getAlerts().pipe(catchError(() => of([]))),
+        services:       this.serviceService.getServices().pipe(catchError(() => of([]))),
+        patients:       this.patientService.getPatients().pipe(catchError(() => of([]))),
+        stats:          this.auditService.getStats().pipe(catchError(() => of(null))),
+        logs:           this.auditService.getLogs().pipe(catchError(() => of([]))),
+        reminders:      this.http.get<any>(`${API_BASE_URL}/coordinator/auditor/reminders-overview`).pipe(catchError(() => of({ stats: {}, reminders: [] }))),
+        questionnaires: this.http.get<any[]>(`${API_BASE_URL}/questionnaire-responses`).pipe(catchError(() => of([]))),
+        serviceStaff:   this.http.get<any[]>(`${API_BASE_URL}/coordinator/auditor/service-staff`).pipe(catchError(() => of([]))),
+      })),
+    ).subscribe({
+      next: ({ users, alerts, services, patients, stats, logs, reminders, questionnaires, serviceStaff }) => {
+        this.lastRefresh = new Date();
+        this.applyUsers(users as any[]);
+        this.applyAlerts(alerts as AlertDto[]);
+        this.applyServices(services as any[]);
+        this.totalPatients = (patients as any[]).length;
+        if (stats) this.applyAuditStats(stats as AuditStats);
+        this.recentLogs = (logs as AuditLog[]).slice(0, 6);
+        this.generateAiInsights(alerts as AlertDto[], patients as any[]);
 
-  ngAfterViewInit(): void {
-    // Chart initialisé via initTrafficChart() après réception des données
-  }
+        // Reminders — from auditor overview endpoint
+        const remStats = (reminders as any).stats ?? {};
+        const remRows  = (reminders as any).reminders ?? [];
+        this.totalReminders   = remStats.total ?? 0;
+        this.pendingReminders = remStats.scheduledCount ?? 0;
+        this.buildRemindersByCoordChart(remRows);
+        this.buildRemindersByPatientChart(remRows);
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // CHARGEMENT DONNÉES
-  // ════════════════════════════════════════════════════════════════════════════
+        // Questionnaires
+        this.totalQuestionnaires = (questionnaires as any[]).length;
 
-  setPeriod(period: string): void {
-    this.currentPeriod = period;
-    this.loadDashboardData();
-  }
-
-  loadDashboardData(): void {
-    this.statsLoading = true;
-    this.statsError   = null;
-
-    this.dashboardService
-      .getDashboardStats()
-      .pipe(finalize(() => (this.statsLoading = false)))
-      .subscribe({
-        next: (data: any) => {
-          this.statsError = null;
-          this.stats      = data ?? {};
-          this.triggerKpiFlash();
-
-          // ── Alertes ─────────────────────────────────────────────────────
-          // Si l'API retourne des alertes structurées → les mapper
-          // Sinon → tableau vide (pas de données mockées)
-          if (Array.isArray(data?.alerts)) {
-            this.alerts = (data.alerts as any[]).map((a) => ({
-              id:          a._id ?? a.id ?? '',
-              type:        a.type === 'CRITICAL' ? 'CRITICAL' : 'WARNING',
-              patientName: a.patientName ?? a.patient?.firstName ?? '—',
-              parameter:   a.parameter ?? '',
-              value:       a.value ?? '',
-              triggeredAt: new Date(a.triggeredAt ?? a.date ?? Date.now()),
-            }));
-          } else {
-            this.alerts = [];
-          }
-          this.setAlertFilter(this.alertFilter);
-
-          // ── Compliance ──────────────────────────────────────────────────
-          if (data?.compliance) {
-            this.complianceItems = [
-              { label: 'Vitaux',        pct: data.compliance.vitals        ?? 0 },
-              { label: 'Symptômes',     pct: data.compliance.symptoms      ?? 0 },
-              { label: 'Glycémie',      pct: data.compliance.glucose       ?? 0 },
-              { label: 'Poids',         pct: data.compliance.weight        ?? 0 },
-              { label: 'Questionnaire', pct: data.compliance.questionnaire ?? 0 },
-            ];
-          } else {
-            // Valeurs de démonstration si l'API ne retourne pas encore compliance
-            this.complianceItems = [
-              { label: 'Vitaux',        pct: 85 },
-              { label: 'Symptômes',     pct: 72 },
-              { label: 'Glycémie',      pct: 60 },
-              { label: 'Poids',         pct: 55 },
-              { label: 'Questionnaire', pct: 40 },
-            ];
-          }
-
-          // ── Patients récents ─────────────────────────────────────────────
-          if (Array.isArray(data?.recentPatients)) {
-            this.recentPatients = data.recentPatients;
-          } else {
-            this.recentPatients = [];
-          }
-
-          setTimeout(() => this.initTrafficChart(), 0);
-        },
-        error: (err: unknown) => {
-          this.statsError = this.resolveStatsErrorMessage(err);
-        },
-      });
-  }
-
-  exportDashboard(): void {
-    // TODO : brancher sur ton service d'export CSV/PDF
-    console.warn('Export non encore implémenté');
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // ALERTES
-  // ════════════════════════════════════════════════════════════════════════════
-
-  setAlertFilter(f: 'all' | 'critical' | 'warning'): void {
-    this.alertFilter    = f;
-    this.filteredAlerts = f === 'all'
-      ? this.alerts
-      : this.alerts.filter(a => a.type === f.toUpperCase());
-  }
-
-  // ════════════════════════════════════════════════════════════════════════════
-  // CHART
-  // ════════════════════════════════════════════════════════════════════════════
-
-  initTrafficChart(): void {
-    if (this.chartInstance) {
-      this.chartInstance.destroy();
-      this.chartInstance = null;
-    }
-
-    const canvas = document.getElementById('trafficChart') as HTMLCanvasElement | null;
-    if (!canvas) return;
-
-    const chartData = this.trafficStats?.chartData ?? [];
-    const labels      = chartData.length ? chartData.map(d => d.label)                 : ['8h','10h','12h','14h','16h','18h'];
-    const dataVisites = chartData.length ? chartData.map(d => d.value)                 : [120, 190, 300, 250, 220, 310];
-    const dataNouveaux= chartData.length ? chartData.map(d => (d as any).newPatients ?? 0) : [10, 25, 30, 28, 40, 47];
-
-    this.chartInstance = new Chart(canvas, {
-      type: 'line',
-      data: {
-        labels,
-        datasets: [
-          {
-            label: 'Visites',
-            data: dataVisites,
-            borderColor: '#378ADD',
-            backgroundColor: 'rgba(55,138,221,0.07)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            borderWidth: 1.5,
-          },
-          {
-            label: 'Nouveaux patients',
-            data: dataNouveaux,
-            borderColor: '#1D9E75',
-            backgroundColor: 'rgba(29,158,117,0.07)',
-            fill: true,
-            tension: 0.4,
-            pointRadius: 3,
-            borderWidth: 1.5,
-          },
-        ],
-      },
-      options: {
-        animation: false,
-        responsive: true,
-        plugins: {
-          legend: { display: false },
-        },
-        scales: {
-          x: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } } },
-          y: { grid: { color: 'rgba(0,0,0,0.04)' }, ticks: { font: { size: 11 } }, min: 0 },
-        },
+        // Service staff chart
+        this.serviceStaffData = serviceStaff as any[];
+        this.buildServiceStaffChart(serviceStaff as any[], services as any[]);
+        this.http.get<any[]>(`${API_BASE_URL}/coordinator/auditor/patients-overview`)
+          .pipe(catchError(() => of([])))
+          .subscribe(pts => {
+            this.vitalsSubmittedToday = pts.filter((p: any) => p.vitalsToday).length;
+            const total = pts.length;
+            this.complianceRate = total > 0
+              ? Math.round(pts.filter((p: any) => p.status === 'OK').length / total * 100)
+              : 0;
+          });
       },
     });
   }
 
-  // ════════════════════════════════════════════════════════════════════════════
-  // HELPERS PRIVÉS
-  // ════════════════════════════════════════════════════════════════════════════
+  ngOnDestroy(): void { this.sub?.unsubscribe(); }
 
-  private triggerTrafficMetricsFlash(): void {
-    this.trafficMetricsFlash = true;
-    setTimeout(() => (this.trafficMetricsFlash = false), 450);
+  generateAiReport(type: string): void {
+    this.aiReportLoading = true;
+    this.aiReportText = '';
+    this.http.post<any>(`${API_BASE_URL}/coordinator/admin/ai-report`, { type })
+      .pipe(catchError(() => of({ response: 'Service AI indisponible.' })))
+      .subscribe(res => {
+        this.aiReportText = res.response ?? '';
+        this.aiReportGeneratedAt = res.generatedAt ?? new Date().toISOString();
+        this.aiReportLoading = false;
+      });
   }
 
-  private triggerKpiFlash(): void {
-    this.kpiStatsFlash = true;
-    setTimeout(() => (this.kpiStatsFlash = false), 450);
+  // ── Data processors ──────────────────────────────────────────────
+
+  private applyUsers(users: any[]): void {
+    this.totalUsers = users.length;
+    const roleMap: Record<string, number> = {};
+    users.forEach(u => {
+      const r = (u.role?.name ?? u.role ?? 'unknown').toLowerCase();
+      roleMap[r] = (roleMap[r] ?? 0) + 1;
+    });
+    this.totalDoctors = (roleMap['doctor'] ?? 0) + (roleMap['physician'] ?? 0);
+    this.totalNurses  = roleMap['nurse'] ?? 0;
+
+    const palette: Record<string, { color: string; icon: string }> = {
+      admin:       { color: '#6c5ce7', icon: 'shield-lock' },
+      superadmin:  { color: '#2d3436', icon: 'crown' },
+      doctor:      { color: '#0984e3', icon: 'stethoscope' },
+      physician:   { color: '#0984e3', icon: 'stethoscope' },
+      nurse:       { color: '#00b894', icon: 'nurse' },
+      coordinator: { color: '#fdcb6e', icon: 'users-group' },
+      auditor:     { color: '#a29bfe', icon: 'eye' },
+      patient:     { color: '#e17055', icon: 'heart-rate-monitor' },
+    };
+    this.usersByRole = Object.entries(roleMap).map(([role, count]) => ({
+      role, count,
+      color: palette[role]?.color ?? '#b2bec3',
+      icon:  palette[role]?.icon  ?? 'user',
+    })).sort((a, b) => b.count - a.count);
+
+    this.buildUsersRoleChart(this.usersByRole);
   }
 
-  private resolveTrafficLocale(): string {
-    const lang = this.translate.currentLang || this.translate.getDefaultLang() || 'fr';
-    if (lang.toLowerCase().startsWith('ar')) return 'ar';
-    if (lang.toLowerCase().startsWith('en')) return 'en-US';
-    return 'fr-FR';
+  private applyAlerts(alerts: AlertDto[]): void {
+    const open = alerts.filter(a => a.status === 'open');
+    this.activeAlerts   = open.length;
+    this.criticalAlerts = open.filter(a => a.severity === 'critical' || a.severity === 'high').length;
+    this.recentAlerts   = alerts.slice(0, 5);
+    this.criticalAlertsList = open.filter(a => a.severity === 'critical').slice(0, 3);
+    this.buildAlertsChart(alerts);
   }
 
-  private capitalizeFirst(text: string): string {
-    if (!text) return text;
-    return text.charAt(0).toLocaleUpperCase(this.resolveTrafficLocale()) + text.slice(1);
+  private applyServices(services: any[]): void {
+    this.totalServices = services.length;
+    this.services = services.slice(0, 6);
   }
 
-  private resolveTrafficErrorMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const body = err.error as { message?: string | string[] } | string | null;
-      if (body && typeof body === 'object' && !Array.isArray(body)) {
-        const m = body.message;
-        if (Array.isArray(m) && m.length) return m.map(String).join(' ');
-        if (typeof m === 'string' && m.trim()) return m.trim();
-      }
-      if (typeof body === 'string' && body.trim()) return body.trim();
-      if (err.status === 0) return 'Serveur injoignable. Les données affichées correspondent au dernier chargement réussi.';
+  private applyAuditStats(s: AuditStats): void {
+    this.totalAuditEvents = s.total;
+    this.buildActivityChart(s.last7days);
+  }
+
+  private generateAiInsights(alerts: AlertDto[], patients: any[]): void {
+    const insights: { icon: string; color: string; text: string }[] = [];
+    const critical = alerts.filter(a => a.severity === 'critical' && a.status === 'open');
+    if (critical.length > 0) {
+      insights.push({ icon: 'alert-triangle', color: '#d63031',
+        text: `${critical.length} critical alert(s) unresolved — immediate action required` });
     }
-    return 'Impossible de charger le trafic pour cette période.';
+    const inactive = patients.filter((p: any) => p.isActive === false).length;
+    if (inactive > 0) {
+      insights.push({ icon: 'user-off', color: '#e17055',
+        text: `${inactive} patient(s) with inactive account detected` });
+    }
+    if (this.totalAuditEvents > 100) {
+      insights.push({ icon: 'activity', color: '#6c5ce7',
+        text: `High activity: ${this.totalAuditEvents} events logged this month` });
+    }
+    if (this.totalNurses < 3) {
+      insights.push({ icon: 'nurse', color: '#fdcb6e',
+        text: `Low nursing staff (${this.totalNurses}) — risk of overload` });
+    }
+    if (insights.length === 0) {
+      insights.push({ icon: 'circle-check', color: '#00b894',
+        text: 'System stable — no anomalies detected' });
+    }
+    this.aiInsights = insights;
   }
 
-  private resolveStatsErrorMessage(err: unknown): string {
-    if (err instanceof HttpErrorResponse) {
-      const body = err.error as { message?: string | string[] } | string | null;
-      if (body && typeof body === 'object' && !Array.isArray(body)) {
-        const m = body.message;
-        if (Array.isArray(m) && m.length) return m.map(String).join(' ');
-        if (typeof m === 'string' && m.trim()) return m.trim();
-      }
-      if (typeof body === 'string' && body.trim()) return body.trim();
-      if (err.status === 0) return 'Serveur injoignable. Vérifiez que l\'API est démarrée.';
+  // ── Chart builders ────────────────────────────────────────────────
+
+  private buildServiceStaffChart(staffData: any[], services: any[]): void {
+    // Map serviceId → service name (use all services including those without isArchived)
+    const nameMap = new Map(services.map((s: any) => [s._id?.toString(), s.name]));
+
+    const items = staffData
+      .map(d => ({
+        name: nameMap.get(d.serviceId) || d.serviceId?.slice(-4) || 'Unknown',
+        doctors:  d.doctorCount,
+        nurses:   d.nurseCount,
+        patients: d.patientCount,
+      }))
+      .sort((a, b) => (b.doctors + b.nurses + b.patients) - (a.doctors + a.nurses + a.patients))
+      .slice(0, 8);
+
+    this.serviceStaffChart = {
+      series: [
+        { name: this.translate.instant('PHYSICIANS'),  data: items.map(i => i.doctors)  },
+        { name: this.translate.instant('NURSES'),      data: items.map(i => i.nurses)   },
+        { name: this.translate.instant('PATIENTS'),    data: items.map(i => i.patients) },
+      ],
+      chart: { type: 'bar', height: 240, toolbar: { show: false }, stacked: false },
+      plotOptions: { bar: { borderRadius: 3, columnWidth: '60%', grouped: true } },
+      colors: ['#0984e3', '#00b894', '#e17055'],
+      xaxis: { categories: items.map(i => i.name), labels: { style: { fontSize: '10px' }, rotate: -30 } },
+      legend: { position: 'top', fontSize: '11px' },
+      dataLabels: { enabled: false },
+      grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 3 },
+      tooltip: { theme: 'light', shared: true, intersect: false },
+    };
+  }
+
+  private buildRemindersByCoordChart(reminders: any[]): void {
+    const map: Record<string, number> = {};
+    reminders.forEach(r => {
+      const name = r.coordinatorName || 'Unknown';
+      map[name] = (map[name] ?? 0) + 1;
+    });
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    this.remindersByCoordChart = {
+      series: [{ name: this.translate.instant('REMINDERS'), data: sorted.map(e => e[1]) }],
+      chart: { type: 'bar', height: 220, toolbar: { show: false } },
+      plotOptions: { bar: { borderRadius: 4, columnWidth: '55%' } },
+      colors: ['#6c5ce7'],
+      xaxis: { categories: sorted.map(e => e[0].split(' ')[0]), labels: { style: { fontSize: '10px' } } },
+      dataLabels: { enabled: true, style: { fontSize: '10px' } },
+      grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 3 },
+      tooltip: { theme: 'light' },
+    };
+  }
+
+  private buildRemindersByPatientChart(reminders: any[]): void {
+    const map: Record<string, number> = {};
+    reminders.forEach(r => {
+      const name = r.patientName || 'Unknown';
+      map[name] = (map[name] ?? 0) + 1;
+    });
+    const sorted = Object.entries(map).sort((a, b) => b[1] - a[1]).slice(0, 8);
+    this.remindersByPatientChart = {
+      series: [{ name: this.translate.instant('REMINDERS'), data: sorted.map(e => e[1]) }],
+      chart: { type: 'bar', height: 220, toolbar: { show: false } },
+      plotOptions: { bar: { borderRadius: 4, horizontal: true, barHeight: '55%' } },
+      colors: ['#0984e3'],
+      xaxis: { labels: { style: { fontSize: '10px' } } },
+      yaxis: { categories: sorted.map(e => e[0].split(' ')[0]), labels: { style: { fontSize: '10px' } } },
+      dataLabels: { enabled: true, style: { fontSize: '10px' } },
+      grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 3 },
+      tooltip: { theme: 'light' },
+    };
+  }
+
+  private buildAlertsChart(alerts: AlertDto[]): void {
+    const last7 = this.last7DayLabels();
+    const counts = last7.map(d =>
+      alerts.filter(a => a.createdAt?.startsWith(d)).length
+    );
+    this.alertsChart = {
+      series: [{ name: this.translate.instant('ALERTS'), data: counts }],
+      chart: { type: 'bar', height: 180, toolbar: { show: false }, sparkline: { enabled: false } },
+      plotOptions: { bar: { borderRadius: 4, columnWidth: '50%' } },
+      colors: ['#d63031'],
+      xaxis: { categories: last7.map(d => d.slice(5)), labels: { style: { fontSize: '10px' } } },
+      dataLabels: { enabled: false },
+      grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 3 },
+      tooltip: { theme: 'light' },
+    };
+  }
+
+  private buildUsersRoleChart(roles: { role: string; count: number; color: string }[]): void {
+    this.usersRoleChart = {
+      series: roles.map(r => r.count),
+      labels: roles.map(r => r.role),
+      chart: { type: 'donut', height: 220 },
+      colors: roles.map(r => r.color),
+      legend: { position: 'bottom', fontSize: '11px' },
+      dataLabels: { enabled: false },
+      plotOptions: { pie: { donut: { size: '60%' } } },
+      tooltip: { theme: 'light' },
+    };
+  }
+
+  private buildActivityChart(last7: { _id: string; count: number }[]): void {
+    const days = this.last7DayLabels();
+    const counts = days.map(d => last7.find(x => x._id === d)?.count ?? 0);
+    this.activityChart = {
+      series: [{ name: this.translate.instant('EVENTS'), data: counts }],
+      chart: { type: 'area', height: 180, toolbar: { show: false } },
+      stroke: { curve: 'smooth', width: 2 },
+      fill: { type: 'gradient', gradient: { opacityFrom: 0.35, opacityTo: 0.02 } },
+      colors: ['#6c5ce7'],
+      xaxis: { categories: days.map(d => d.slice(5)), labels: { style: { fontSize: '10px' } } },
+      dataLabels: { enabled: false },
+      grid: { borderColor: 'rgba(0,0,0,0.05)', strokeDashArray: 3 },
+      tooltip: { theme: 'light' },
+    };
+  }
+
+  // ── Helpers ───────────────────────────────────────────────────────
+
+  private last7DayLabels(): string[] {
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date();
+      d.setDate(d.getDate() - (6 - i));
+      return d.toISOString().split('T')[0];
+    });
+  }
+
+  loadServiceIntelligence(): void {
+    this.intelLoading = true;
+    this.http.get<any>(`${API_BASE_URL}/ai/service-intelligence`)
+      .pipe(catchError(() => of(null)))
+      .subscribe(data => { this.intel = data; this.intelLoading = false; });
+  }
+
+  logDisplayName(log: AuditLog): string {
+    if (log.userName && log.userName !== 'anonymous' && log.userName !== log.userEmail) {
+      return log.userName;
     }
-    return 'Impossible de mettre à jour les statistiques.';
+    return log.userEmail || 'Inconnu';
+  }
+
+  logRoleColor(role: string): string {
+    return ({
+      'super-admin': '#6c5ce7', admin: '#0984e3', doctor: '#00b894',
+      nurse: '#00cec9', coordinator: '#e17055', auditor: '#a29bfe', patient: '#fdcb6e',
+    } as any)[role?.toLowerCase()] ?? '#b2bec3';
+  }
+
+  severityColor(s: string): string {
+    return { critical: '#d63031', high: '#e17055', medium: '#fdcb6e', low: '#00b894' }[s] ?? '#b2bec3';
+  }
+
+  severityIcon(s: string): string {
+    return { critical: 'alert-octagon', high: 'alert-triangle', medium: 'alert-circle', low: 'info-circle' }[s] ?? 'bell';
+  }
+
+  auditActionColor(a: string): string {
+    return {
+      CREATE:     '#00b894',
+      UPDATE:     '#0984e3',
+      DELETE:     '#d63031',
+      LOGIN:      '#6c5ce7',
+      VIEW:       '#b2bec3',
+      ACTIVATE:   '#00cec9',
+      DEACTIVATE: '#e17055',
+      RESTORE:    '#fdcb6e',
+      MARK_READ:  '#a29bfe',
+    }[a] ?? '#b2bec3';
+  }
+
+  auditActionIcon(a: string): string {
+    return {
+      CREATE:     'circle-plus',
+      UPDATE:     'edit',
+      DELETE:     'trash',
+      LOGIN:      'login',
+      VIEW:       'eye',
+      ACTIVATE:   'toggle-right',
+      DEACTIVATE: 'toggle-left',
+      RESTORE:    'restore',
+      MARK_READ:  'check',
+    }[a] ?? 'activity';
   }
 }

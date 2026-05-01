@@ -1,3 +1,4 @@
+import { TranslateModule } from '@ngx-translate/core';
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -25,6 +26,7 @@ import { ServiceService } from 'src/app/services/superadmin/service.service';
   templateUrl: './add-nurse-dialog.html',
   styleUrls: ['./add-nurse-dialog.scss'],
   imports: [
+    TranslateModule,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,

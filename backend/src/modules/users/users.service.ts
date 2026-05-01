@@ -9,7 +9,7 @@ import { randomUUID } from 'crypto';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
-
+import * as nodemailer from 'nodemailer';
 import { User, UserDocument } from './users.schema';
 import { Role, RoleDocument } from '../roles/role.schema';
 import { Service, ServiceDocument } from '../service/services/service.schema';
@@ -50,6 +50,39 @@ export class UsersService {
     return role;
   }
 
+  private async sendWelcomeEmail(email: string, passwordText: string, firstName: string, lastName: string) {
+    const transporter = nodemailer.createTransport({
+      host: this.config.get<string>('SMTP_HOST'),
+      port: Number(this.config.get<string>('SMTP_PORT')),
+      secure: this.config.get<string>('SMTP_SECURE') === 'true',
+      auth: {
+        user: this.config.get<string>('SMTP_USER'),
+        pass: this.config.get<string>('SMTP_PASS'),
+      },
+    });
+
+    try {
+      await transporter.sendMail({
+        from: `"Mediflow" <${this.config.get<string>('SMTP_USER')}>`,
+        to: email,
+        subject: 'Bienvenue sur Mediflow !',
+        html: `
+          <h3>Bienvenue sur Mediflow !</h3>
+          <p>Bonjour ${firstName || ''} ${lastName || ''}, votre compte a été créé avec succès.</p>
+          <p>Voici vos coordonnées de connexion :</p>
+          <ul>
+            <li><b>Email:</b> ${email}</li>
+            <li><b>Mot de passe:</b> ${passwordText}</li>
+          </ul>
+          <p>Nous vous recommandons de changer ce mot de passe lors de votre première connexion.</p>
+        `,
+      });
+      this.logger.log(`Welcome email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send welcome email to ${email}`, error);
+    }
+  }
+
   private async createUser(
     dto: any,
     roleName: string,
@@ -61,6 +94,7 @@ export class UsersService {
     }
 
     const role = await this.getRole(roleName);
+    const rawPassword = dto.password;
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     // Clean all ObjectId reference fields — remove if empty or invalid
@@ -73,7 +107,7 @@ export class UsersService {
     // Remove password from cleanDto to avoid overriding the hash
     delete cleanDto.password;
 
-    return this.userModel.create({
+    const user = await this.userModel.create({
       ...cleanDto,
       password: hashedPassword,
       role: role._id,
@@ -81,57 +115,98 @@ export class UsersService {
       isActive: dto.isActive ?? true,
       isArchived: false,
     });
+
+    this.sendWelcomeEmail(dto.email, rawPassword, dto.firstName, dto.lastName).catch(e => console.error(e));
+
+    return user;
   }
 
   async createPatient(dto: any, file?: Express.Multer.File) {
-    if (file) {
-      dto.photo = file.filename;
+    try {
+      const existingUser = await this.userModel.findOne({ email: dto.email });
+      if (existingUser) {
+        throw new BadRequestException('Email already exists');
+      }
+
+      if (file) {
+        dto.photo = file.filename;
+      }
+
+      const doctorId = dto.assignedDoctor || dto.doctorId;
+      const coordinatorId = dto.assignedCoordinator || dto.coordinatorId;
+
+      console.log('🔔 createPatient - doctorId received:', doctorId);
+
+      // Use known patient role ObjectId (defined as DEFAULT_PATIENT_ROLE_OBJECT_ID)
+      const patientRoleId =
+        this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
+        DEFAULT_PATIENT_ROLE_OBJECT_ID;
+
+      const role = await this.roleModel.findById(patientRoleId);
+
+      if (!role) {
+        this.logger.error(`Patient role not found for id: ${patientRoleId}`);
+        throw new BadRequestException('Patient role not found. Please check PATIENT_ROLE_ID in .env');
+      }
+
+      dto.role = role._id;
+
+      if (!dto.password) {
+        throw new BadRequestException('Le mot de passe est requis pour créer un patient');
+      }
+
+      const rawPassword = dto.password;
+      dto.password = await bcrypt.hash(dto.password, 10);
+
+      // ✅ création du patient
+      const patient = new this.userModel({ ...dto });
+      const savedPatient = await patient.save();
+
+      this.logger.log(`🔔 patient created: ${savedPatient._id}`);
+
+      // Ajouter le patient au coordinator
+      if (coordinatorId && Types.ObjectId.isValid(coordinatorId)) {
+        try {
+          // Try $addToSet first (works if field is already an array)
+          await this.userModel.findByIdAndUpdate(coordinatorId, {
+            $addToSet: { assignedPatients: savedPatient._id },
+          });
+        } catch (updateErr) {
+          // If the field is stored as a non-array (e.g. string), convert it to an array first
+          this.logger.warn(`assignedPatients is not an array for coordinator ${coordinatorId}, converting...`);
+          try {
+            await this.userModel.findByIdAndUpdate(coordinatorId, {
+              $set: { assignedPatients: [savedPatient._id] },
+            });
+          } catch (setErr) {
+            this.logger.error('Failed to update coordinator assignedPatients:', setErr?.message);
+            // Non-blocking: patient was created successfully, just log the warning
+          }
+        }
+      }
+
+      // Notification doctor
+      if (doctorId && Types.ObjectId.isValid(doctorId)) {
+        try {
+          await this.notificationsService.create({
+            userId: doctorId,
+            title: 'New Patient Assigned',
+            message: `${savedPatient.firstName} ${savedPatient.lastName} has been assigned to you`,
+            type: 'PATIENT_ASSIGNED',
+          });
+        } catch (notifErr) {
+          this.logger.error('Failed to send doctor notification:', notifErr?.message);
+          // Non-blocking: patient was created successfully
+        }
+      }
+
+      this.sendWelcomeEmail(dto.email, rawPassword, dto.firstName, dto.lastName).catch(e => console.error(e));
+
+      return savedPatient;
+    } catch (error) {
+      this.logger.error('createPatient error:', error?.message || error);
+      throw error;
     }
-
-    const doctorId = dto.assignedDoctor;
-    const coordinatorId = dto.assignedCoordinator;
-
-    console.log('🔔 createPatient - doctorId received:', doctorId);
-
-    // ✅ METTRE CE CODE ICI
-    const role = await this.roleModel.findOne({ name: 'Patient' });
-
-    if (!role) {
-      throw new Error('Patient role not found');
-    }
-
-    dto.role = role._id;
-
-    if (!dto.password) {
-      throw new BadRequestException('Le mot de passe est requis pour créer un patient');
-    }
-
-    dto.password = await bcrypt.hash(dto.password, 10);
-
-    // ✅ création du patient
-    const patient = new this.userModel(dto);
-    const savedPatient = await patient.save();
-
-    this.logger.log(`🔔 patient created: ${savedPatient._id}`);
-
-    // Ajouter le patient au coordinator
-    if (coordinatorId) {
-      await this.userModel.findByIdAndUpdate(coordinatorId, {
-        $addToSet: { assignedPatients: savedPatient._id },
-      });
-    }
-
-    // Notification doctor
-    if (doctorId) {
-      await this.notificationsService.create({
-        userId: doctorId,
-        title: 'New Patient Assigned',
-        message: `${savedPatient.firstName} ${savedPatient.lastName} has been assigned to you`,
-        type: 'PATIENT_ASSIGNED',
-      });
-    }
-
-    return savedPatient;
   }
 
   createDoctor(dto: CreateDoctorDto, file?: Express.Multer.File) {
@@ -152,9 +227,10 @@ export class UsersService {
     }
 
     const role = await this.getRole('nurse');
+    const rawPassword = dto.password;
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    return this.userModel.create({
+    const user = await this.userModel.create({
       ...dto,
       password: hashedPassword,
       role: role._id,
@@ -162,6 +238,10 @@ export class UsersService {
       photo: file ? file.filename : '',
       isActive: dto.isActive ?? true,
     });
+
+    this.sendWelcomeEmail(dto.email, rawPassword, dto.firstName, dto.lastName).catch(e => console.error(e));
+
+    return user;
   }
 
   createCoordinator(dto: CreateCoordinatorDto, file?: Express.Multer.File) {
@@ -218,6 +298,7 @@ export class UsersService {
     }
 
     const role = await this.getRole('admin');
+    const rawPassword = dto.password;
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
     // Clean all ObjectId reference fields — remove if empty or invalid
@@ -237,7 +318,7 @@ export class UsersService {
       cleanDto.serviceId = service._id.toString();
     }
 
-    return this.userModel.create({
+    const user = await this.userModel.create({
       ...cleanDto,
       password: hashedPassword,
       role: role._id,
@@ -245,6 +326,10 @@ export class UsersService {
       isActive: dto.isActive ?? true,
       isArchived: false,
     });
+
+    this.sendWelcomeEmail(dto.email, rawPassword, dto.firstName, dto.lastName).catch(e => console.error(e));
+
+    return user;
   }
 
   async deleteUser(id: string) {
@@ -272,7 +357,18 @@ export class UsersService {
   }
 
   async getPatients() {
-    return this.findPatients();
+    const patientRoleId =
+      this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
+      DEFAULT_PATIENT_ROLE_OBJECT_ID;
+
+    return this.userModel
+      .find({
+        role: new Types.ObjectId(patientRoleId),
+        isArchived: { $ne: true },
+      })
+      .select('-password')
+      .lean()
+      .exec();
   }
 
   async getDoctors() {

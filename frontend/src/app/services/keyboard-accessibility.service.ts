@@ -121,8 +121,8 @@ export class KeyboardAccessibilityService {
       }
     }
 
-    // Alt shortcuts — navigation
-    if (event.altKey) {
+    // Alt shortcuts — patient navigation only
+    if (event.altKey && this.router.url.startsWith('/dashboard/patient')) {
       switch (event.key.toLowerCase()) {
         case 'h':
           event.preventDefault();
@@ -172,4 +172,3 @@ export class KeyboardAccessibilityService {
     return this.shortcuts;
   }
 }
-   

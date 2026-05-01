@@ -1,3 +1,4 @@
+import { TranslateModule } from '@ngx-translate/core';
 // src/app/pages/super-admin/confirm-dialog/confirm-dialog.ts
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
@@ -73,7 +74,8 @@ export interface ConfirmDialogData {
       }
     `,
   ],
-  imports: [CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
+  imports: [
+    TranslateModule,CommonModule, MatDialogModule, MatButtonModule, MatIconModule],
 })
 export class ConfirmDialog {
   constructor(

@@ -110,7 +110,14 @@ export class ProfilComponent implements OnInit {
     // Construire le nom
     const fName = user.firstName || user.name || '';
     const lName = user.lastName || '';
-    const fullName = `${fName} ${lName}`.trim() || 'Utilisateur';
+
+    // Construire le rôle
+    const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
+
+    // Ajouter Dr. pour les médecins
+    const isDoctor = userRole.toLowerCase() === 'doctor';
+    const prefix = isDoctor ? 'Dr. ' : '';
+    const fullName = `${prefix}${lName} ${fName}`.trim() || 'Utilisateur';
 
     // Calculer les initiales
     let computedInitials = 'U';
@@ -121,9 +128,6 @@ export class ProfilComponent implements OnInit {
     } else if (user.email) {
       computedInitials = user.email.substring(0, 2).toUpperCase();
     }
-
-    // Construire le rôle
-    const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
 
     this.profile = {
       name: fullName,
