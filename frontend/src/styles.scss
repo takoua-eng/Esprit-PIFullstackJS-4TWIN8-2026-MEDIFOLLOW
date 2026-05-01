@@ -1,5 +1,6 @@
 //@import 'leaflet/dist/leaflet.css';
 
+//@import '../node_modules/leaflet/dist/leaflet.css';
 /* ============================================================
    MEDIFOLLLOW — GLOBAL STYLES
    Angular Material + Custom Components + Accessibility
@@ -129,6 +130,21 @@ body {
   background-color: rgba(0, 0, 0, 0.7);
   backdrop-filter: blur(6px);
 }
+
+/* ── Force Change Password Dialog ─────────────────────────── */
+.force-password-dialog .mat-mdc-dialog-container {
+  padding: 0 !important;
+  background: transparent !important;
+  border-radius: 20px !important;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6) !important;
+}
+
+.force-password-dialog .mat-mdc-dialog-surface {
+  background: transparent !important;
+  border-radius: 20px !important;
+  overflow: visible !important;
+}
+
 
 .custom-dialog-panel {
   border-radius: 16px !important;

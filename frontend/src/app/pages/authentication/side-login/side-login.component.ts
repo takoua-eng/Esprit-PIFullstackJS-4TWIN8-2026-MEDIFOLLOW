@@ -101,7 +101,7 @@ export class AppSideLoginComponent implements OnInit {
     private router: Router,
     private http: HttpClient,
     private core: CoreService,
-    private faceService: FaceRecognitionService
+    private faceService: FaceRecognitionService,
   ) {}
 
   // ================= INIT =================
