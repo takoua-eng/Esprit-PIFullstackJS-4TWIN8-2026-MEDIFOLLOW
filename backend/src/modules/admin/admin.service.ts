@@ -119,8 +119,12 @@ export class AdminService {
 
   private async resolveRoleIdByName(name: string): Promise<Types.ObjectId | null> {
     const roleCol = this.patientModel.db.collection('roles');
-    const doc = await roleCol.findOne<{ _id: Types.ObjectId }>({ name });
-    return doc?._id ?? null;
+    const docs = await roleCol
+      .find<{ _id: Types.ObjectId }>({ name: { $regex: new RegExp(`^${name}$`, 'i') } })
+      .sort({ _id: -1 })
+      .limit(1)
+      .toArray();
+    return docs[0]?._id ?? null;
   }
 
   private async resolvePatientRoleId(): Promise<Types.ObjectId | null> {

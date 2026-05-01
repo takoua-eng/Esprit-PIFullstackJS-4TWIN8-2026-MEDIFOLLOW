@@ -407,6 +407,15 @@ export class UsersService {
   async findPatients(): Promise<
     { _id: string; firstName: string; lastName: string; email: string }[]
   > {
+    const roleDoc = await this.roleModel
+      .findOne({ name: { $regex: /^patient$/i } })
+      .sort({ _id: -1 })
+      .exec();
+    
+    if (roleDoc && roleDoc._id) {
+      return this.findByRoleObjectId(roleDoc._id.toString());
+    }
+
     const id =
       this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
       DEFAULT_PATIENT_ROLE_OBJECT_ID;
