@@ -1,6 +1,7 @@
 import { Injectable, NgZone, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { PatientService } from 'src/app/services/patient.service';
 
 export type VoiceLang = 'fr' | 'ar' | 'en';
 
@@ -38,6 +39,9 @@ const KEYWORDS = {
   profile:        ['profil', 'profile', 'الملف الشخصي', 'ملفي', 'حسابي', 'بروفيل'],
   messages:       ['message', 'messages', 'رسالة', 'رسائل', 'مراسلة'],
   history:        ['historique', 'history', 'السجل', 'التاريخ', 'سجل', 'تاريخ'],
+  prescriptions:  ['ordonnance', 'ordonnances', 'prescription', 'prescriptions', 'روشتة', 'وصفة'],
+  read:           ['lire', 'lis', 'lisez', 'read', 'say', 'dire', 'dis', 'اقرأ', 'اقرا', 'قل'],
+  ai:             ['assistant', 'assistant ia', 'ia', 'ai', 'مساعد', 'مساعد ذكي', 'المساعد'],
   save:           ['enregistrer', 'sauvegarder', 'valider', 'save', 'submit',
                    'حفظ', 'تسجيل', 'احفظ', 'خلص', 'انهيت', 'انتهيت', 'حفظت'],
   next:           ['suivant', 'prochain', 'continuer', 'next', 'continue',
@@ -74,6 +78,8 @@ const NAV_CONFIRM: Record<string, Record<VoiceLang, string>> = {
   profile:        { fr: 'Ouverture de votre profil.',                      ar: 'فتح ملفك الشخصي.',               en: 'Opening your profile.' },
   messages:       { fr: 'Ouverture de vos messages.',                      ar: 'فتح رسائلك.',                    en: 'Opening your messages.' },
   history:        { fr: 'Ouverture de votre historique.',                  ar: 'فتح سجلك الطبي.',                en: 'Opening your history.' },
+  prescriptions:  { fr: 'Ouverture de vos ordonnances.',                  ar: 'فتح صفحة الوصفات/الادوية.',      en: 'Opening your prescriptions.' },
+  ai:             { fr: 'Ouverture de l\'assistant IA.',                  ar: 'فتح المساعد الذكي.',             en: 'Opening the AI assistant.' },
 };
 
 const FORM_OFFER: Record<VoiceLang, string> = {
@@ -142,6 +148,18 @@ const NO_ALERTS: Record<VoiceLang, string> = {
   en: 'You have no alerts at the moment.',
 };
 
+const NO_VITALS: Record<VoiceLang, string> = {
+  fr: 'Aucun paramètre vital n\'a été enregistré.',
+  ar: 'لا توجد قياسات حيوية مسجلة.',
+  en: 'No vital parameters recorded.',
+};
+
+const NO_SYMPTOMS: Record<VoiceLang, string> = {
+  fr: 'Aucun symptôme signalé pour le moment.',
+  ar: 'لا توجد أعراض مسجلة في الوقت الحالي.',
+  en: 'No symptoms reported at the moment.',
+};
+
 const STT_LANGS: Record<VoiceLang, string[]> = {
   fr: ['fr-FR', 'fr-BE', 'fr-CA'],
   ar: ['ar-SA', 'ar-EG', 'ar-MA', 'ar'],
@@ -183,7 +201,7 @@ export class VoiceAssistantService implements OnDestroy {
 
   get lang(): VoiceLang { return this.lang$.value; }
 
-  constructor(private router: Router, private ngZone: NgZone) {}
+  constructor(private router: Router, private ngZone: NgZone, private patientService: PatientService) {}
 
   // ──────────────── Public API ────────────────
 
@@ -406,6 +424,17 @@ export class VoiceAssistantService implements OnDestroy {
       return;
     }
 
+    // Read commands (e.g., "lire mes paramètres vitaux")
+    if (this.matchesAny(text, KEYWORDS.read) && this.matchesAny(text, KEYWORDS.vitals)) { this.readLatestVitals(); return; }
+    if (this.matchesAny(text, KEYWORDS.read) && this.matchesAny(text, KEYWORDS.symptoms)) { this.readRecentSymptoms(); return; }
+    if (this.matchesAny(text, KEYWORDS.read) && this.matchesAny(text, KEYWORDS.alerts)) {
+      this.patientService.getMyAlerts().subscribe({ next: alerts => this.readAlerts(alerts), error: () => this.speak(NO_ALERTS[this.lang], () => this.startListening()) });
+      return;
+    }
+
+    // AI assistant
+    if (this.matchesAny(text, KEYWORDS.ai)) { this.navigateTo('ai'); return; }
+
     // Navigation commands
     if (this.matchesAny(text, KEYWORDS.symptoms))       { this.navigateTo('symptoms');       return; }
     if (this.matchesAny(text, KEYWORDS.vitals))         { this.navigateTo('vitals');         return; }
@@ -428,16 +457,28 @@ export class VoiceAssistantService implements OnDestroy {
       vitals:         '/dashboard/patient/parameters',
       alerts:         '/dashboard/patient/alerts',
       questionnaires: '/dashboard/patient/questionnaires',
+      prescriptions:  '/dashboard/patient/prescriptions',
+      ai:              '/dashboard/patient/ai-chat',
       dashboard:      '/dashboard/patient',
       profile:        '/dashboard/patient/profile',
       messages:       '/dashboard/patient/messages',
       history:        '/dashboard/patient/history',
     };
 
+    // Pages pour lesquelles l'ouverture doit être SILENCIEUSE (aucune parole après ouverture)
+    const silentPages = new Set(['alerts', 'questionnaires', 'messages', 'history', 'ai', 'profile']);
+    const routeTo = routes[page] || '/dashboard/patient';
+
+    if (silentPages.has(page)) {
+      // Navigate silently — do not speak or offer form-filling after arrival
+      this.router.navigate([routeTo]);
+      return;
+    }
+
     const confirmMsg = NAV_CONFIRM[page]?.[this.lang] || NAV_CONFIRM['dashboard'][this.lang];
 
     this.speak(confirmMsg, () => {
-      this.router.navigate([routes[page] || '/dashboard/patient']).then(() => {
+      this.router.navigate([routeTo]).then(() => {
         // After navigation the page ngOnInit will call registerForm()
         // We then offer to fill the form (except for alerts & dashboard)
         setTimeout(() => {
@@ -602,6 +643,58 @@ export class VoiceAssistantService implements OnDestroy {
 
     const lines = alerts.map((a, i) => `${i + 1}. ${a.message}. ${statusWord(a.status)}.`).join(' ');
     this.speak(`${prefix} ${lines}`, () => this.startListening());
+  }
+
+  // ──────────────── Vitals & Symptoms reading ────────────────
+
+  readLatestVitals(): void {
+    this.patientService.getLatestVital().subscribe({
+      next: (v) => {
+        if (!v || !v.recordedAt) {
+          this.speak(NO_VITALS[this.lang], () => this.startListening());
+          return;
+        }
+
+        const dateStr = new Date(v.recordedAt).toLocaleString(this.lang === 'fr' ? 'fr-FR' : this.lang === 'ar' ? 'ar-SA' : 'en-US');
+        const parts: string[] = [];
+        if (v.temperature != null) parts.push(this.lang === 'fr' ? `température ${v.temperature} degrés` : this.lang === 'ar' ? `درجة الحرارة ${v.temperature} درجة` : `temperature ${v.temperature}°C`);
+        if (v.bloodPressuresystolic != null && v.bloodPressureDiastolic != null) parts.push(this.lang === 'fr' ? `tension ${v.bloodPressuresystolic}/${v.bloodPressureDiastolic} millimètres de mercure` : this.lang === 'ar' ? `ضغط الدم ${v.bloodPressuresystolic}/${v.bloodPressureDiastolic} مليمتر زئبق` : `blood pressure ${v.bloodPressuresystolic}/${v.bloodPressureDiastolic} mmHg`);
+        if (v.heartRate != null) parts.push(this.lang === 'fr' ? `rythme cardiaque ${v.heartRate} battements par minute` : this.lang === 'ar' ? `معدل النبض ${v.heartRate} نبضة في الدقيقة` : `heart rate ${v.heartRate} bpm`);
+        if (v.oxygenSaturation != null) parts.push(this.lang === 'fr' ? `saturation en oxygène ${v.oxygenSaturation} %` : this.lang === 'ar' ? `تشبع الأكسجين ${v.oxygenSaturation} %` : `oxygen saturation ${v.oxygenSaturation}%`);
+        if (v.respiratoryRate != null) parts.push(this.lang === 'fr' ? `fréquence respiratoire ${v.respiratoryRate} cycles par minute` : this.lang === 'ar' ? `معدل التنفس ${v.respiratoryRate}` : `respiratory rate ${v.respiratoryRate} breaths/min`);
+        if (v.weight != null) parts.push(this.lang === 'fr' ? `poids ${v.weight} kilogrammes` : this.lang === 'ar' ? `الوزن ${v.weight} كيلوجرام` : `weight ${v.weight} kg`);
+        if (v.glucoseLevel != null) parts.push(this.lang === 'fr' ? `glycémie ${v.glucoseLevel}` : this.lang === 'ar' ? `مستوى الغلوكوز ${v.glucoseLevel}` : `glucose ${v.glucoseLevel}`);
+        if (v.notes) parts.push(v.notes);
+
+        const summary = this.lang === 'fr' ? `Dernière mesure le ${dateStr} : ${parts.join(', ')}.` : this.lang === 'ar' ? `آخر قياس في ${dateStr}: ${parts.join(', ')}.` : `Last reading on ${dateStr}: ${parts.join(', ')}.`;
+        this.speak(summary, () => this.startListening());
+      },
+      error: () => this.speak(NO_VITALS[this.lang], () => this.startListening()),
+    });
+  }
+
+  readRecentSymptoms(): void {
+    this.patientService.getMySymptoms().subscribe({
+      next: (rows) => {
+        if (!rows || rows.length === 0) {
+          this.speak(NO_SYMPTOMS[this.lang], () => this.startListening());
+          return;
+        }
+        const latest = rows.reduce((a, b) => new Date(a.reportedAt) > new Date(b.reportedAt) ? a : b);
+        const dateStr = new Date(latest.reportedAt).toLocaleString(this.lang === 'fr' ? 'fr-FR' : this.lang === 'ar' ? 'ar-SA' : 'en-US');
+        const symptomText = (latest.symptoms && latest.symptoms.length) ? latest.symptoms.join(', ') : (latest.description || '');
+        const parts: string[] = [];
+        if (symptomText) parts.push(this.lang === 'fr' ? `symptômes: ${symptomText}` : this.lang === 'ar' ? `الأعراض: ${symptomText}` : `symptoms: ${symptomText}`);
+        if (latest.painLevel != null) parts.push(this.lang === 'fr' ? `niveau de douleur ${latest.painLevel}/10` : this.lang === 'ar' ? `مستوى الألم ${latest.painLevel}/10` : `pain level ${latest.painLevel}/10`);
+        if (latest.fatigueLevel != null) parts.push(this.lang === 'fr' ? `fatigue ${latest.fatigueLevel}/10` : this.lang === 'ar' ? `مستوى التعب ${latest.fatigueLevel}/10` : `fatigue ${latest.fatigueLevel}/10`);
+        if (latest.shortnessOfBreath != null) parts.push(this.lang === 'fr' ? `essoufflement: ${latest.shortnessOfBreath ? 'oui' : 'non'}` : this.lang === 'ar' ? `ضيق التنفس: ${latest.shortnessOfBreath ? 'نعم' : 'لا'}` : `shortness of breath: ${latest.shortnessOfBreath ? 'yes' : 'no'}`);
+        if (latest.description) parts.push(latest.description);
+
+        const summary = this.lang === 'fr' ? `Dernier signalement le ${dateStr} : ${parts.join(', ')}.` : this.lang === 'ar' ? `آخر بلاغ في ${dateStr}: ${parts.join(', ')}.` : `Last report on ${dateStr}: ${parts.join(', ')}.`;
+        this.speak(summary, () => this.startListening());
+      },
+      error: () => this.speak(NO_SYMPTOMS[this.lang], () => this.startListening()),
+    });
   }
 
   // ──────────────── Arabic/text normalisation ────────────────
