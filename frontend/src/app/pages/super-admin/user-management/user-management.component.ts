@@ -64,8 +64,20 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   displayedColumns = ['photo', 'name', 'role', 'contact', 'status', 'actions'];
   dataSource = new MatTableDataSource<UserRow>([]);
 
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    if(ms) {
+      this.sort = ms;
+      this.dataSource.sort = this.sort;
+    }
+  }
+  sort!: MatSort;
+  @ViewChild(MatPaginator) set matPaginator(mp: MatPaginator) {
+    if(mp) {
+      this.paginator = mp;
+      this.dataSource.paginator = this.paginator;
+    }
+  }
+  paginator!: MatPaginator;
 
   constructor(
     private svc: UserManagementService,

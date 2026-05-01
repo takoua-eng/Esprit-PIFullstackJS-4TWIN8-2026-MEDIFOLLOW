@@ -136,7 +136,7 @@
   <!-- Profile Menu -->
   <mat-menu #profileMenu="matMenu" xPosition="before">
     <div class="px-4 py-2">
-      <div class="f-w-600">{{ currentUser ? currentUser.firstName + ' ' + currentUser.lastName : ('APP_NAME' | translate) }}</div>
+      <div class="f-w-600">{{ currentUser ? (core.userRole() === 'Doctor' ? 'Dr. ' : '') + currentUser.lastName + ' ' + currentUser.firstName : ('APP_NAME' | translate) }}</div>
       <div class="text-muted f-s-12">{{ core.userRole() }}</div>
     </div>
     <mat-divider></mat-divider>

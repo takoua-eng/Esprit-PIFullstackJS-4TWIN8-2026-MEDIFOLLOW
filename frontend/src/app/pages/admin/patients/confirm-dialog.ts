@@ -1,3 +1,4 @@
+import { TranslateModule } from '@ngx-translate/core';
 import { Component, Inject } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
@@ -5,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 @Component({
   selector: 'admin-confirm-dialog',
   standalone: true,
-  imports: [MatDialogModule, MatButtonModule],
+  imports: [
+    TranslateModule,MatDialogModule, MatButtonModule],
   template: `
     <h2 mat-dialog-title>Confirmation</h2>
 

@@ -83,18 +83,22 @@ export class EditAdminDialog implements OnInit {
 
   // === 🎯 Initialisation du formulaire ===
   private initForm(): void {
+    const doc: any = (this.data as any).data || (this.data as any).user || this.data || {};
+
     let serviceId = '';
-    if (this.data?.serviceId) {
-      if (typeof this.data.serviceId === 'object') {
-        serviceId = (this.data.serviceId as any)._id;
+    if (doc.serviceId) {
+      if (typeof doc.serviceId === 'object') {
+        serviceId = doc.serviceId._id || doc.serviceId.id;
       } else {
-        serviceId = this.data.serviceId;
+        serviceId = doc.serviceId;
       }
+    } else if (doc.assignedService) {
+      serviceId = doc.assignedService;
     }
 
     this.adminForm = this.fb.group({
       firstName: [
-        this.data?.firstName || '',
+        doc.firstName || '',
         [
           Validators.required,
           Validators.minLength(2),
@@ -103,7 +107,7 @@ export class EditAdminDialog implements OnInit {
         ],
       ],
       lastName: [
-        this.data?.lastName || '',
+        doc.lastName || '',
         [
           Validators.required,
           Validators.minLength(2),
@@ -111,7 +115,7 @@ export class EditAdminDialog implements OnInit {
           Validators.pattern(/^[a-zA-Z\u0600-\u06FF\s]+$/),
         ],
       ],
-      email: [this.data?.email || '', [Validators.required, Validators.email]],
+      email: [doc.email || '', [Validators.required, Validators.email]],
       password: [
         '',
         [
@@ -122,20 +126,20 @@ export class EditAdminDialog implements OnInit {
         ],
       ],
       phone: [
-        this.data?.phone || '',
+        doc.phone || '',
         [Validators.pattern(/^(\+216|00216|0)?[2-9]\d{7}$/)],
       ],
       nationalId: [
-        this.data?.nationalId || '',
+        doc.nationalId || '',
         [Validators.pattern(/^\d{8}$/)],
       ],
       address: [
-        this.data?.address || '',
+        doc.address || '',
         [Validators.minLength(10), Validators.maxLength(200)],
       ],
-      gender: [this.data?.gender || ''],
+      gender: [doc.gender || ''],
       serviceId: [serviceId, Validators.required],
-      isActive: [this.data?.isActive ?? true],
+      isActive: [doc.isActive ?? true],
     });
   }
 

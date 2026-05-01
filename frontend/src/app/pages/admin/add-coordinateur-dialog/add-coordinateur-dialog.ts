@@ -1,3 +1,4 @@
+import { TranslateModule } from '@ngx-translate/core';
 import { Component, OnInit, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -34,6 +35,7 @@ export interface CoordinatorData {
   selector: 'AddCoordinatorDialog',
   standalone: true,
   imports: [
+    TranslateModule,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,

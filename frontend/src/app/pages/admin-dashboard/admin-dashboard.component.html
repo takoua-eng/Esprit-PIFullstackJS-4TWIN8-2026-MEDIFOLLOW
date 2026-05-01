@@ -1,628 +1,673 @@
-<div class="db-wrap" role="main" aria-label="Admin Dashboard">
+<div class="sa-dashboard" role="main" aria-label="Admin Dashboard">
 
-  <!-- ═══════════════════════════════════════════════════════
-       1. TOP BAR
-  ════════════════════════════════════════════════════════ -->
-  <div class="db-hero" role="banner"
-       style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:12px;">
-    <div class="hero-left">
-      <h1 class="hero-name m-0" style="font-size:24px; font-weight:600;">
-        {{ 'ADMIN_DASHBOARD' | translate }}
-      </h1>
-      <p class="hero-greeting m-0 text-muted">Overview of platform statistics</p>
-    </div>
-
-    <div class="hero-right admin-filter-bar d-flex align-items-center" style="gap:8px; flex-wrap:wrap;">
-      <div class="btn-group">
-        <button mat-stroked-button
-                [ngClass]="{'bg-primary text-white': currentPeriod === 'Aujourd\'hui'}"
-                (click)="setPeriod('Aujourd\'hui')">Aujourd'hui</button>
-        <button mat-stroked-button
-                [ngClass]="{'bg-primary text-white': currentPeriod === 'Semaine'}"
-                (click)="setPeriod('Semaine')">Semaine</button>
-        <button mat-stroked-button
-                [ngClass]="{'bg-primary text-white': currentPeriod === 'Mois'}"
-                (click)="setPeriod('Mois')">Mois</button>
-        <button mat-stroked-button
-                [ngClass]="{'bg-primary text-white': currentPeriod === 'Année'}"
-                (click)="setPeriod('Année')">Année</button>
+  <!-- HEADER -->
+  <div class="sa-header m-b-24" role="banner">
+    <div class="sa-header-left">
+      <div class="sa-header-icon" aria-hidden="true">
+        <i-tabler name="layout-dashboard" class="icon-24"></i-tabler>
       </div>
-      <button mat-flat-button color="primary" (click)="exportDashboard()">
-        <mat-icon>download</mat-icon> {{ 'EXPORT' | translate }}
-      </button>
+      <div>
+        <h1 class="sa-header-title" id="dashboard-title">Admin Dashboard</h1>
+        <p class="sa-header-sub" aria-live="polite">Vue d'ensemble en temps réel — {{ lastRefresh | date:"HH:mm:ss" }}</p>
+      </div>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       2. LOADING STATE
-  ════════════════════════════════════════════════════════ -->
-  <div class="row m-b-24"
-       *ngIf="statsLoading"
-       aria-busy="true"
-       aria-live="polite">
-    <div class="col-12 d-flex flex-column align-items-center justify-content-center py-5">
-      <mat-spinner diameter="48" aria-hidden="true"></mat-spinner>
-      <span class="m-t-16 text-muted f-s-14">Chargement des statistiques…</span>
+  <!-- ROW 1 : KPI CARDS -->
+  <div class="row m-b-20" role="list" aria-label="Indicateurs clés de performance">
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-purple" tabindex="0" aria-label="Total Users: {{ totalUsers }}">
+        <mat-card-content>
+          <i-tabler name="users" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalUsers }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Total Users</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-blue" tabindex="0" aria-label="Patients: {{ totalPatients }}">
+        <mat-card-content>
+          <i-tabler name="heart-rate-monitor" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalPatients }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Patients</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-teal" tabindex="0" aria-label="Doctors: {{ totalDoctors }}">
+        <mat-card-content>
+          <i-tabler name="stethoscope" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalDoctors }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Doctors</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-green" tabindex="0" aria-label="Nurses: {{ totalNurses }}">
+        <mat-card-content>
+          <i-tabler name="nurse" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalNurses }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Nurses</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-red" tabindex="0" aria-label="Active Alerts: {{ activeAlerts }}, {{ criticalAlerts }} critical">
+        <mat-card-content>
+          <i-tabler name="bell-ringing" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ activeAlerts }}</div>
+          <div class="kpi-sub" *ngIf="criticalAlerts > 0" aria-hidden="true">{{ criticalAlerts }} critical</div>
+          <div class="kpi-lbl" aria-hidden="true">Active Alerts</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-orange" tabindex="0" aria-label="Services: {{ totalServices }}">
+        <mat-card-content>
+          <i-tabler name="building-hospital" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalServices }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Services</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-indigo" tabindex="0" aria-label="Audit Events: {{ totalAuditEvents }}">
+        <mat-card-content>
+          <i-tabler name="database" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalAuditEvents }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Audit Events</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-cyan" tabindex="0" aria-label="Reminders: {{ totalReminders }}, {{ pendingReminders }} pending">
+        <mat-card-content>
+          <i-tabler name="bell-ringing" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalReminders }}</div>
+          <div class="kpi-sub" *ngIf="pendingReminders > 0" aria-hidden="true">{{ pendingReminders }} pending</div>
+          <div class="kpi-lbl" aria-hidden="true">Reminders</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi kpi-purple" style="background:linear-gradient(135deg,#a29bfe,#6c5ce7)" tabindex="0" aria-label="Questionnaires: {{ totalQuestionnaires }}">
+        <mat-card-content>
+          <i-tabler name="clipboard-list" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ totalQuestionnaires }}</div>
+          <div class="kpi-lbl" aria-hidden="true">Questionnaires</div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+    <div class="col-xl col-md-4 col-6 m-b-16" role="listitem">
+      <mat-card class="kpi" style="background:linear-gradient(135deg,#00b894,#00cec9);color:#fff" tabindex="0" aria-label="Vitals Today: {{ vitalsSubmittedToday }}, {{ complianceRate }}% compliance">
+        <mat-card-content>
+          <i-tabler name="heart-rate-monitor" class="kpi-ico" aria-hidden="true"></i-tabler>
+          <div class="kpi-val" aria-hidden="true">{{ vitalsSubmittedToday }}</div>
+          <div class="kpi-sub" aria-hidden="true">{{ complianceRate }}% compliance</div>
+          <div class="kpi-lbl" aria-hidden="true">Vitals Today</div>
+        </mat-card-content>
+      </mat-card>
     </div>
   </div>
+  <!-- ROW 2 : Charts -->
+  <div class="row m-b-20" role="region" aria-label="Graphiques d'activité">
 
-  <!-- ═══════════════════════════════════════════════════════
-       3. ERROR STATE
-  ════════════════════════════════════════════════════════ -->
-  <div class="row m-b-24" *ngIf="statsError" role="alert">
+    <!-- Alerts per day -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="bell" class="sec-ico red"></i-tabler>
+              Alertes / 7 jours
+            </div>
+          </div>
+          <apx-chart *ngIf="alertsChart.series"
+            [series]="alertsChart.series" [chart]="alertsChart.chart"
+            [plotOptions]="alertsChart.plotOptions" [colors]="alertsChart.colors"
+            [xaxis]="alertsChart.xaxis" [dataLabels]="alertsChart.dataLabels"
+            [grid]="alertsChart.grid" [tooltip]="alertsChart.tooltip">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Users by role donut -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="users-group" class="sec-ico purple"></i-tabler>
+              Utilisateurs par role
+            </div>
+          </div>
+          <apx-chart *ngIf="usersRoleChart.series"
+            [series]="usersRoleChart.series" [labels]="usersRoleChart.labels"
+            [chart]="usersRoleChart.chart" [colors]="usersRoleChart.colors"
+            [legend]="usersRoleChart.legend" [dataLabels]="usersRoleChart.dataLabels"
+            [plotOptions]="usersRoleChart.plotOptions" [tooltip]="usersRoleChart.tooltip">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Audit activity -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="activity" class="sec-ico indigo"></i-tabler>
+              Activite systeme / 7 jours
+            </div>
+          </div>
+          <apx-chart *ngIf="activityChart.series"
+            [series]="activityChart.series" [chart]="activityChart.chart"
+            [stroke]="activityChart.stroke" [fill]="activityChart.fill"
+            [colors]="activityChart.colors" [xaxis]="activityChart.xaxis"
+            [dataLabels]="activityChart.dataLabels" [grid]="activityChart.grid"
+            [tooltip]="activityChart.tooltip">
+          </apx-chart>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+
+  <!-- ROW 2b : Reminders Charts -->
+  <div class="row m-b-20">
+
+    <!-- Reminders par Coordinator -->
+    <div class="col-lg-6 m-b-16">
+      <mat-card class="cardWithShadow">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="users-group" class="sec-ico purple"></i-tabler>
+              Reminders par Coordinateur
+            </div>
+          </div>
+          <apx-chart *ngIf="remindersByCoordChart.series"
+            [series]="remindersByCoordChart.series"
+            [chart]="remindersByCoordChart.chart"
+            [plotOptions]="remindersByCoordChart.plotOptions"
+            [colors]="remindersByCoordChart.colors"
+            [xaxis]="remindersByCoordChart.xaxis"
+            [dataLabels]="remindersByCoordChart.dataLabels"
+            [grid]="remindersByCoordChart.grid"
+            [tooltip]="remindersByCoordChart.tooltip">
+          </apx-chart>
+          <div *ngIf="!remindersByCoordChart.series" class="empty-sec">
+            <i-tabler name="bell-off" class="icon-32"></i-tabler>
+            <p>Aucune donnée</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Reminders par Patient -->
+    <div class="col-lg-6 m-b-16">
+      <mat-card class="cardWithShadow">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="heart-rate-monitor" class="sec-ico blue"></i-tabler>
+              Reminders par Patient (Top 8)
+            </div>
+          </div>
+          <apx-chart *ngIf="remindersByPatientChart.series"
+            [series]="remindersByPatientChart.series"
+            [chart]="remindersByPatientChart.chart"
+            [plotOptions]="remindersByPatientChart.plotOptions"
+            [colors]="remindersByPatientChart.colors"
+            [xaxis]="remindersByPatientChart.xaxis"
+            [yaxis]="remindersByPatientChart.yaxis"
+            [dataLabels]="remindersByPatientChart.dataLabels"
+            [grid]="remindersByPatientChart.grid"
+            [tooltip]="remindersByPatientChart.tooltip">
+          </apx-chart>
+          <div *ngIf="!remindersByPatientChart.series" class="empty-sec">
+            <i-tabler name="bell-off" class="icon-32"></i-tabler>
+            <p>Aucune donnée</p>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+
+  <!-- ROW 2c : Staff par Service -->
+  <div class="row m-b-20">
     <div class="col-12">
       <mat-card class="cardWithShadow">
-        <mat-card-content class="p-16 d-flex align-items-start">
-          <mat-icon color="warn" class="flex-shrink-0 m-r-12">error_outline</mat-icon>
-          <div>
-            <div class="f-w-600 m-b-4">Statistiques indisponibles</div>
-            <p class="m-0 f-s-14 text-muted">{{ statsError }}</p>
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="building-hospital" class="sec-ico orange"></i-tabler>
+              Doctors / Nurses / Patients par Service
+            </div>
+          </div>
+          <apx-chart *ngIf="serviceStaffChart.series"
+            [series]="serviceStaffChart.series"
+            [chart]="serviceStaffChart.chart"
+            [plotOptions]="serviceStaffChart.plotOptions"
+            [colors]="serviceStaffChart.colors"
+            [xaxis]="serviceStaffChart.xaxis"
+            [legend]="serviceStaffChart.legend"
+            [dataLabels]="serviceStaffChart.dataLabels"
+            [grid]="serviceStaffChart.grid"
+            [tooltip]="serviceStaffChart.tooltip">
+          </apx-chart>
+          <div *ngIf="!serviceStaffChart.series" class="empty-sec">
+            <i-tabler name="building-off" class="icon-32"></i-tabler>
+            <p>Aucune donnée de service</p>
           </div>
         </mat-card-content>
       </mat-card>
     </div>
   </div>
 
-  <!-- ═══════════════════════════════════════════════════════
-       CONTENU PRINCIPAL
-  ════════════════════════════════════════════════════════ -->
-  <ng-container *ngIf="!statsLoading && stats">
+  <!-- ROW 3 : Alerts + Services + Users by role list -->
+  <div class="row m-b-20">
 
-    <!-- ─────────────────────────────────────────────────────
-         4. BANNIÈRE ALERTES CRITIQUES
-         Affichée uniquement si criticalAlerts > 0
-    ───────────────────────────────────────────────────── -->
-    <div class="row m-b-16" *ngIf="stats?.criticalAlerts > 0">
-      <div class="col-12">
-        <div class="d-flex align-items-center p-12"
-             style="background:#FCEBEB; border:1px solid #F09595; border-radius:8px; gap:12px;">
-          <mat-icon color="warn">error</mat-icon>
-          <span style="color:#A32D2D; font-size:13px; flex:1;">
-            <strong>{{ stats?.criticalAlerts }} alertes critiques</strong>
-            non traitées — patients à vérifier immédiatement
-          </span>
-          <button mat-stroked-button color="warn" routerLink="/admin/alerts">
-            Voir les alertes
-          </button>
-        </div>
-      </div>
+    <!-- Critical Alerts -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="alert-octagon" class="sec-ico red"></i-tabler>
+              Alertes recentes
+            </div>
+            <a mat-button color="warn" routerLink="/dashboard/admin/alerts">Voir tout</a>
+          </div>
+
+          <div class="alert-list" role="list" aria-label="Liste des alertes récentes">
+            <div *ngFor="let a of recentAlerts" class="alert-row" [routerLink]="['/dashboard/admin/alerts']" tabindex="0" role="listitem"
+              [attr.aria-label]="a.patientName + ': ' + a.message + ' — Sevérité: ' + a.severity">
+              <div class="alert-sev-dot" [style.background]="severityColor(a.severity)"></div>
+              <div class="alert-body">
+                <div class="alert-msg">{{ a.message | slice:0:55 }}{{ (a.message?.length ?? 0) > 55 ? '...' : '' }}</div>
+                <div class="alert-meta">{{ a.patientName }} &bull; {{ a.createdAt | date:"dd/MM HH:mm" }}</div>
+              </div>
+              <span class="sev-badge" [style.background]="severityColor(a.severity) + '20'" [style.color]="severityColor(a.severity)">
+                {{ a.severity }}
+              </span>
+            </div>
+            <div *ngIf="recentAlerts.length === 0" class="empty-sec">
+              <i-tabler name="bell-off" class="icon-32"></i-tabler>
+              <p>Aucune alerte</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
 
-    <!-- ─────────────────────────────────────────────────────
-         5. KPI CARDS (6 cartes)
-    ───────────────────────────────────────────────────── -->
-    <div class="row m-b-24" [class.kpi-row--flash]="kpiStatsFlash">
+    <!-- Services Overview -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="building-hospital" class="sec-ico orange"></i-tabler>
+              Services
+            </div>
+            <a mat-button color="primary" routerLink="/dashboard/admin/services">Gerer</a>
+          </div>
 
-      <!-- Patients -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card">
-          <mat-card-content class="p-16">
-            <i-tabler name="users-group" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-            <h3 class="kpi-card__title">Patients</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value kpi-value--patients">{{ stats?.patients }}</span>
-              <span class="kpi-value-suffix">Patients</span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend"
-                    [ngClass]="kpiTrends.patients.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
-                {{ kpiTrends.patients.isUp ? '+' : '-' }}{{ kpiTrends.patients.value }}
-                {{ kpiTrends.patients.period }}
+          <div class="service-list" role="list" aria-label="Liste des services">
+            <div *ngFor="let s of services" class="service-row" tabindex="0" role="listitem"
+              [attr.aria-label]="s.name + ' — ' + (s.isActive ? 'Actif' : 'Inactif')">
+              <div class="service-icon">
+                <i-tabler name="building-hospital" class="icon-18"></i-tabler>
+              </div>
+              <div class="service-body">
+                <div class="service-name">{{ s.name }}</div>
+                <div class="service-code">{{ s.code }}</div>
+              </div>
+              <span class="service-badge" [class.active]="s.isActive" [class.inactive]="!s.isActive">
+                {{ s.isActive ? "Actif" : "Inactif" }}
               </span>
             </div>
-            <div class="kpi-card__footer">{{ 'REGISTERED_PATIENTS' | translate }}</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Doctors -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card">
-          <mat-card-content class="p-16">
-            <i-tabler name="stethoscope" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-            <h3 class="kpi-card__title">Doctors</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value kpi-value--doctors">{{ stats?.doctors }}</span>
-              <span class="kpi-value-suffix">Doctors</span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend"
-                    [ngClass]="kpiTrends.doctors.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
-                {{ kpiTrends.doctors.isUp ? '+' : '-' }}{{ kpiTrends.doctors.value }}
-                {{ kpiTrends.doctors.period }}
-              </span>
+            <div *ngIf="services.length === 0" class="empty-sec">
+              <i-tabler name="building-off" class="icon-32"></i-tabler>
+              <p>Aucun service</p>
             </div>
-            <div class="kpi-card__footer">{{ 'SPECIALIST_DOCTORS' | translate }}</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Nurses -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card">
-          <mat-card-content class="p-16">
-            <i-tabler name="nurse" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-            <h3 class="kpi-card__title">Nurses</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value kpi-value--nurses">{{ stats?.nurses }}</span>
-              <span class="kpi-value-suffix">Nurses</span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend"
-                    [ngClass]="kpiTrends.nurses.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
-                {{ kpiTrends.nurses.isUp ? '+' : '-' }}{{ kpiTrends.nurses.value }}
-                {{ kpiTrends.nurses.period }}
-              </span>
-            </div>
-            <div class="kpi-card__footer">{{ 'NURSING_STAFF' | translate }}</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Coordinators -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card">
-          <mat-card-content class="p-16">
-            <i-tabler name="users" class="icon-24 d-block m-b-8 kpi-card__icon"></i-tabler>
-            <h3 class="kpi-card__title">Coordinators</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value kpi-value--coordinators">{{ stats?.coordinators }}</span>
-              <span class="kpi-value-suffix">Coordinators</span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend"
-                    [ngClass]="kpiTrends.coordinators.isUp ? 'kpi-trend--up' : 'kpi-trend--down'">
-                {{ kpiTrends.coordinators.isUp ? '+' : '-' }}{{ kpiTrends.coordinators.value }}
-                {{ kpiTrends.coordinators.period }}
-              </span>
-            </div>
-            <div class="kpi-card__footer">{{ 'COORDINATORS' | translate }}</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Alertes actives — NOUVEAU -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card"
-                  style="border-top: 3px solid #f44336;">
-          <mat-card-content class="p-16">
-            <i-tabler name="alert-triangle" class="icon-24 d-block m-b-8"
-                      style="color:#f44336;"></i-tabler>
-            <h3 class="kpi-card__title">Alertes actives</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value" style="color:#f44336;">
-                {{ stats?.activeAlerts ?? 0 }}
-              </span>
-              <span class="kpi-value-suffix">Alertes</span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend kpi-trend--down"
-                    *ngIf="(stats?.criticalAlerts ?? 0) > 0">
-                {{ stats?.criticalAlerts }} critiques
-              </span>
-              <span class="kpi-trend kpi-trend--up"
-                    *ngIf="stats?.criticalAlerts === 0">
-                Aucune critique
-              </span>
-            </div>
-            <div class="kpi-card__footer">Nécessitent attention</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Compliance globale — NOUVEAU -->
-      <div class="col-12 col-sm-6 col-md-4 col-lg m-b-16">
-        <mat-card class="cardWithShadow kpi-card"
-                  style="border-top: 3px solid #4caf50;">
-          <mat-card-content class="p-16">
-            <i-tabler name="chart-bar" class="icon-24 d-block m-b-8"
-                      style="color:#4caf50;"></i-tabler>
-            <h3 class="kpi-card__title">Compliance</h3>
-            <p class="m-0 d-flex align-items-baseline flex-wrap">
-              <span class="kpi-value"
-                    [ngStyle]="{'color': (stats?.complianceRate ?? 0) >= 80 ? '#4caf50' :
-                                         (stats?.complianceRate ?? 0) >= 50 ? '#ff9800' : '#f44336'}">
-                {{ stats?.complianceRate ?? 0 }}%
-              </span>
-            </p>
-            <div class="kpi-trends">
-              <span class="kpi-trend kpi-trend--up">Saisies complétées</span>
-            </div>
-            <div class="kpi-card__footer">Moyenne globale</div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
 
-    <!-- ─────────────────────────────────────────────────────
-         6. TRAFFIC CHART
-    ───────────────────────────────────────────────────── -->
-    <div class="row m-b-24">
-      <div class="col-12">
-        <mat-card class="cardWithShadow mb-0">
-          <mat-card-content>
+    <!-- Users by role breakdown -->
+    <div class="col-lg-4 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="users" class="sec-ico purple"></i-tabler>
+              Repartition utilisateurs
+            </div>
+            <a mat-button color="primary" routerLink="/dashboard/admin/admin-users">Gerer</a>
+          </div>
 
-            <div class="d-flex justify-content-between align-items-center flex-wrap"
-                 style="gap:8px;">
+          <div class="role-list" role="list" aria-label="Répartition par rôle">
+            <div *ngFor="let r of usersByRole" class="role-row" tabindex="0" role="listitem"
+              [attr.aria-label]="(r.role | titlecase) + ': ' + r.count + ' utilisateurs'">
+              <div class="role-icon" [style.background]="r.color + '20'">
+                <i-tabler [name]="r.icon" [style.color]="r.color" class="icon-18"></i-tabler>
+              </div>
+              <div class="role-name">{{ r.role | titlecase }}</div>
+              <div class="role-bar-wrap">
+                <div class="role-bar" [style.width]="(r.count / totalUsers * 100) + '%'" [style.background]="r.color"></div>
+              </div>
+              <div class="role-count" [style.color]="r.color">{{ r.count }}</div>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+  </div>
+
+  <!-- ROW AI INTELLIGENCE ─────────────────────────────────── -->
+  <div class="row m-b-20">
+    <div class="col-12">
+      <mat-card class="cardWithShadow ai-intel-card">
+        <mat-card-content class="p-20">
+
+          <!-- Header -->
+          <div class="ai-intel-header m-b-20">
+            <div class="ai-intel-title">
+              <div class="ai-intel-icon">
+                <i-tabler name="brain" class="icon-22"></i-tabler>
+              </div>
               <div>
-                <mat-card-title>{{ 'TRAFFIC' | translate }}</mat-card-title>
-                <mat-card-subtitle class="f-s-13 text-muted">
-                  {{ trafficPeriodLabel }}
-                </mat-card-subtitle>
-              </div>
-              <div class="btn-group">
-                <button mat-stroked-button class="m-r-4"
-                        [disabled]="trafficLoading"
-                        [ngClass]="{'bg-primary text-white': viewMode === 'day'}"
-                        (click)="viewMode = 'day'">
-                  {{ 'DAY' | translate }}
-                </button>
-                <button mat-stroked-button class="m-r-4"
-                        [disabled]="trafficLoading"
-                        [ngClass]="{'bg-primary text-white': viewMode === 'month'}"
-                        (click)="viewMode = 'month'">
-                  {{ 'MONTH' | translate }}
-                </button>
-                <button mat-stroked-button
-                        [disabled]="trafficLoading"
-                        [ngClass]="{'bg-primary text-white': viewMode === 'year'}"
-                        (click)="viewMode = 'year'">
-                  {{ 'YEAR' | translate }}
-                </button>
+                <div class="f-w-700 f-s-16">Intelligence Artificielle — Analyse des Services</div>
+                <div class="text-muted f-s-12">Détection surcharge · Scores · Prédictions · Tendances · Résumé</div>
               </div>
             </div>
+            <button mat-raised-button color="primary" (click)="loadServiceIntelligence()" [disabled]="intelLoading" class="intel-btn">
+              <i-tabler name="refresh" class="icon-15 m-r-6" *ngIf="!intelLoading"></i-tabler>
+              <mat-progress-spinner *ngIf="intelLoading" diameter="16" mode="indeterminate" style="display:inline-block"></mat-progress-spinner>
+              {{ intelLoading ? 'Analyse...' : 'Analyser' }}
+            </button>
+          </div>
 
-            <div *ngIf="trafficError"
-                 class="m-t-12 p-12 d-flex align-items-start" role="status"
-                 style="background:rgba(244,67,54,0.05); border-radius:6px;">
-              <mat-icon class="flex-shrink-0 m-r-12" color="warn">warning_amber</mat-icon>
-              <span class="f-s-13">{{ trafficError }}</span>
-            </div>
+          <!-- Loading -->
+          <div *ngIf="intelLoading" class="text-center p-24">
+            <i-tabler name="brain" class="icon-40" style="color:#6c5ce7;opacity:.4"></i-tabler>
+            <p class="text-muted f-s-13 m-t-8">Analyse IA en cours...</p>
+          </div>
 
-            <div class="m-t-16 position-relative">
-              <div *ngIf="trafficLoading"
-                   class="d-flex flex-column align-items-center justify-content-center py-4"
-                   aria-busy="true" aria-live="polite">
-                <mat-spinner diameter="40" aria-hidden="true"></mat-spinner>
-                <span class="f-s-13 text-muted m-t-8">Chargement du trafic…</span>
-              </div>
-              <canvas id="trafficChart" height="100"></canvas>
-            </div>
+          <!-- Results -->
+          <div *ngIf="!intelLoading && intel" class="intel-grid">
 
-            <!-- Metrics row -->
-            <div class="row m-t-16" [class.traffic-metrics--flash]="trafficMetricsFlash">
-
-              <div class="col-md-2 m-b-8">
-                <div class="f-s-12 text-muted">{{ 'VISITS' | translate }}</div>
-                <div class="f-w-600 f-s-14">
-                  <ng-container *ngIf="trafficStats; else dash">
-                    {{ trafficStats.visits | number }}
-                    {{ 'SESSIONS' | translate }}
-                    ({{ trafficShare(trafficStats.visits) | number:'1.0-1' }}%)
-                  </ng-container>
-                </div>
-              </div>
-
-              <div class="col-md-2 m-b-8">
-                <div class="f-s-12 text-muted">{{ 'UNIQUE_USERS' | translate }}</div>
-                <div class="f-w-600 f-s-14">
-                  <ng-container *ngIf="trafficStats; else dash">
-                    {{ trafficStats.uniqueUsers | number }}
-                    {{ 'USERS' | translate }}
-                    ({{ trafficShare(trafficStats.uniqueUsers) | number:'1.0-1' }}%)
-                  </ng-container>
-                </div>
-              </div>
-
-              <div class="col-md-2 m-b-8">
-                <div class="f-s-12 text-muted">{{ 'PAGE_VIEWS' | translate }}</div>
-                <div class="f-w-600 f-s-14">
-                  <ng-container *ngIf="trafficStats; else dash">
-                    {{ trafficStats.pageViews | number }}
-                    {{ 'VIEWS' | translate }}
-                    ({{ trafficShare(trafficStats.pageViews) | number:'1.0-1' }}%)
-                  </ng-container>
-                </div>
-              </div>
-
-              <div class="col-md-2 m-b-8">
-                <div class="f-s-12 text-muted">{{ 'NEW_PATIENTS' | translate }}</div>
-                <div class="f-w-600 f-s-14">
-                  <ng-container *ngIf="trafficStats; else dash">
-                    {{ trafficStats.newPatients | number }}
-                    {{ 'PATIENTS' | translate }}
-                    ({{ trafficShare(trafficStats.newPatients) | number:'1.0-1' }}%)
-                  </ng-container>
-                </div>
-              </div>
-
-              <div class="col-md-2 m-b-8">
-                <div class="f-s-12 text-muted">{{ 'FOLLOWUP_RATE' | translate }}</div>
-                <div class="f-w-600 f-s-14">
-                  <ng-container *ngIf="trafficStats; else dash">
-                    {{ 'AVERAGE_RATE' | translate }}
-                    {{ trafficStats.followUpRate | number:'1.0-2' }}%
-                  </ng-container>
-                </div>
-              </div>
-
-            </div>
-            <ng-template #dash><span class="text-muted">—</span></ng-template>
-
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </div>
-
-    <!-- ─────────────────────────────────────────────────────
-         7. ALERTES RÉCENTES
-    ───────────────────────────────────────────────────── -->
-    <div class="row m-b-24">
-      <div class="col-12">
-        <mat-card class="cardWithShadow mb-0"
-                  style="border-top: 3px solid #f44336;">
-          <mat-card-content>
-
-            <div class="d-flex justify-content-between align-items-center m-b-16 flex-wrap"
-                 style="gap:8px;">
-              <mat-card-title class="d-flex align-items-center m-0">
-                <mat-icon color="warn" class="m-r-8">warning</mat-icon>
-                Alertes récentes
-                <span class="m-l-8"
-                      style="background:#FCEBEB; color:#A32D2D;
-                             font-size:11px; padding:2px 8px;
-                             border-radius:12px; font-weight:500;">
-                  {{ alerts.length }}
-                </span>
-              </mat-card-title>
-
-              <div class="d-flex" style="gap:6px;">
-                <button mat-stroked-button
-                        [ngClass]="{'bg-primary text-white': alertFilter === 'all'}"
-                        (click)="setAlertFilter('all')">
-                  Toutes
-                </button>
-                <button mat-stroked-button
-                        [ngClass]="{'bg-warn text-white': alertFilter === 'critical'}"
-                        (click)="setAlertFilter('critical')">
-                  Critiques
-                </button>
-                <button mat-stroked-button
-                        [ngClass]="{'bg-primary text-white': alertFilter === 'warning'}"
-                        (click)="setAlertFilter('warning')">
-                  Warnings
-                </button>
-              </div>
-            </div>
-
-            <!-- Vide -->
-            <div *ngIf="filteredAlerts.length === 0"
-                 class="d-flex flex-column align-items-center py-4 text-muted">
-              <mat-icon class="m-b-8" style="font-size:32px; width:32px; height:32px;">
-                notifications_none
-              </mat-icon>
-              <p class="m-0 f-s-14">Aucune alerte active.</p>
-            </div>
-
-            <!-- Liste -->
-            <div *ngFor="let alert of filteredAlerts | slice:0:5"
-                 class="d-flex align-items-center m-b-8 p-12"
-                 [ngStyle]="{
-                   'background': alert.type === 'CRITICAL' ? '#FCEBEB' : '#FAEEDA',
-                   'border-radius': '6px'
-                 }">
-
-              <span class="m-r-12 f-s-10 f-w-600 p-x-8 p-y-4"
-                    [ngStyle]="{
-                      'background':   alert.type === 'CRITICAL' ? '#F7C1C1' : '#FAC775',
-                      'color':        alert.type === 'CRITICAL' ? '#A32D2D' : '#854F0B',
-                      'border-radius':'4px'
-                    }">
-                {{ alert.type }}
-              </span>
-
-              <div class="flex-grow-1">
-                <div class="f-s-13 f-w-600">{{ alert.patientName }}</div>
-                <div class="f-s-12 text-muted">
-                  {{ alert.parameter }} : {{ alert.value }}
-                </div>
-              </div>
-
-              <span class="f-s-11 text-muted">
-                {{ alert.triggeredAt | date:'shortTime' }}
-              </span>
-            </div>
-
-            <!-- Voir plus -->
-            <div class="m-t-12 text-center" *ngIf="alerts.length > 5">
-              <button mat-stroked-button routerLink="/admin/alerts">
-                Voir toutes les alertes ({{ alerts.length }})
-              </button>
-            </div>
-
-          </mat-card-content>
-        </mat-card>
-      </div>
-    </div>
-
-    <!-- ─────────────────────────────────────────────────────
-         8. COMPLIANCE + PATIENTS RÉCENTS
-    ───────────────────────────────────────────────────── -->
-    <div class="row m-b-24">
-
-      <!-- Compliance saisies -->
-      <div class="col-lg-5 m-b-16">
-        <mat-card class="cardWithShadow h-100 mb-0">
-          <mat-card-content>
-            <mat-card-title class="m-b-16">Compliance saisies</mat-card-title>
-
-            <div *ngIf="complianceItems.length === 0"
-                 class="d-flex flex-column align-items-center py-4 text-muted">
-              <mat-icon class="m-b-8">bar_chart</mat-icon>
-              <p class="m-0 f-s-14">Données non disponibles.</p>
-            </div>
-
-            <div *ngFor="let item of complianceItems" class="m-b-16">
-              <div class="d-flex justify-content-between m-b-4">
-                <span class="f-s-13">{{ item.label }}</span>
-                <span class="f-s-13 f-w-600"
-                      [ngStyle]="{'color': item.pct >= 80 ? '#4caf50' :
-                                           item.pct >= 50 ? '#ff9800' : '#f44336'}">
-                  {{ item.pct }}%
+            <!-- 1. Résumé automatique -->
+            <div class="intel-section summary-section"
+                 [class.status-stable]="intel.summary?.statut === 'STABLE'"
+                 [class.status-warning]="intel.summary?.statut === 'ATTENTION'"
+                 [class.status-critical]="intel.summary?.statut === 'CRITIQUE'">
+              <div class="intel-sec-title">
+                <i-tabler name="clipboard-list" class="icon-15"></i-tabler> Résumé du jour
+                <span class="status-chip" [class]="'chip-' + (intel.summary?.statut || 'STABLE').toLowerCase()">
+                  {{ intel.summary?.statut }}
                 </span>
               </div>
-              <mat-progress-bar
-                mode="determinate"
-                [value]="item.pct"
-                [color]="item.pct >= 80 ? 'primary' :
-                         item.pct >= 50 ? 'accent'  : 'warn'">
-              </mat-progress-bar>
+              <p class="intel-resume">{{ intel.summary?.resume }}</p>
+              <div class="intel-points">
+                <div *ngFor="let p of intel.summary?.points" class="intel-point">{{ p }}</div>
+              </div>
+              <div class="intel-action" *ngIf="intel.summary?.action_prioritaire">
+                <i-tabler name="bolt" class="icon-13"></i-tabler>
+                {{ intel.summary?.action_prioritaire }}
+              </div>
             </div>
 
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Patients récents -->
-      <div class="col-lg-7 m-b-16">
-        <mat-card class="cardWithShadow h-100 mb-0">
-          <mat-card-content>
-            <mat-card-title class="m-b-16">Patients récents</mat-card-title>
-
-            <div *ngIf="recentPatients.length === 0"
-                 class="d-flex flex-column align-items-center py-4 text-muted">
-              <mat-icon class="m-b-8">person_outline</mat-icon>
-              <p class="m-0 f-s-14">Aucun patient récent.</p>
+            <!-- 2. Surcharge services -->
+            <div class="intel-section">
+              <div class="intel-sec-title">
+                <i-tabler name="alert-triangle" class="icon-15" style="color:#d63031"></i-tabler>
+                Surcharge services
+              </div>
+              <div *ngIf="intel.overloadedServices?.length === 0" class="intel-ok">
+                <i-tabler name="circle-check" class="icon-16" style="color:#00b894"></i-tabler> Aucun service surchargé
+              </div>
+              <div *ngFor="let s of intel.overloadedServices" class="overload-row">
+                <div class="overload-name">{{ s.name || 'Service ' + s.serviceId?.slice(-4) }}</div>
+                <div class="overload-bar-wrap">
+                  <div class="overload-bar" [style.width.%]="s.overloadScore" [class.bar-red]="s.overloadScore > 70" [class.bar-orange]="s.overloadScore <= 70"></div>
+                </div>
+                <div class="overload-meta">
+                  <span>{{ s.patients }} patients</span>
+                  <span class="text-danger">{{ s.alerts }} alertes</span>
+                </div>
+              </div>
             </div>
 
-            <table mat-table [dataSource]="recentPatients" class="w-100"
-                   *ngIf="recentPatients.length > 0">
+            <!-- 3. Scores performance -->
+            <div class="intel-section">
+              <div class="intel-sec-title">
+                <i-tabler name="chart-bar" class="icon-15" style="color:#0984e3"></i-tabler>
+                Scores performance
+              </div>
+              <div *ngFor="let s of intel.serviceScores" class="score-row">
+                <div class="score-name">{{ s.name }}</div>
+                <div class="score-bar-wrap">
+                  <div class="score-bar"
+                       [style.width.%]="s.score"
+                       [class.bar-green]="s.status === 'good'"
+                       [class.bar-orange]="s.status === 'warning'"
+                       [class.bar-red]="s.status === 'critical'">
+                  </div>
+                </div>
+                <span class="score-val" [class.text-success]="s.status === 'good'" [class.text-warning]="s.status === 'warning'" [class.text-danger]="s.status === 'critical'">
+                  {{ s.score }}%
+                </span>
+              </div>
+              <div *ngIf="!intel.serviceScores?.length" class="intel-ok">
+                <i-tabler name="info-circle" class="icon-14"></i-tabler> Pas assez de données
+              </div>
+            </div>
 
-              <ng-container matColumnDef="name">
-                <th mat-header-cell *matHeaderCellDef class="f-s-12">Nom</th>
-                <td mat-cell *matCellDef="let p" class="f-s-13">
-                  {{ p.firstName }} {{ p.lastName }}
-                </td>
-              </ng-container>
+            <!-- 4. Prédiction surcharge -->
+            <div class="intel-section">
+              <div class="intel-sec-title">
+                <i-tabler name="trending-up" class="icon-15" style="color:#6c5ce7"></i-tabler>
+                Prédiction surcharge
+              </div>
+              <div class="prediction-risk" [class]="'risk-' + intel.prediction?.risk?.toLowerCase()">
+                <i-tabler [name]="intel.prediction?.risk === 'HIGH' ? 'alert-octagon' : intel.prediction?.risk === 'MEDIUM' ? 'alert-triangle' : 'circle-check'" class="icon-18"></i-tabler>
+                {{ intel.prediction?.risk }}
+              </div>
+              <p class="prediction-msg">{{ intel.prediction?.message }}</p>
+              <div class="sparkline">
+                <div *ngFor="let v of intel.prediction?.dailySymptoms; let i = index"
+                     class="spark-bar"
+                     [style.height.px]="Math.max(4, v * 6)"
+                     [matTooltip]="intel.prediction?.days?.[i] + ': ' + v + ' symptômes'">
+                </div>
+              </div>
+              <div class="spark-label">Symptômes / 7 jours</div>
+            </div>
 
-              <ng-container matColumnDef="diagnosis">
-                <th mat-header-cell *matHeaderCellDef class="f-s-12">Pathologie</th>
-                <td mat-cell *matCellDef="let p" class="text-muted f-s-12">
-                  {{ p.primaryDiagnosis?.condition | titlecase }}
-                </td>
-              </ng-container>
+            <!-- 5. Tendances symptômes -->
+            <div class="intel-section">
+              <div class="intel-sec-title">
+                <i-tabler name="stethoscope" class="icon-15" style="color:#e17055"></i-tabler>
+                Tendances symptômes
+              </div>
+              <div *ngIf="!intel.topSymptoms?.length" class="intel-ok">
+                <i-tabler name="info-circle" class="icon-14"></i-tabler> Aucun symptôme enregistré
+              </div>
+              <div *ngFor="let s of intel.topSymptoms" class="symptom-row">
+                <span class="symptom-name">{{ s.name }}</span>
+                <div class="symptom-bar-wrap">
+                  <div class="symptom-bar" [style.width.%]="(s.count / (intel.topSymptoms[0]?.count || 1)) * 100"></div>
+                </div>
+                <span class="symptom-count">{{ s.count }}</span>
+              </div>
+            </div>
 
-              <ng-container matColumnDef="nurse">
-                <th mat-header-cell *matHeaderCellDef class="f-s-12">Nurse</th>
-                <td mat-cell *matCellDef="let p" class="text-muted f-s-12">
-                  {{ p.assignedNurse?.firstName ?? '—' }}
-                </td>
-              </ng-container>
+          </div>
 
-              <ng-container matColumnDef="status">
-                <th mat-header-cell *matHeaderCellDef class="f-s-12">Statut</th>
-                <td mat-cell *matCellDef="let p">
-                  <span class="f-s-10 f-w-600 p-x-8 p-y-4"
-                        style="border-radius:4px;"
-                        [ngStyle]="{
-                          'background': p.alertStatus === 'CRITICAL' ? '#F7C1C1' :
-                                        p.alertStatus === 'WARNING'  ? '#FAC775' : '#C0DD97',
-                          'color':      p.alertStatus === 'CRITICAL' ? '#A32D2D' :
-                                        p.alertStatus === 'WARNING'  ? '#854F0B' : '#27500A'
-                        }">
-                    {{ p.alertStatus ?? 'Stable' }}
+          <!-- Empty state -->
+          <div *ngIf="!intelLoading && !intel" class="text-center p-32">
+            <i-tabler name="brain" class="icon-48" style="color:#e0e0e0"></i-tabler>
+            <p class="text-muted f-s-13 m-t-10">Cliquez sur "Analyser" pour lancer l'intelligence artificielle</p>
+          </div>
+
+        </mat-card-content>
+      </mat-card>
+    </div>
+  </div>
+
+  <!-- ROW 5 : AI Insights + Audit Logs + Quick Actions -->
+  <div class="row">
+
+    <!-- AI Insights -->
+    <div class="col-lg-4 m-b-16">      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="brain" class="sec-ico purple"></i-tabler>
+              AI Insights
+            </div>
+          </div>
+          <div class="insight-list">
+            <div *ngFor="let ins of aiInsights" class="insight-row" [style.border-left-color]="ins.color">
+              <div class="insight-icon" [style.background]="ins.color + '18'">
+                <i-tabler [name]="ins.icon" [style.color]="ins.color" class="icon-18"></i-tabler>
+              </div>
+              <p class="insight-text">{{ ins.text }}</p>
+            </div>
+          </div>
+
+          <!-- Quick Actions -->
+          <div class="sec-title m-t-20 m-b-12">
+            <i-tabler name="bolt" class="sec-ico orange"></i-tabler>
+            Actions rapides
+          </div>
+          <div class="quick-actions" role="navigation" aria-label="Actions rapides">
+            <a mat-stroked-button routerLink="/dashboard/admin/patients" class="qa-btn" aria-label="Ajouter un patient">
+              <i-tabler name="user-plus" class="icon-16"></i-tabler> Patient
+            </a>
+            <a mat-stroked-button routerLink="/dashboard/admin/services" class="qa-btn" aria-label="Gérer les services">
+              <i-tabler name="building-plus" class="icon-16"></i-tabler> Service
+            </a>
+            <a mat-stroked-button routerLink="/dashboard/admin/role" class="qa-btn" aria-label="Gérer les rôles">
+              <i-tabler name="shield-plus" class="icon-16"></i-tabler> Role
+            </a>
+            <a mat-stroked-button routerLink="/dashboard/admin/audit-logs" class="qa-btn" aria-label="Voir les logs d'audit">
+              <i-tabler name="camera" class="icon-16"></i-tabler> Audit
+            </a>
+          </div>
+        </mat-card-content>
+      </mat-card>
+    </div>
+
+    <!-- Recent Audit Logs -->
+    <div class="col-lg-8 m-b-16">
+      <mat-card class="cardWithShadow h-100">
+        <mat-card-content class="p-20">
+          <div class="sec-header">
+            <div class="sec-title">
+              <i-tabler name="camera" class="sec-ico indigo"></i-tabler>
+              Derniers evenements systeme
+            </div>
+            <a mat-stroked-button color="primary" routerLink="/dashboard/admin/audit-logs">
+              <i-tabler name="external-link" class="icon-14"></i-tabler>
+              Voir tout
+            </a>
+          </div>
+
+          <div class="log-list">
+            <div *ngFor="let log of recentLogs" class="log-row"
+                 [class.log-delete]="log.action === 'DELETE' || log.action === 'ARCHIVE'"
+                 [class.log-create]="log.action === 'CREATE'"
+                 [class.log-login]="log.action === 'LOGIN'">
+
+              <!-- User avatar + info -->
+              <div class="log-user-cell">
+                <div class="log-avatar" [style.background]="logRoleColor(log.userRole)">
+                  {{ (log.userEmail || '?')[0].toUpperCase() }}
+                </div>
+                <div class="log-user-info">
+                  <span class="log-user-name">{{ logDisplayName(log) }}</span>
+                  <span class="log-role-chip" *ngIf="log.userRole && log.userRole !== 'unknown'"
+                        [style.background]="logRoleColor(log.userRole) + '18'"
+                        [style.color]="logRoleColor(log.userRole)">
+                    {{ log.userRole }}
                   </span>
-                </td>
-              </ng-container>
+                </div>
+              </div>
 
-              <tr mat-header-row
-                  *matHeaderRowDef="['name','diagnosis','nurse','status']">
-              </tr>
-              <tr mat-row
-                  *matRowDef="let row; columns: ['name','diagnosis','nurse','status']"
-                  style="cursor:pointer;"
-                  [routerLink]="['/admin/patients', row._id]">
-              </tr>
+              <!-- Action badge -->
+              <span class="log-action-badge"
+                    [style.background]="auditActionColor(log.action) + '15'"
+                    [style.color]="auditActionColor(log.action)"
+                    [style.border]="'1px solid ' + auditActionColor(log.action) + '35'">
+                <i-tabler [name]="auditActionIcon(log.action)" class="icon-11"></i-tabler>
+                {{ log.action }}
+              </span>
 
-            </table>
-          </mat-card-content>
-        </mat-card>
-      </div>
+              <!-- Resource -->
+              <span class="log-entity">{{ log.entityType }}</span>
 
+              <!-- Time + IP -->
+              <div class="log-meta">
+                <span class="log-time">{{ log.createdAt | date:"dd/MM HH:mm" }}</span>
+                <span class="log-ip">{{ log.ipAddress }}</span>
+              </div>
+
+              <!-- Diff indicator -->
+              <span class="log-diff-chip" *ngIf="log.after || log.before">
+                <i-tabler name="git-diff" class="icon-11"></i-tabler> diff
+              </span>
+            </div>
+
+            <div *ngIf="recentLogs.length === 0" class="empty-sec">
+              <i-tabler name="camera-off" class="icon-32"></i-tabler>
+              <p>No events yet</p>
+            </div>
+          </div>
+        </mat-card-content>
+      </mat-card>
     </div>
 
-    <!-- ─────────────────────────────────────────────────────
-         9. RECENT ACTIVITY + DEPARTMENT OCCUPANCY
-    ───────────────────────────────────────────────────── -->
-    <div class="row mb-5">
+  </div>
 
-      <!-- Recent activity -->
-      <div class="col-lg-6 m-b-24">
-        <mat-card class="cardWithShadow h-100 mb-0">
-          <mat-card-content>
-            <mat-card-title class="m-b-16 d-flex align-items-center">
-              <mat-icon color="primary" class="m-r-8">history</mat-icon>
-              Recent Activity
-            </mat-card-title>
-
-            <div *ngIf="recentActivity.length === 0"
-                 class="d-flex flex-column align-items-center py-4 text-muted">
-              <mat-icon class="m-b-8">history_toggle_off</mat-icon>
-              <p class="m-0 f-s-14">Aucune activité récente.</p>
-            </div>
-
-            <div *ngFor="let act of recentActivity"
-                 class="d-flex align-items-center m-b-16">
-              <div class="bg-light-primary text-primary rounded-circle p-12 m-r-16"
-                   style="flex-shrink:0;">
-                <i-tabler name="activity" class="icon-18"></i-tabler>
-              </div>
-              <div>
-                <h6 class="m-0 f-s-14">{{ act.user }} — {{ act.action }}</h6>
-                <span class="f-s-12 text-muted">
-                  via {{ act.service }} ({{ act.role }})
-                  at {{ act.time | date:'shortTime' }}
-                </span>
-              </div>
-            </div>
-
-          </mat-card-content>
-        </mat-card>
+  <!-- QUICK ACCESS SHORTCUTS -->
+  <div class="row m-t-20">
+    <div class="col-12">
+      <p class="section-label" id="quick-shortcuts-label">Raccourcis Clavier</p>
+      <div class="quick-row" role="navigation" aria-labelledby="quick-shortcuts-label">
+        <a routerLink="/dashboard/admin/patients" class="qk-btn qk-blue" aria-label="Patients (Alt+P)">
+          <i-tabler name="heart-rate-monitor" class="icon-18" aria-hidden="true"></i-tabler><span>Patients</span>
+          <kbd class="qk-kbd">Alt+P</kbd>
+        </a>
+        <a routerLink="/dashboard/admin/physicians" class="qk-btn qk-teal" aria-label="Médecins (Alt+D)">
+          <i-tabler name="stethoscope" class="icon-18" aria-hidden="true"></i-tabler><span>Médecins</span>
+          <kbd class="qk-kbd">Alt+D</kbd>
+        </a>
+        <a routerLink="/dashboard/admin/nurses" class="qk-btn qk-green" aria-label="Infirmiers (Alt+N)">
+          <i-tabler name="nurse" class="icon-18" aria-hidden="true"></i-tabler><span>Infirmiers</span>
+          <kbd class="qk-kbd">Alt+N</kbd>
+        </a>
+        <a routerLink="/dashboard/admin/coordinators" class="qk-btn qk-orange" aria-label="Coordinateurs (Alt+C)">
+          <i-tabler name="users-group" class="icon-18" aria-hidden="true"></i-tabler><span>Coordinateurs</span>
+          <kbd class="qk-kbd">Alt+C</kbd>
+        </a>
+        <a routerLink="/dashboard/admin/auditors" class="qk-btn qk-purple" aria-label="Auditeurs (Alt+U)">
+          <i-tabler name="eye" class="icon-18" aria-hidden="true"></i-tabler><span>Auditeurs</span>
+          <kbd class="qk-kbd">Alt+U</kbd>
+        </a>
+        <a routerLink="/admin/templates" class="qk-btn qk-cyan" aria-label="Questionnaires (Alt+T)">
+          <i-tabler name="clipboard-list" class="icon-18" aria-hidden="true"></i-tabler><span>Questionnaires</span>
+          <kbd class="qk-kbd">Alt+T</kbd>
+        </a>
       </div>
-
-      <!-- Department occupancy -->
-      <div class="col-lg-6 m-b-24">
-        <mat-card class="cardWithShadow h-100 mb-0">
-          <mat-card-content>
-            <mat-card-title class="m-b-16 d-flex align-items-center">
-              <mat-icon color="accent" class="m-r-8">business</mat-icon>
-              Department Occupancy
-            </mat-card-title>
-
-            <div *ngIf="departmentOccupancy.length === 0"
-                 class="d-flex flex-column align-items-center py-4 text-muted">
-              <mat-icon class="m-b-8">domain_disabled</mat-icon>
-              <p class="m-0 f-s-14">Aucun service configuré.</p>
-            </div>
-
-            <div *ngFor="let dep of departmentOccupancy" class="m-b-16">
-              <div class="d-flex justify-content-between m-b-4">
-                <span class="f-w-600 f-s-14">{{ dep.name }}</span>
-                <span class="text-muted f-s-14">{{ dep.percentage }}%</span>
-              </div>
-              <mat-progress-bar
-                mode="determinate"
-                [value]="dep.percentage"
-                [color]="dep.color">
-              </mat-progress-bar>
-            </div>
-
-          </mat-card-content>
-        </mat-card>
-      </div>
-
     </div>
+  </div>
 
-  </ng-container>
 </div>

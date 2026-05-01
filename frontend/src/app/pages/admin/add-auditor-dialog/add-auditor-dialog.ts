@@ -1,3 +1,4 @@
+import { TranslateModule } from '@ngx-translate/core';
 import { Component, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -25,6 +26,7 @@ export interface AuditorData {
   selector: 'app-super-add-auditor-dialog',
   standalone: true,
   imports: [
+    TranslateModule,
     CommonModule,
     ReactiveFormsModule,
     MatFormFieldModule,

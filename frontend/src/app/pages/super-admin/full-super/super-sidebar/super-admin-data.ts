@@ -38,6 +38,12 @@ export const superAdminNavItems: NavItem[] = [
     route: '/super-admin/ai-intelligence',
     bgcolor: 'accent',
   },
+  {
+    displayName: 'Questionnaires',
+    iconName: 'file-text',
+    route: '/super-admin/templates',
+    bgcolor: 'success',
+  },
 ];
 
 export const auditorNavItems: NavItem[] = [

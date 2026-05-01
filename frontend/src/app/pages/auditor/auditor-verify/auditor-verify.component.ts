@@ -51,8 +51,20 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
              'ACTIVATE', 'DEACTIVATE', 'ARCHIVE', 'RESTORE',
              'SEND_REMINDER', 'RESET_PASSWORD', 'QUESTIONNAIRE_SUBMIT'];
 
-  @ViewChild(MatSort) sort!: MatSort;
-  @ViewChild(MatPaginator) paginator!: MatPaginator;
+  @ViewChild(MatSort) set matSort(ms: MatSort) {
+    if(ms) {
+      this.sort = ms;
+      this.dataSource.sort = this.sort;
+    }
+  }
+  sort!: MatSort;
+  @ViewChild(MatPaginator) set matPaginator(mp: MatPaginator) {
+    if(mp) {
+      this.paginator = mp;
+      this.dataSource.paginator = this.paginator;
+    }
+  }
+  paginator!: MatPaginator;
   private pollSub?: Subscription;
 
   constructor(private auditService: AuditApiService, private dialog: MatDialog, private http: HttpClient) {}
