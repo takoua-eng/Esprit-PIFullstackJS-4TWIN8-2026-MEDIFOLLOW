@@ -130,7 +130,7 @@ export class UsersController {
     const isDoctor = user?.role === 'doctor';
     const isSuperAdmin = perms.includes('*');
     const doctorId = isDoctor && !isSuperAdmin ? user._id : undefined;
-    return this.usersService.getPatients(doctorId);
+    return this.usersService.findPatientsByDoctor(doctorId);
   }
 
   @Get('doctors')
