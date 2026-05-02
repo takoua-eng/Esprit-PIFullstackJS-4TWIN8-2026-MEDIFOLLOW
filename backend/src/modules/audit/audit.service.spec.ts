@@ -2,34 +2,22 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuditService } from './audit.service';
 import { getModelToken } from '@nestjs/mongoose';
 
-const mockLog = { _id: 'log1' };
-
-/**
- * ✅ Mock MODEL Mongoose correct (constructor + instance)
- */
-const mockAuditModel: any = jest.fn().mockImplementation((data) => {
-  return {
-    ...data,
-    save: jest.fn().mockResolvedValue(mockLog),
-  };
-});
-
-/**
- * static methods (Model.find etc.)
- */
-mockAuditModel.find = jest.fn().mockReturnValue({
-  sort: jest.fn().mockReturnValue({
-    limit: jest.fn().mockResolvedValue([mockLog]),
-  }),
-});
-
-mockAuditModel.findById = jest.fn();
-mockAuditModel.findByIdAndDelete = jest.fn();
-mockAuditModel.countDocuments = jest.fn();
-mockAuditModel.aggregate = jest.fn();
-
-describe('AuditService', () => {
+describe('AuditService - Unit Tests', () => {
   let service: AuditService;
+
+  const mockAuditModel = {
+    find: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    countDocuments: jest.fn(),
+    aggregate: jest.fn(),
+  };
+
+  const mockSave = jest.fn();
+
+  const MockModel = jest.fn().mockImplementation(() => ({
+    save: mockSave,
+  }));
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -37,53 +25,121 @@ describe('AuditService', () => {
         AuditService,
         {
           provide: getModelToken('AuditLog'),
-          useValue: mockAuditModel,
+          useValue: Object.assign(MockModel, mockAuditModel),
         },
       ],
     }).compile();
 
     service = module.get<AuditService>(AuditService);
+
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
-    expect(service).toBeDefined();
+  // =========================
+  // 🧪 CREATE
+  // =========================
+  it('should create audit log', async () => {
+    const data = { action: 'CREATE' };
+    const saved = { _id: '1', ...data };
+
+    mockSave.mockResolvedValue(saved);
+
+    const result = await service.create(data);
+
+    expect(result).toEqual(saved);
+    expect(mockSave).toHaveBeenCalled();
   });
 
-  it('should create log', async () => {
-    const result = await service.create({
-      action: 'CREATE',
-      entityType: 'USER',
+  // =========================
+  // 🧪 FIND ALL
+  // =========================
+  it('should return all audit logs', async () => {
+    const logs = [{ _id: '1' }];
+
+    const limitMock = jest.fn().mockResolvedValue(logs);
+    const sortMock = jest.fn().mockReturnValue({ limit: limitMock });
+
+    mockAuditModel.find.mockReturnValue({
+      sort: sortMock,
     });
 
-    expect(result).toEqual(mockLog);
-  });
-
-  it('should return all logs', async () => {
     const result = await service.findAll();
-    expect(result).toEqual([mockLog]);
+
+    expect(result).toEqual(logs);
+    expect(mockAuditModel.find).toHaveBeenCalled();
   });
 
-  it('should throw if not found', async () => {
+  // =========================
+  // 🧪 FIND ONE (SUCCESS)
+  // =========================
+  it('should return audit by id', async () => {
+    const log = { _id: '1', action: 'TEST' };
+
+    mockAuditModel.findById.mockResolvedValue(log);
+
+    const result = await service.findOne('1');
+
+    expect(result).toEqual(log);
+    expect(mockAuditModel.findById).toHaveBeenCalledWith('1');
+  });
+
+  // =========================
+  // 🧪 FIND ONE (NOT FOUND)
+  // =========================
+  it('should throw NotFoundException when audit not found', async () => {
     mockAuditModel.findById.mockResolvedValue(null);
 
-    await expect(service.findOne('1')).rejects.toThrow();
+    await expect(service.findOne('1')).rejects.toThrow('Audit log not found');
   });
 
-  it('should remove log', async () => {
-    mockAuditModel.findByIdAndDelete.mockResolvedValue(mockLog);
+  // =========================
+  // 🧪 REMOVE (SUCCESS)
+  // =========================
+  it('should delete audit log', async () => {
+    mockAuditModel.findByIdAndDelete.mockResolvedValue({ _id: '1' });
 
-    const res = await service.remove('1');
+    const result = await service.remove('1');
 
-    expect(res).toEqual({ message: 'Deleted successfully' });
+    expect(result).toEqual({ message: 'Deleted successfully' });
   });
 
-  it('should return stats', async () => {
-    mockAuditModel.countDocuments.mockResolvedValue(5);
-    mockAuditModel.aggregate.mockResolvedValue([]);
+  // =========================
+  // 🧪 REMOVE (NOT FOUND)
+  // =========================
+  it('should throw when delete fails', async () => {
+    mockAuditModel.findByIdAndDelete.mockResolvedValue(null);
 
-    const res = await service.getStats();
+    await expect(service.remove('1')).rejects.toThrow('Audit log not found');
+  });
 
-    expect(res).toBeDefined();
+  // =========================
+  // 🧪 STATS
+  // =========================
+  it('should return audit stats', async () => {
+    const aggResult = [{ _id: 'x', count: 5 }];
+    const daily = [{ _id: '2024-01-01', count: 3 }];
+
+    mockAuditModel.countDocuments
+      .mockResolvedValueOnce(100) // total
+      .mockResolvedValueOnce(5)    // criticalChanges
+      .mockResolvedValueOnce(10)   // loginCount
+      .mockResolvedValueOnce(7)    // patientModifications
+      .mockResolvedValueOnce(2);   // alertsGenerated
+
+    mockAuditModel.aggregate
+      .mockResolvedValueOnce(aggResult) // byAction
+      .mockResolvedValueOnce(aggResult) // byEntity
+      .mockResolvedValueOnce(aggResult) // byUser
+      .mockResolvedValueOnce(aggResult) // last24h
+      .mockResolvedValueOnce(daily);    // last7days
+
+    const result = await service.getStats();
+
+    expect(result.total).toBe(100);
+    expect(result.criticalChanges).toBe(5);
+    expect(result.loginCount).toBe(10);
+    expect(result.patientModifications).toBe(7);
+    expect(result.alertsGenerated).toBe(2);
+    expect(result.totalLast7days).toBe(3);
   });
 });

@@ -660,78 +660,131 @@ FORMAT JSON STRICT:
 
   // ─── STROKE RISK PREDICTION (ML Service) ────────────────────
 
-  async predictStrokeRisk(patientId: string) {
-    const patient = await this.userModel.findById(patientId).lean();
-    if (!patient) throw new Error('Patient not found');
+async predictStrokeRisk(patientId: string) {
+  const patient = await this.userModel.findById(patientId).select('+nurseDossier').lean();
+  if (!patient) throw new Error('Patient not found');
 
-    const latestVital = await this.vitalModel
-      .findOne({ patientId: (patient as any)._id })
-      .sort({ recordedAt: -1 })
-      .lean();
+  const latestVital = await this.vitalModel
+    .findOne({ patientId: (patient as any)._id })
+    .sort({ recordedAt: -1 })
+    .lean();
 
-    // ── Age: stored field first, fallback to dateOfBirth calc ──
-    const storedAge = (patient as any).age;
-    const dob       = (patient as any).dateOfBirth;
-    const age: number = storedAge
-      ? Number(storedAge)
-      : dob
-        ? Math.floor((Date.now() - new Date(dob).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
-        : 50;
+  const nurseDossier: any = (patient as any).nurseDossier ?? null;
 
-    // ── BMI: weight only (no height field in schema — assume 1.75m) ──
-    const weight  = (latestVital as any)?.weight;
-    const bmi: number = weight ? parseFloat((weight / (1.75 ** 2)).toFixed(1)) : 28;
+  // ── AGE ─────────────────────────────
+  const dob = (patient as any).dateOfBirth;
+  const age =
+    (patient as any).age ??
+    (dob
+      ? Math.floor(
+          (Date.now() - new Date(dob).getTime()) /
+            (365.25 * 24 * 60 * 60 * 1000)
+        )
+      : 50);
 
-    // ── Blood pressure: handle both legacy & standard field names ──
-    const systolic: number =
-      (latestVital as any)?.bloodPressureSystolic ||
-      (latestVital as any)?.bloodPressuresystolic ||
-      0;
+  // ── WEIGHT / HEIGHT / BMI ───────────
+  const weight = latestVital?.weight ?? nurseDossier?.weight;
 
-    // ── Glucose: bloodGlucose (mg/dL) preferred; glucoseLevel is g/L → ×100 ──
-    const glucoseRaw: number | undefined =
-      (latestVital as any)?.bloodGlucose ??
-      ((latestVital as any)?.glucoseLevel != null
-        ? Math.round((latestVital as any).glucoseLevel * 100)
-        : undefined);
-    const glucose: number = glucoseRaw ?? (age > 60 ? 180 : age > 45 ? 130 : 95);
+  const height = nurseDossier?.height ?? 1.75;
 
-    // ── Heart rate ──
-    const heartRate: number = (latestVital as any)?.heartRate ?? 0;
+  const bmi = weight
+    ? parseFloat((weight / (height * height)).toFixed(1))
+    : 28;
 
-    const mlInput = {
-      age,
-      gender:            (patient as any).gender === 'male' ? 'Male' : 'Female',
-      hypertension:      systolic > 140 ? 1 : (age > 60 && systolic === 0 ? 1 : 0),
-      heart_disease:     heartRate > 100 ? 1 : (age > 70 ? 1 : 0),
-      ever_married:      age > 30 ? 'Yes' : 'No',   // maritalStatus not in schema
-      work_type:         'Private',
-      Residence_type:    'Urban',
-      avg_glucose_level: glucose,
-      bmi,
-      smoking_status:    'Unknown',                  // smokingStatus not in schema
+  // ── BLOOD PRESSURE ──────────────────
+  const systolic =
+    latestVital?.bloodPressureSystolic ||
+    latestVital?.bloodPressuresystolic ||
+    0;
+
+  const hypertension =
+    nurseDossier?.medicalHistory?.hypertension ||
+    systolic > 140;
+
+  // ── HEART DISEASE ───────────────────
+  const heart_disease =
+    nurseDossier?.medicalHistory?.heartDisease ||
+    (latestVital?.heartRate ? latestVital.heartRate > 100 : false);
+
+  // ── GLUCOSE ─────────────────────────
+  const glucoseRaw =
+    latestVital?.bloodGlucose ??
+    (latestVital?.glucoseLevel != null
+      ? latestVital.glucoseLevel * 100
+      : undefined);
+
+  const avg_glucose_level =
+    glucoseRaw ?? (age > 60 ? 180 : age > 45 ? 130 : 95);
+
+  // ── GENDER ──────────────────────────
+  const gender =
+    (patient as any).gender === 'male' ? 'Male' : 'Female';
+
+  // ── MARITAL STATUS ──────────────────
+  const ever_married =
+    (patient as any).maritalStatus ?? 'No';
+
+  // ── WORK TYPE (FROM DB) ─────────────
+  const work_type =
+    (patient as any).workType ??
+    nurseDossier?.primaryDiagnosis ??
+    'Private';
+
+  // ── RESIDENCE TYPE (FROM DB) ────────
+  const Residence_type =
+    (patient as any).residenceType ??
+    (patient as any).address?.includes('Urban')
+      ? 'Urban'
+      : 'Rural';
+
+  // ── SMOKING STATUS ──────────────────
+  const smoking_status =
+    nurseDossier?.substanceUse ??
+    nurseDossier?.medicalHistory?.otherConditions ??
+    'Unknown';
+
+  // ── FINAL ML INPUT ───────────────────
+  const mlInput = {
+    age,
+    gender,
+    hypertension: hypertension ? 1 : 0,
+    heart_disease: heart_disease ? 1 : 0,
+    ever_married,
+    work_type,
+    Residence_type,
+    avg_glucose_level,
+    bmi,
+    smoking_status,
+  };
+
+  try {
+    const res = await fetch('http://localhost:5001/predict', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mlInput),
+    });
+
+    if (!res.ok) throw new Error(`ML service HTTP ${res.status}`);
+
+    const prediction = await res.json();
+
+    return {
+      patientId,
+      patientName: `${patient.firstName} ${patient.lastName}`,
+      mlInput,
+      prediction,
+      generatedAt: new Date().toISOString(),
     };
+  } catch (err: any) {
+    this.logger.error(`ML prediction failed: ${err.message}`);
 
-    try {
-      const res = await fetch('http://localhost:5001/predict', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(mlInput),
-      });
-      if (!res.ok) throw new Error(`ML service HTTP ${res.status}`);
-      const prediction = await res.json();
-      return {
-        patientId,
-        patientName: `${(patient as any).firstName} ${(patient as any).lastName}`,
-        mlInput,
-        prediction,
-        generatedAt: new Date().toISOString(),
-      };
-    } catch (err: any) {
-      this.logger.error(`ML prediction failed: ${err.message}`);
-      return { patientId, error: 'ML service unavailable. Run: py app.py in ml-service/', mlInput };
-    }
+    return {
+      patientId,
+      error: 'ML service unavailable',
+      mlInput,
+    };
   }
+}
 
   async predictAllPatientsRisk() {
     const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();

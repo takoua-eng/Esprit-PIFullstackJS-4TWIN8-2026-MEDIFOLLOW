@@ -24,19 +24,6 @@ interface ReportResult {
   generatedAt: string;
 }
 
-interface StrokeRiskResult {
-  patientId: string;
-  patientName: string;
-  prediction: {
-    riskScore: number;
-    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
-    riskColor: string;
-    clusterLabel: string;
-    recommendations: string[];
-  };
-  error?: string;
-}
-
 // ──────────────────────────────────────────────────────────
 // CONFIGURATION DES TYPES DE RAPPORTS
 // ──────────────────────────────────────────────────────────
@@ -67,12 +54,6 @@ export class AiIntelligenceComponent implements OnInit {
   activeType = '';
   result: ReportResult | null = null;
   history: ReportResult[] = [];
-
-  // ── Stroke Risk ─────────────────────────────────────────
-  activeTab: 'report' | 'stroke' = 'report';
-  strokeLoading = false;
-  strokeResults: StrokeRiskResult[] = [];
-  selectedPatient: StrokeRiskResult | null = null;
 
   // ── LOGO URL ────────────────────────────────────────────
   logoUrl = 'assets/images/medifollow-logo.png';
@@ -415,39 +396,4 @@ async downloadPDF(): Promise<void> {
     }
   }
 }
-
-  // ── MÉTHODES STROKE RISK ─────────────────────────────────
-
-  loadAllStrokeRisks(): void {
-    this.strokeLoading = true;
-    this.strokeResults = [];
-    this.selectedPatient = null;
-
-    this.http.get<StrokeRiskResult[]>(`${API_BASE_URL}/ai/stroke-risk-all`)
-      .pipe(catchError(() => of([])))
-      .subscribe(results => {
-        this.strokeResults = results;
-        this.strokeLoading = false;
-      });
-  }
-
-  selectPatient(p: StrokeRiskResult): void {
-    this.selectedPatient = p;
-  }
-
-  riskIcon(level: string): string {
-    return { HIGH: 'alert-octagon', MEDIUM: 'alert-triangle', LOW: 'circle-check' }[level] ?? 'circle';
-  }
-
-  get highRiskCount(): number { 
-    return this.strokeResults.filter(r => r.prediction?.riskLevel === 'HIGH').length; 
-  }
-  
-  get mediumRiskCount(): number { 
-    return this.strokeResults.filter(r => r.prediction?.riskLevel === 'MEDIUM').length; 
-  }
-  
-  get lowRiskCount(): number { 
-    return this.strokeResults.filter(r => r.prediction?.riskLevel === 'LOW').length; 
-  }
 }

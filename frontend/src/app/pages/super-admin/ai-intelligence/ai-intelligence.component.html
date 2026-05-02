@@ -13,18 +13,12 @@
 
   <!-- Tabs -->
   <div class="d-flex gap-8 m-b-24">
-    <button mat-raised-button [color]="activeTab === 'report' ? 'primary' : ''"
-      (click)="activeTab = 'report'">
+    <button mat-raised-button color="primary">
       <i-tabler name="chart-bar" class="icon-16 m-r-4"></i-tabler> Rapports AI
-    </button>
-    <button mat-raised-button [color]="activeTab === 'stroke' ? 'warn' : ''"
-      (click)="activeTab = 'stroke'; loadAllStrokeRisks()">
-      <i-tabler name="heart-rate-monitor" class="icon-16 m-r-4"></i-tabler> Risque AVC (ML)
     </button>
   </div>
 
-  <!-- ══ TAB 1: AI Reports ══════════════════════════════════════ -->
-  <ng-container *ngIf="activeTab === 'report'">
+  <!-- ══ AI Reports ══════════════════════════════════════ -->
 
     <!-- Type cards -->
     <div class="row m-b-32" style="align-items: stretch">
@@ -146,154 +140,5 @@
         </mat-card>
       </div>
     </div>
-
-  </ng-container>
-
-  <!-- ══ TAB 2: Stroke Risk ML ══════════════════════════════════ -->
-  <ng-container *ngIf="activeTab === 'stroke'">
-
-    <!-- KPI chips -->
-    <div class="d-flex gap-12 m-b-24 flex-wrap">
-      <div class="stroke-kpi" style="background:#d6303118;color:#d63031">
-        <i-tabler name="alert-octagon" class="icon-20"></i-tabler>
-        <div>
-          <div class="f-s-20 f-w-700">{{ highRiskCount }}</div>
-          <div class="f-s-11">Risque ÉLEVÉ</div>
-        </div>
-      </div>
-      <div class="stroke-kpi" style="background:#fdcb6e18;color:#e17055">
-        <i-tabler name="alert-triangle" class="icon-20"></i-tabler>
-        <div>
-          <div class="f-s-20 f-w-700">{{ mediumRiskCount }}</div>
-          <div class="f-s-11">Risque MOYEN</div>
-        </div>
-      </div>
-      <div class="stroke-kpi" style="background:#00b89418;color:#00b894">
-        <i-tabler name="circle-check" class="icon-20"></i-tabler>
-        <div>
-          <div class="f-s-20 f-w-700">{{ lowRiskCount }}</div>
-          <div class="f-s-11">Risque FAIBLE</div>
-        </div>
-      </div>
-      <button mat-stroked-button color="warn" (click)="loadAllStrokeRisks()" [disabled]="strokeLoading" class="m-l-auto">
-        <i-tabler name="refresh" class="icon-16 m-r-4"></i-tabler>
-        {{ strokeLoading ? 'Analyse...' : 'Actualiser' }}
-      </button>
-    </div>
-
-    <!-- Loading -->
-    <div *ngIf="strokeLoading" class="text-center p-40">
-      <mat-progress-spinner diameter="48" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
-      <p class="text-muted f-s-14 m-t-16">Analyse ML en cours pour tous les patients...</p>
-      <p class="text-muted f-s-12">Assurez-vous que le ML service tourne: <code>py app.py</code></p>
-    </div>
-
-    <!-- Results -->
-    <div *ngIf="!strokeLoading && strokeResults.length > 0" class="row">
-
-      <!-- Patient list -->
-      <div class="col-lg-5 m-b-16">
-        <mat-card class="cardWithShadow">
-          <mat-card-content class="p-0">
-            <div class="p-16 border-bottom">
-              <span class="f-s-14 f-w-700">{{ strokeResults.length }} patients analysés</span>
-            </div>
-            <div class="stroke-list">
-              <div *ngFor="let p of strokeResults; let i = index"
-                class="stroke-row" [class.selected]="selectedPatient?.patientId === p.patientId"
-                (click)="selectPatient(p)">
-                <div class="stroke-rank">{{ i + 1 }}</div>
-                <div class="flex-1-auto">
-                  <div class="f-s-13 f-w-600">{{ p.patientName }}</div>
-                  <div class="f-s-11 text-muted">{{ p.prediction?.clusterLabel }}</div>
-                </div>
-                <div class="d-flex align-items-center gap-8">
-                  <div class="stroke-score" [style.background]="p.prediction?.riskColor + '18'" [style.color]="p.prediction?.riskColor">
-                    {{ p.prediction?.riskScore | number:'1.0-0' }}%
-                  </div>
-                  <span class="stroke-badge" [style.background]="p.prediction?.riskColor + '18'" [style.color]="p.prediction?.riskColor">
-                    {{ p.prediction?.riskLevel }}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-      <!-- Patient detail -->
-      <div class="col-lg-7 m-b-16">
-        <mat-card class="cardWithShadow h-100">
-          <mat-card-content class="p-24">
-            <div *ngIf="!selectedPatient" class="text-center p-40 text-muted">
-              <i-tabler name="user-search" class="icon-48" style="opacity:.3"></i-tabler>
-              <p class="f-s-14 m-t-12">Sélectionnez un patient pour voir les détails</p>
-            </div>
-
-            <div *ngIf="selectedPatient">
-              <!-- Patient header -->
-              <div class="d-flex align-items-center gap-16 m-b-24">
-                <div class="risk-circle"
-                  [style.background]="selectedPatient.prediction?.riskColor">
-                  <span class="f-s-18 f-w-700">{{ selectedPatient.prediction?.riskScore | number:'1.0-0' }}</span>
-                  <span class="f-s-10">/100</span>
-                </div>
-                <div>
-                  <div class="f-s-18 f-w-700">{{ selectedPatient.patientName }}</div>
-                  <div class="f-s-13" [style.color]="selectedPatient.prediction?.riskColor">
-                    {{ selectedPatient.prediction?.riskLevel }} — {{ selectedPatient.prediction?.clusterLabel }}
-                  </div>
-                </div>
-              </div>
-
-              <!-- Risk bar -->
-              <div class="m-b-20">
-                <div class="d-flex justify-content-between f-s-12 m-b-6">
-                  <span class="text-muted">Score de risque AVC</span>
-                  <span class="f-w-600" [style.color]="selectedPatient.prediction?.riskColor">
-                    {{ selectedPatient.prediction?.riskScore | number:'1.1-1' }}%
-                  </span>
-                </div>
-                <div class="risk-bar-track">
-                  <div class="risk-bar-fill"
-                    [style.width.%]="selectedPatient.prediction?.riskScore"
-                    [style.background]="selectedPatient.prediction?.riskColor">
-                  </div>
-                </div>
-              </div>
-
-              <!-- Recommendations -->
-              <div *ngIf="selectedPatient.prediction?.recommendations?.length">
-                <div class="f-s-13 f-w-700 m-b-10" style="color:#6c5ce7">
-                  <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations cliniques
-                </div>
-                <div *ngFor="let rec of selectedPatient.prediction.recommendations"
-                  class="rec-item">
-                  <i-tabler name="chevron-right" class="icon-14 m-r-6" style="color:#6c5ce7"></i-tabler>
-                  {{ rec }}
-                </div>
-              </div>
-
-              <!-- Error -->
-              <div *ngIf="selectedPatient.error" class="text-center p-20"
-                style="background:#fff3cd;border-radius:10px">
-                <i-tabler name="alert-triangle" class="icon-24" style="color:#e17055"></i-tabler>
-                <p class="f-s-13 m-t-8">{{ selectedPatient.error }}</p>
-              </div>
-            </div>
-          </mat-card-content>
-        </mat-card>
-      </div>
-
-    </div>
-
-    <!-- Empty -->
-    <div *ngIf="!strokeLoading && strokeResults.length === 0" class="text-center p-40 text-muted">
-      <i-tabler name="heart-rate-monitor" class="icon-56" style="opacity:.3"></i-tabler>
-      <p class="f-s-14 m-t-12">Cliquez sur "Actualiser" pour lancer l'analyse ML</p>
-      <p class="f-s-12">Prérequis: ML service actif sur port 5001</p>
-    </div>
-
-  </ng-container>
 
 </div>

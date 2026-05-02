@@ -1,94 +1,107 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 
-const mockLog = {
-  _id: 'log123',
-  userEmail: 'admin@test.com',
-  action: 'CREATE',
-  entityType: 'PATIENT',
-  createdAt: new Date(),
-};
-
-const mockStats = {
-  total: 100,
-  byAction: [],
-  byEntity: [],
-  byUser: [],
-  last24h: [],
-  last7days: [],
-  criticalChanges: 3,
-  loginCount: 20,
-  patientModifications: 10,
-  alertsGenerated: 5,
-  totalLast7days: 50,
-};
-
-const mockAuditService = {
-  create: jest.fn().mockResolvedValue(mockLog),
-  findAll: jest.fn().mockResolvedValue([mockLog]),
-  findOne: jest.fn().mockResolvedValue(mockLog),
-  remove: jest.fn().mockResolvedValue({ message: 'Deleted successfully' }),
-  getStats: jest.fn().mockResolvedValue(mockStats),
-};
-
-describe('AuditController', () => {
+describe('AuditController - Unit Tests', () => {
   let controller: AuditController;
+
+  const mockAuditService = {
+    create: jest.fn(),
+    findAll: jest.fn(),
+    findOne: jest.fn(),
+    remove: jest.fn(),
+    getStats: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AuditController],
-      providers: [{ provide: AuditService, useValue: mockAuditService }],
-    }).compile();
+      providers: [
+        {
+          provide: AuditService,
+          useValue: mockAuditService,
+        },
+      ],
+    })
+      // bypass auth guard
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: jest.fn(() => true) })
+      .compile();
 
     controller = module.get<AuditController>(AuditController);
+
     jest.clearAllMocks();
   });
 
-  it('should be defined', () => {
-    expect(controller).toBeDefined();
+  // =====================
+  // 🧪 CREATE
+  // =====================
+  it('should create audit', async () => {
+    const dto = { action: 'CREATE' };
+    const result = { _id: '1', ...dto };
+
+    mockAuditService.create.mockResolvedValue(result);
+
+    const res = await controller.create(dto as any);
+
+    expect(res).toEqual(result);
+    expect(mockAuditService.create).toHaveBeenCalledWith(dto);
   });
 
-  describe('POST /audit', () => {
-    it('should create an audit log', async () => {
-      const dto = { action: 'CREATE', entityType: 'PATIENT' };
-      const result = await controller.create(dto as any);
-      expect(mockAuditService.create).toHaveBeenCalledWith(dto);
-      expect(result).toEqual(mockLog);
-    });
+  // =====================
+  // 🧪 FIND ALL
+  // =====================
+  it('should return all audits', async () => {
+    const data = [{ _id: '1' }];
+
+    mockAuditService.findAll.mockResolvedValue(data);
+
+    const res = await controller.findAll();
+
+    expect(res).toEqual(data);
+    expect(mockAuditService.findAll).toHaveBeenCalled();
   });
 
-  describe('GET /audit', () => {
-    it('should return all audit logs', async () => {
-      const result = await controller.findAll();
-      expect(mockAuditService.findAll).toHaveBeenCalled();
-      expect(result).toEqual([mockLog]);
-    });
+  // =====================
+  // 🧪 FIND ONE
+  // =====================
+  it('should return audit by id', async () => {
+    const audit = { _id: '1' };
+
+    mockAuditService.findOne.mockResolvedValue(audit);
+
+    const res = await controller.findOne('1');
+
+    expect(res).toEqual(audit);
+    expect(mockAuditService.findOne).toHaveBeenCalledWith('1');
   });
 
-  describe('GET /audit/stats', () => {
-    it('should return audit statistics', async () => {
-      const result = await controller.getStats();
-      expect(mockAuditService.getStats).toHaveBeenCalled();
-      expect(result).toHaveProperty('total');
-      expect(result).toHaveProperty('criticalChanges');
-      expect(result).toHaveProperty('loginCount');
-    });
+  // =====================
+  // 🧪 REMOVE
+  // =====================
+  it('should delete audit', async () => {
+    const result = { message: 'Deleted successfully' };
+
+    mockAuditService.remove.mockResolvedValue(result);
+
+    const res = await controller.remove('1');
+
+    expect(res).toEqual(result);
+    expect(mockAuditService.remove).toHaveBeenCalledWith('1');
   });
 
-  describe('GET /audit/:id', () => {
-    it('should return a single audit log', async () => {
-      const result = await controller.findOne('log123');
-      expect(mockAuditService.findOne).toHaveBeenCalledWith('log123');
-      expect(result).toEqual(mockLog);
-    });
-  });
+  // =====================
+  // 🧪 STATS
+  // =====================
+  it('should return stats', async () => {
+    const stats = { total: 10 };
 
-  describe('DELETE /audit/:id', () => {
-    it('should delete an audit log', async () => {
-      const result = await controller.remove('log123');
-      expect(mockAuditService.remove).toHaveBeenCalledWith('log123');
-      expect(result).toEqual({ message: 'Deleted successfully' });
-    });
+    mockAuditService.getStats.mockResolvedValue(stats);
+
+    const res = await controller.getStats();
+
+    expect(res).toEqual(stats);
+    expect(mockAuditService.getStats).toHaveBeenCalled();
   });
 });

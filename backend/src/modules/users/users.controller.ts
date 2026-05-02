@@ -123,8 +123,14 @@ export class UsersController {
 
   @Get('patients')
   @Permissions('patients:read') // ✅ Patient ne peut PAS voir la liste
-  getPatients() {
-    return this.usersService.getPatients();
+  getPatients(@Request() req) {
+    const user = req.user;
+    const perms: string[] = user?.permissions ?? [];
+    // Doctor sees only their assigned patients; admins/super-admins see all
+    const isDoctor = user?.role === 'doctor';
+    const isSuperAdmin = perms.includes('*');
+    const doctorId = isDoctor && !isSuperAdmin ? user._id : undefined;
+    return this.usersService.getPatients(doctorId);
   }
 
   @Get('doctors')

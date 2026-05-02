@@ -1,0 +1,173 @@
+<div class="sr-page">
+
+  <!-- Header -->
+  <div class="sr-header">
+    <div class="sr-header-left">
+      <div class="sr-icon"><i-tabler name="heart-rate-monitor" class="icon-24"></i-tabler></div>
+      <div>
+        <h1 class="sr-title">Risque AVC — Analyse ML</h1>
+        <p class="sr-sub">Prédiction du risque d'AVC par patient via Machine Learning</p>
+      </div>
+    </div>
+    <button mat-raised-button color="primary" (click)="load()" [disabled]="loading">
+      <i-tabler name="refresh" class="icon-16 m-r-6"></i-tabler>
+      {{ loading ? 'Chargement...' : 'Actualiser' }}
+    </button>
+  </div>
+
+  <!-- KPIs -->
+  <div class="sr-kpis">
+    <div class="sr-kpi" (click)="filterLevel='HIGH'; applyFilters()">
+      <i-tabler name="alert-triangle" class="icon-22" style="color:#d63031"></i-tabler>
+      <div class="sr-kpi-val" style="color:#d63031">{{ highCount }}</div>
+      <div class="sr-kpi-lbl">Risque HIGH</div>
+    </div>
+    <div class="sr-kpi" (click)="filterLevel='MEDIUM'; applyFilters()">
+      <i-tabler name="alert-circle" class="icon-22" style="color:#e17055"></i-tabler>
+      <div class="sr-kpi-val" style="color:#e17055">{{ mediumCount }}</div>
+      <div class="sr-kpi-lbl">Risque MEDIUM</div>
+    </div>
+    <div class="sr-kpi" (click)="filterLevel='LOW'; applyFilters()">
+      <i-tabler name="circle-check" class="icon-22" style="color:#00b894"></i-tabler>
+      <div class="sr-kpi-val" style="color:#00b894">{{ lowCount }}</div>
+      <div class="sr-kpi-lbl">Risque LOW</div>
+    </div>
+    <div class="sr-kpi" (click)="filterLevel='ALL'; applyFilters()">
+      <i-tabler name="users" class="icon-22" style="color:#6c5ce7"></i-tabler>
+      <div class="sr-kpi-val" style="color:#6c5ce7">{{ results.length }}</div>
+      <div class="sr-kpi-lbl">Total analysés</div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="sr-filters">
+    <mat-form-field appearance="outline" style="width:280px;margin:0">
+      <mat-icon matPrefix>search</mat-icon>
+      <input matInput [(ngModel)]="searchText" (ngModelChange)="applyFilters()" placeholder="Rechercher un patient...">
+    </mat-form-field>
+    <div class="sr-level-btns">
+      <button *ngFor="let l of ['ALL','HIGH','MEDIUM','LOW']"
+              class="sr-level-btn"
+              [class.active]="filterLevel === l"
+              [style.--c]="l==='HIGH'?'#d63031':l==='MEDIUM'?'#e17055':l==='LOW'?'#00b894':'#6c5ce7'"
+              (click)="filterLevel=$any(l); applyFilters()">
+        {{ l }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div *ngIf="loading" class="sr-empty">
+    <mat-spinner diameter="44"></mat-spinner>
+    <p>Analyse ML en cours...</p>
+  </div>
+
+  <!-- Empty -->
+  <div *ngIf="!loading && results.length === 0" class="sr-empty">
+    <i-tabler name="robot-off" class="icon-48" style="color:#dee2e6"></i-tabler>
+    <p class="sr-empty-title">Aucun patient trouvé</p>
+    <p class="sr-empty-sub">Vérifiez que le service ML est actif : <code>cd ml-service && py app.py</code></p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!loading && results.length > 0" class="sr-content">
+
+    <!-- List -->
+    <div class="sr-list">
+      <div *ngFor="let r of filtered" class="sr-item"
+           [class.sr-item-active]="selected?.patientId === r.patientId"
+           (click)="selected = r">
+        <div class="sr-item-avatar"
+             [style.background]="levelBg(r.prediction?.riskLevel || '')"
+             [style.color]="levelColor(r.prediction?.riskLevel || '')">
+          {{ r.patientName[0]?.toUpperCase() }}
+        </div>
+        <div class="sr-item-info">
+          <div class="sr-item-name">{{ r.patientName }}</div>
+          <div class="sr-item-score">Score : {{ r.prediction?.riskScore ?? '—' }}%</div>
+        </div>
+        <span class="sr-badge"
+              [style.background]="levelBg(r.prediction?.riskLevel || '')"
+              [style.color]="levelColor(r.prediction?.riskLevel || '')">
+          {{ r.prediction?.riskLevel ?? 'N/A' }}
+        </span>
+      </div>
+      <div *ngIf="filtered.length === 0" class="sr-empty-small">Aucun résultat</div>
+    </div>
+
+    <!-- Detail -->
+    <div class="sr-detail" *ngIf="selected">
+
+      <!-- Header with animated ring -->
+      <div class="sr-detail-header">
+        <div class="sr-ring-wrap">
+          <svg class="sr-ring-svg" width="88" height="88" viewBox="0 0 88 88">
+            <circle class="sr-ring-bg" cx="44" cy="44" r="38"/>
+            <circle class="sr-ring-fg"
+              cx="44" cy="44" r="38"
+              [style.stroke]="levelColor(selected.prediction!.riskLevel)"
+              [style.stroke-dasharray]="238.76"
+              [style.stroke-dashoffset]="238.76 - (238.76 * (selected.prediction!.riskScore / 100))"/>
+          </svg>
+          <div class="sr-ring-text">
+            <span class="sr-score-val" [style.color]="levelColor(selected.prediction!.riskLevel)">
+              {{ selected.prediction!.riskScore }}
+            </span>
+            <span class="sr-score-unit">/100</span>
+          </div>
+        </div>
+
+        <div class="sr-detail-meta">
+          <div class="sr-detail-name">{{ selected.patientName }}</div>
+          <div class="sr-detail-level"
+               [style.background]="levelBg(selected.prediction!.riskLevel)"
+               [style.color]="levelColor(selected.prediction!.riskLevel)">
+            <i-tabler
+              [name]="selected.prediction!.riskLevel==='HIGH' ? 'alert-triangle' : selected.prediction!.riskLevel==='MEDIUM' ? 'alert-circle' : 'circle-check'"
+              class="icon-14">
+            </i-tabler>
+            {{ selected.prediction!.riskLevel }} — {{ selected.prediction!.clusterLabel }}
+          </div>
+        </div>
+      </div>
+
+      <!-- ML Inputs -->
+      <div class="sr-section" *ngIf="selected.mlInput">
+        <div class="sr-section-title">📊 Données utilisées</div>
+        <div class="sr-inputs-grid">
+          <div class="sr-input-item"><span>Âge</span><strong>{{ selected.mlInput.age }} ans</strong></div>
+          <div class="sr-input-item"><span>Genre</span><strong>{{ selected.mlInput.gender }}</strong></div>
+          <div class="sr-input-item"><span>Hypertension</span>
+            <strong [style.color]="selected.mlInput.hypertension ? '#d63031' : '#00b894'">
+              {{ selected.mlInput.hypertension ? 'Oui' : 'Non' }}
+            </strong>
+          </div>
+          <div class="sr-input-item"><span>Maladie cardiaque</span>
+            <strong [style.color]="selected.mlInput.heart_disease ? '#d63031' : '#00b894'">
+              {{ selected.mlInput.heart_disease ? 'Oui' : 'Non' }}
+            </strong>
+          </div>
+          <div class="sr-input-item"><span>Glycémie</span><strong>{{ selected.mlInput.avg_glucose_level }} mg/dL</strong></div>
+          <div class="sr-input-item"><span>IMC</span><strong>{{ selected.mlInput.bmi }}</strong></div>
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="sr-section">
+        <div class="sr-section-title">💡 Recommandations</div>
+        <ul class="sr-reco-list">
+          <li *ngFor="let rec of selected.prediction!.recommendations">{{ rec }}</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- No selection -->
+    <div class="sr-detail sr-detail-empty" *ngIf="!selected">
+      <i-tabler name="click" class="icon-44" style="color:#dee2e6"></i-tabler>
+      <p>Sélectionnez un patient pour voir le détail</p>
+    </div>
+
+  </div>
+
+</div>
