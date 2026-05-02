@@ -41,6 +41,12 @@ export const doctorNavItems: NavItem[] = [
     shortcutKey: 'Ctrl+M',
   },
   {
+    displayName: 'Risque AVC (ML)',
+    iconName: 'heart-rate-monitor',
+    route: '/dashboard/doctor/stroke-risk',
+    bgcolor: 'error',
+  },
+  {
     displayName: 'PROFILE',
     iconName: 'user',
     route: '/dashboard/profile',

@@ -57,6 +57,7 @@ import { DoctorAlertsComponent } from './doctor/alerts/doctor-alerts.component';
 import { DoctorHistoryComponent } from './doctor/history/doctor-history.component';
 import { DoctorPrescriptionsComponent } from './doctor/prescriptions/doctor-prescriptions.component';
 import { MessagesDoctorComponent } from './doctor/messages-doctor/messages-doctor.component';
+import { StrokeRiskComponent } from './super-admin/stroke-risk/stroke-risk.component';
 import { MessagesPatientComponent } from './patient/messages-patient/messages-patient.component';
 import { AiChatComponent } from './patient/ai-chat/ai-chat.component';
 import { AiPredictionComponent } from './coordinator/ai-prediction/ai-prediction.component';
@@ -224,6 +225,11 @@ export const DoctorRoutes: Routes = [
         path: 'medical-file',
         component: NurseMedicalFileComponent,
         data: { title: 'Patient Medical File' },
+      },
+      {
+        path: 'stroke-risk',
+        component: StrokeRiskComponent,
+        data: { title: 'Risque AVC (ML)' },
       },
     ],
   },

@@ -356,19 +356,9 @@ export class UsersService {
     return user.save();
   }
 
-  async getPatients() {
-    const patientRoleId =
-      this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
-      DEFAULT_PATIENT_ROLE_OBJECT_ID;
 
-    return this.userModel
-      .find({
-        role: new Types.ObjectId(patientRoleId),
-        isArchived: { $ne: true },
-      })
-      .select('-password')
-      .lean()
-      .exec();
+  async getPatientsByDoctor(doctorId?: string) {
+    return this.findPatients(doctorId);
   }
 
   async getDoctors() {
@@ -499,29 +489,99 @@ export class UsersService {
   /**
    * Patient accounts for nurse/doctor lists (`GET /users/patients`).
    * Uses `PATIENT_ROLE_ID` from env, or {@link DEFAULT_PATIENT_ROLE_OBJECT_ID}.
+   * If `doctorId` is provided, only returns patients assigned to that doctor.
    */
-  async findPatients(): Promise<
-    { _id: string; firstName: string; lastName: string; email: string }[]
+  async findPatients(
+    doctorId?: string,
+  ): Promise<
+    { _id: string; firstName: string; lastName: string; email: string; doctorId?: string; assignedDoctor?: string }[]
   > {
-    const roleDoc = await this.roleModel
-      .findOne({ name: { $regex: /^patient$/i } })
-      .sort({ _id: -1 })
-      .exec();
-    
-    if (roleDoc && roleDoc._id) {
-      return this.findByRoleObjectId(roleDoc._id.toString());
+    let query: Record<string, unknown>;
+
+    if (doctorId) {
+      const didStr = doctorId.trim();
+      const did = Types.ObjectId.isValid(didStr) ? new Types.ObjectId(didStr) : null;
+      query = {
+        isArchived: { $ne: true },
+        $or: [
+          { doctorId: didStr },
+          ...(did ? [{ doctorId: did }, { assignedDoctor: did }, { assignedDoctor: didStr }] : []),
+        ],
+      };
+    } else {
+      const roleId =
+        this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
+        DEFAULT_PATIENT_ROLE_OBJECT_ID;
+      query = {
+        role: new Types.ObjectId(roleId),
+        isArchived: { $ne: true },
+      };
     }
 
-    const id =
+    this.logger.log(`🔍 findPatients query: ${JSON.stringify(query)}`);
+
+    const patients = await this.userModel
+      .find(query)
+      .select('firstName lastName email doctorId assignedDoctor')
+      .lean()
+      .exec();
+
+    this.logger.log(`✅ found ${patients.length} patients`);
+
+    return patients.map((u) => ({
+      _id: (u._id as Types.ObjectId).toString(),
+      firstName: u.firstName,
+      lastName: u.lastName,
+      email: u.email,
+      doctorId: u.doctorId?.toString(),
+      assignedDoctor: u.assignedDoctor?.toString(),
+    }));
+  }
+
+
+
+  async findPatientsByDoctor(
+  doctorId?: string,
+): Promise<
+  { _id: string; firstName: string; lastName: string; email: string }[]
+> {
+  let query: Record<string, unknown>;
+
+  if (doctorId) {
+    const didStr = doctorId.trim();
+    const did = Types.ObjectId.isValid(didStr)
+      ? new Types.ObjectId(didStr)
+      : null;
+
+    query = {
+      isArchived: { $ne: true },
+      $or: [
+        { doctorId: didStr },
+        ...(did
+          ? [{ doctorId: did }, { assignedDoctor: did }, { assignedDoctor: didStr }]
+          : []),
+      ],
+    };
+  } else {
+    const roleId =
       this.config.get<string>('PATIENT_ROLE_ID')?.trim() ||
       DEFAULT_PATIENT_ROLE_OBJECT_ID;
-    if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException(
-        'PATIENT_ROLE_ID in .env must be a valid 24-character MongoDB ObjectId',
-      );
-    }
-    return this.findByRoleObjectId(id);
+
+    query = {
+      role: new Types.ObjectId(roleId),
+      isArchived: { $ne: true },
+    };
   }
+
+  const patients = await this.userModel.find(query).lean().exec();
+
+  return patients.map((u) => ({
+    _id: (u._id as Types.ObjectId).toString(),
+    firstName: u.firstName,
+    lastName: u.lastName,
+    email: u.email,
+  }));
+}
 
   /** Match user by MongoDB `_id` (24-char hex) or by `userId` string (e.g. mediflow1). */
   private patientQuery(patientId: string): Record<string, unknown> {

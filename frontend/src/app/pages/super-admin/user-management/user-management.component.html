@@ -126,7 +126,7 @@
                 <mat-slide-toggle
                   *ngIf="!u.isArchived && canEdit()"
                   [checked]="u.isActive"
-                  (change)="toggleActive(u)"
+                  (change)="toggleActive(u, $event)"
                   color="primary"
                   [matTooltip]="u.isActive ? 'Deactivate' : 'Activate'">
                 </mat-slide-toggle>

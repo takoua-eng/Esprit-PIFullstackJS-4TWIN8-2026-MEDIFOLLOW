@@ -142,7 +142,10 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     }).afterClosed().subscribe(r => { if (r) this.load(); });
   }
 
-  toggleActive(user: UserRow): void {
+  toggleActive(user: UserRow, event?: any): void {
+    // Prevent the toggle from changing visually before confirmation
+    if (event) { event.source.checked = user.isActive; }
+
     const action = user.isActive ? 'Deactivate' : 'Activate';
     this.dialog.open(ConfirmDialogComponent, {
       width: '380px',
@@ -156,8 +159,14 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
       if (!confirmed) return;
       const obs = user.isActive ? this.svc.deactivate(user._id) : this.svc.activate(user._id);
       obs.subscribe({
-        next: () => { this.snack.open(`User ${action.toLowerCase()}d`, 'OK', { duration: 2500 }); this.load(); },
-        error: () => this.snack.open('Error updating user', 'OK', { duration: 2500 }),
+        next: () => {
+          this.snack.open(`User ${action.toLowerCase()}d`, 'OK', { duration: 2500 });
+          this.load();
+        },
+        error: (err) => {
+          console.error('Toggle error:', err);
+          this.snack.open('Error updating user — check permissions', 'OK', { duration: 3000 });
+        },
       });
     });
   }
