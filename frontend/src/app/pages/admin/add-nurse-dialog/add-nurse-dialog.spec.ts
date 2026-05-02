@@ -1,22 +1,25 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { AddNurse } from './add-nurse';
+import { AddNurse } from './add-nurse-dialog';
 import { MatDialogRef, MatDialogModule } from '@angular/material/dialog';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { TranslateModule } from '@ngx-translate/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { NurseService } from 'src/app/services/superadmin/nurse.service';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { NurseService } from 'src/app/services/admin/nurse.service';
 import { ServiceService } from 'src/app/services/superadmin/service.service';
 import { of } from 'rxjs';
 
-describe('AddNurse (Super Admin)', () => {
+describe('AddNurse (Dialog)', () => {
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<AddNurse>>;
   let nurseServiceSpy: jasmine.SpyObj<NurseService>;
   let serviceServiceSpy: jasmine.SpyObj<ServiceService>;
+  let snackBarSpy: jasmine.SpyObj<MatSnackBar>;
 
   const setupTestBed = async () => {
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);
     nurseServiceSpy = jasmine.createSpyObj('NurseService', ['createNurse']);
     serviceServiceSpy = jasmine.createSpyObj('ServiceService', ['getServices']);
+    snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     serviceServiceSpy.getServices.and.returnValue(of([{ _id: '1', name: 'Service 1' }]));
 
@@ -26,19 +29,22 @@ describe('AddNurse (Super Admin)', () => {
         ReactiveFormsModule,
         TranslateModule.forRoot(),
         NoopAnimationsModule,
-        MatDialogModule
+        MatDialogModule,
+        MatSnackBarModule
       ],
       providers: [
         FormBuilder,
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: NurseService, useValue: nurseServiceSpy },
-        { provide: ServiceService, useValue: serviceServiceSpy }
+        { provide: ServiceService, useValue: serviceServiceSpy },
+        { provide: MatSnackBar, useValue: snackBarSpy }
       ]
     })
     .overrideComponent(AddNurse, {
       set: {
         providers: [
-          { provide: MatDialogRef, useValue: dialogRefSpy }
+          { provide: MatDialogRef, useValue: dialogRefSpy },
+          { provide: MatSnackBar, useValue: snackBarSpy }
         ]
       }
     })
@@ -74,7 +80,7 @@ describe('AddNurse (Super Admin)', () => {
     expect(nurseServiceSpy.createNurse).not.toHaveBeenCalled();
   });
 
-  it('should create nurse when valid', fakeAsync(() => {
+  it('should create nurse and show snackbar when valid', fakeAsync(() => {
     component.nurseForm.patchValue({
       firstName: 'Alice',
       lastName: 'Smith',
@@ -93,6 +99,7 @@ describe('AddNurse (Super Admin)', () => {
     tick();
 
     expect(nurseServiceSpy.createNurse).toHaveBeenCalled();
+    expect(snackBarSpy.open).toHaveBeenCalledWith('Nurse added successfully', 'Close', { duration: 3000 });
     expect(dialogRefSpy.close).toHaveBeenCalledWith(true);
   }));
 });

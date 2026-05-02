@@ -225,9 +225,10 @@ describe('ZoomService - WCAG 2.1 Accessibility', () => {
 
   describe('Custom Events', () => {
     it('should dispatch zoom-changed event', (done) => {
-      window.addEventListener('zoom-changed', (event: CustomEvent) => {
-        expect(event.detail.level).toBe(175);
-        expect(event.detail.ratio).toBe(1.75);
+      window.addEventListener('zoom-changed', (event: Event) => {
+        const customEvent = event as CustomEvent;
+        expect(customEvent.detail.level).toBe(175);
+        expect(customEvent.detail.ratio).toBe(1.75);
         done();
       });
 

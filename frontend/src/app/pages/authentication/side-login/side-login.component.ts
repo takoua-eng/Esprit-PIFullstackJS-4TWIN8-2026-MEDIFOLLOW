@@ -168,14 +168,20 @@ export class AppSideLoginComponent implements OnInit {
           return throwError(() => err);
         }),
       )
-      .subscribe((res) => {
-        this.loading = false;
-        localStorage.setItem('accessToken', res.accessToken);
-        this.core.setUserFromLogin(res.user);
-        if (res.permissions) {
-          this.core.setPermissions(res.permissions);
+      .subscribe({
+        next: (res) => {
+          this.loading = false;
+          localStorage.setItem('accessToken', res.accessToken);
+          this.core.setUserFromLogin(res.user);
+          if (res.permissions) {
+            this.core.setPermissions(res.permissions);
+          }
+          this.router.navigateByUrl(getPostLoginPath(res.role));
+        },
+        error: (err) => {
+          // Error is already handled in catchError, but this prevents unhandled RxJS exceptions
+          console.error('Login failed', err);
         }
-        this.router.navigateByUrl(getPostLoginPath(res.role));
       });
   }
 
