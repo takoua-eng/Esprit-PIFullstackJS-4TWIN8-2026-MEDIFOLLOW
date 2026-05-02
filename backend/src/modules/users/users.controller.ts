@@ -194,6 +194,7 @@ export class UsersController {
           'Accès refusé: vous ne pouvez voir que votre propre profil',
         );
       }
+      return this.usersService.getUser(id);
     }
 
     // Sinon, il faut avoir "users:read" (admin, doctor, etc.)
