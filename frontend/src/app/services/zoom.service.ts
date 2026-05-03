@@ -13,10 +13,11 @@ export class ZoomService {
   private readonly MAX_ZOOM = 200;
   private readonly ZOOM_STEP = 25;
 
-  // Signal for reactive updates
-  zoomLevel = signal<number>(this.getStoredZoomLevel());
   // Zoom levels available
   readonly ZOOM_LEVELS = [100, 125, 150, 175, 200];
+
+  // Signal for reactive updates
+  zoomLevel = signal<number>(this.getStoredZoomLevel());
 
   constructor() {
     this.applyZoom(this.zoomLevel());

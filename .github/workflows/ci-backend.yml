@@ -5,15 +5,48 @@ on:
     branches: [main, coordinator3]
     paths:
       - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
   pull_request:
     branches: [main]
     paths:
       - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
 
 jobs:
-  test:
-    name: Build & Test Backend
+  build:
+    name: Build Backend
     runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm install
+
+      - name: Build NestJS application
+        working-directory: backend
+        run: npm run build
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-dist
+          path: backend/dist/
+          retention-days: 1
+
+  test:
+    name: Test Backend
+    runs-on: ubuntu-latest
+    needs: build
 
     steps:
       - name: Checkout repository
@@ -36,12 +69,42 @@ jobs:
         env:
           NODE_ENV: test
 
-      - name: Upload coverage report
-        uses: actions/upload-artifact@v4
+      - name: Ensure coverage directory exists
         if: always()
+        working-directory: backend
+        run: |
+          mkdir -p coverage
+          echo "Coverage placeholder" > coverage/.placeholder
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/coverage/
+          retention-days: 7
+
+  analyze:
+    name: Code Analysis - Sonar
+    runs-on: ubuntu-latest
+    needs: test
+    if: always() && needs.test.result != 'cancelled'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download coverage report
+        uses: actions/download-artifact@v4
+        with:
+          pattern: backend-coverage
+          path: backend/coverage/
+          merge-multiple: true
+
+      - name: Ensure coverage directory exists
+        run: mkdir -p backend/coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master

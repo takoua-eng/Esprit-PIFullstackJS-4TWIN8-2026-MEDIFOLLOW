@@ -8,7 +8,7 @@ import { Model } from 'mongoose';
 import { Role, RoleDocument } from './role.schema';
 import { CreateRoleDto } from '../auth/dto/create-role.dto';
 import { UpdateRoleDto } from '../auth/dto/update-role.dto';
-import { ALL_PERMISSIONS } from 'src/common/constants/permissions';
+import { ALL_PERMISSIONS } from '../../common/constants/permissions';
 
 @Injectable()
 export class RolesService {

@@ -51,7 +51,7 @@ export class QuestionnaireTemplateService {
 
   async findAll(): Promise<QuestionnaireTemplateDocument[]> {
     try {
-      return this.templateModel.find().sort({ _id: -1 }).exec();
+      return await this.templateModel.find().sort({ _id: -1 }).exec();
     } catch (err) {
       this.logger.error(
         `Échec listage templates: ${err instanceof Error ? err.message : err}`,
