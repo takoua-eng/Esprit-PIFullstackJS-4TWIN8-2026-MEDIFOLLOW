@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { MatDialog } from '@angular/material/dialog';
+import { TranslateModule } from '@ngx-translate/core';
 import { of } from 'rxjs';
 
 import { AdminsComponent } from './admins';
@@ -36,13 +38,14 @@ describe('AdminsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AdminsComponent, NoopAnimationsModule],
+      imports: [AdminsComponent, NoopAnimationsModule, TranslateModule.forRoot()],
       providers: [
         { provide: AdminService, useValue: mockAdminService },
         { provide: AlertsApiService, useValue: mockAlertsService },
         { provide: MatDialog, useValue: mockDialog },
         { provide: CoreService, useValue: mockCore },
       ],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AdminsComponent);

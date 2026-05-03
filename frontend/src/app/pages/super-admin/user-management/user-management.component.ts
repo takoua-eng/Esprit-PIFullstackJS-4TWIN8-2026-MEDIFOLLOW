@@ -1,8 +1,8 @@
-import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+﻿import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -50,7 +50,7 @@ const CREATE_PERMISSION: Record<string, string> = {
   standalone: true,
   imports: [
     CommonModule, RouterModule, MaterialModule,
-    TablerIconsModule, MatSortModule, MatPaginatorModule,
+    TablerIconComponent, MatSortModule, MatPaginatorModule,
     MatProgressSpinnerModule, MatSnackBarModule,
   ],
   templateUrl: './user-management.component.html',
@@ -211,7 +211,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   canCreate(): boolean {
     if (this.selectedRole === 'all') return this.core.hasPermission('users:create');
@@ -255,11 +255,11 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     const role = this.getRoleName(user);
     const svcName = user.serviceId?.name ?? '';
 
-    if (role === 'doctor')      return [user.specialization, svcName].filter(Boolean).join(' · ');
+    if (role === 'doctor')      return [user.specialization, svcName].filter(Boolean).join(' Â· ');
     if (role === 'nurse')       return svcName;
     if (role === 'coordinator') return svcName;
     if (role === 'admin')       return svcName;
-    if (role === 'patient')     return [user.medicalRecordNumber, svcName].filter(Boolean).join(' · ');
+    if (role === 'patient')     return [user.medicalRecordNumber, svcName].filter(Boolean).join(' Â· ');
     if (role === 'auditor')     return '';
     return svcName;
   }

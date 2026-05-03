@@ -1,10 +1,10 @@
-import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+﻿import { Component, OnInit, ViewChild, ElementRef, AfterViewInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UsersApiService, UserListRow } from 'src/app/services/users-api.service';
 import { Medication, PrescriptionsApiService, PrescriptionDto } from 'src/app/services/prescriptions-api.service';
 import { CoreService } from 'src/app/services/core.service';
@@ -16,7 +16,7 @@ import { CoreService } from 'src/app/services/core.service';
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './doctor-prescriptions.component.html',

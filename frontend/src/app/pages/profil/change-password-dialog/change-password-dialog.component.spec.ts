@@ -1,3 +1,4 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { ChangePasswordDialogComponent } from './change-password-dialog.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -5,8 +6,6 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import * as TablerIcons from 'angular-tabler-icons/icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
 
@@ -29,10 +28,10 @@ describe('ChangePasswordDialogComponent', () => {
         ReactiveFormsModule,
         BrowserAnimationsModule,
         TranslateModule.forRoot(),
-        MatDialogModule,
-        TablerIconsModule.pick(TablerIcons)
+        MatDialogModule
       ],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData }
       ],

@@ -7,7 +7,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { jsPDF } from 'jspdf';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import {
   DiagnosisEntry,
   MedicalHistoryFlags,
@@ -84,7 +84,7 @@ type HospitalizationFieldKey = keyof Pick<
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './nurse-medical-file.component.html',

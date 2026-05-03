@@ -1,21 +1,21 @@
-import { Component, Inject } from '@angular/core';
+﻿﻿import { Component, Inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { AuditLog } from 'src/app/services/audit.service';
 
 @Component({
   selector: 'app-auditor-log-detail',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconsModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconComponent],
   template: `
     <div class="ad-wrap">
       <div class="ad-header">
         <div class="ad-header-icon"><i-tabler name="shield-check" class="icon-20"></i-tabler></div>
         <div>
           <div class="ad-title">Détail de l'événement</div>
-          <div class="ad-sub">{{ log.createdAt | date:'dd/MM/yyyy à HH:mm:ss' }}</div>
+          <div class="ad-sub">{{ log.createdAt | date:'dd/MM/yyyy Ã  HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
           <i-tabler name="x" class="icon-16"></i-tabler>
@@ -61,11 +61,11 @@ import { AuditLog } from 'src/app/services/audit.service';
 
         <!-- WHERE -->
         <div class="ad-section m-t-12">
-          <div class="ad-section-title"><i-tabler name="map-pin" class="icon-13"></i-tabler> OÙ</div>
+          <div class="ad-section-title"><i-tabler name="map-pin" class="icon-13"></i-tabler> OÃ™</div>
           <div class="ad-row-2">
             <div class="ad-field">
               <span class="ad-lbl">IP Address</span>
-              <span class="ad-mono ip-chip">{{ log.ipAddress || '—' }}</span>
+              <span class="ad-mono ip-chip">{{ log.ipAddress || 'â€”' }}</span>
             </div>
             <div class="ad-field">
               <span class="ad-lbl">Navigateur</span>
@@ -76,7 +76,7 @@ import { AuditLog } from 'src/app/services/audit.service';
 
         <!-- DIFF BEFORE / AFTER -->
         <div class="ad-section m-t-12" *ngIf="log.after || log.before">
-          <div class="ad-section-title"><i-tabler name="git-diff" class="icon-13"></i-tabler> CHANGEMENTS AVANT / APRÈS</div>
+          <div class="ad-section-title"><i-tabler name="git-diff" class="icon-13"></i-tabler> CHANGEMENTS AVANT / APRÃˆS</div>
 
           <!-- Diff visuel -->
           <div *ngIf="log.before && log.after" class="diff-grid">
@@ -209,15 +209,15 @@ export class AuditorLogDetailDialog {
     return Array.from(keys);
   }
   getVal(obj: any, key: string): string {
-    if (!obj) return '—';
+    if (!obj) return 'â€”';
     const v = obj[key];
-    if (v === undefined || v === null) return '—';
+    if (v === undefined || v === null) return 'â€”';
     if (typeof v === 'object') return JSON.stringify(v).slice(0, 50);
     return String(v);
   }
   hasChanged(key: string): boolean { return this.getVal(this.log.before, key) !== this.getVal(this.log.after, key); }
   parseUA(ua: string): string {
-    if (!ua || ua === 'unknown') return '—';
+    if (!ua || ua === 'unknown') return 'â€”';
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

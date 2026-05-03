@@ -1,12 +1,10 @@
-// auditor-patients.component.spec.ts
-
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-
 import { AuditorPatientsComponent } from './auditor-patients.component';
 import { API_BASE_URL } from 'src/app/core/api.config';
-
 describe('AuditorPatientsComponent', () => {
   let component: AuditorPatientsComponent;
   let fixture: ComponentFixture<AuditorPatientsComponent>;
@@ -14,29 +12,26 @@ describe('AuditorPatientsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [
-        AuditorPatientsComponent,
-        HttpClientTestingModule,
-        NoopAnimationsModule,
-      ],
+      imports: [AuditorPatientsComponent, HttpClientTestingModule, NoopAnimationsModule],
+      providers: [...TABLER_TEST_PROVIDERS],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuditorPatientsComponent);
     component = fixture.componentInstance;
     httpMock = TestBed.inject(HttpTestingController);
-
-    fixture.detectChanges();
   });
 
-  afterEach(() => {
-    httpMock.verify();
-  });
+  afterEach(() => { httpMock.verify(); });
 
   it('should create component', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${API_BASE_URL}/coordinator/auditor/patients-overview`).flush([]);
     expect(component).toBeTruthy();
   });
 
   it('should load patients and services', () => {
+    fixture.detectChanges();
     const mockData = [
       {
         _id: '1',
@@ -78,6 +73,8 @@ describe('AuditorPatientsComponent', () => {
   });
 
   it('should update search text', () => {
+    fixture.detectChanges();
+    httpMock.expectOne(`${API_BASE_URL}/coordinator/auditor/patients-overview`).flush([]);
     const event = {
       target: { value: 'Ahmed' },
     } as unknown as Event;

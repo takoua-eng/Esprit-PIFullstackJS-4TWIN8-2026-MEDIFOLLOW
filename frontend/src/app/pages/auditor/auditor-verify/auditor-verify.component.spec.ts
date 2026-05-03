@@ -1,10 +1,13 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
 import { AuditorVerifyComponent } from './auditor-verify.component';
 import { AuditApiService } from 'src/app/services/audit.service';
 import { of } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
 describe('AuditorVerifyComponent', () => {
   let component: AuditorVerifyComponent;
@@ -35,14 +38,13 @@ describe('AuditorVerifyComponent', () => {
     };
 
     await TestBed.configureTestingModule({
-      imports: [
-        AuditorVerifyComponent,
-        HttpClientTestingModule,
-        NoopAnimationsModule,
-      ],
+      imports: [AuditorVerifyComponent, HttpClientTestingModule, NoopAnimationsModule],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: AuditApiService, useValue: auditServiceMock },
+        { provide: MatDialog, useValue: { open: jasmine.createSpy('open') } },
       ],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuditorVerifyComponent);

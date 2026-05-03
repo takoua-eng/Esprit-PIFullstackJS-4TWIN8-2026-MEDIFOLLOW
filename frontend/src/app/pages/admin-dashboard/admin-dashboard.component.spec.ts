@@ -1,3 +1,4 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { AdminDashboardComponent } from './admin-dashboard.component';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
@@ -12,7 +13,6 @@ import { PatientService } from 'src/app/services/superadmin/patient.service';
 import { RemindersApiService } from 'src/app/services/reminders-api.service';
 import { VitalsApiService } from 'src/app/services/vitals-api.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
 
@@ -65,10 +65,10 @@ describe('AdminDashboardComponent', () => {
         HttpClientTestingModule,
         RouterTestingModule,
         BrowserAnimationsModule,
-        TranslateModule.forRoot(),
-        TablerIconsModule.pick({})
+        TranslateModule.forRoot()
       ],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: AuditApiService, useValue: mockAuditService },
         { provide: UsersApiService, useValue: mockUsersService },
         { provide: AlertsApiService, useValue: mockAlertsService },

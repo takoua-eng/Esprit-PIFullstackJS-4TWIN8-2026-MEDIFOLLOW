@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { forkJoin } from 'rxjs';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { AlertsApiService, AlertDto } from 'src/app/services/alerts-api.service';
 import { RemindersApiService } from 'src/app/services/reminders-api.service';
 import {
@@ -19,7 +19,7 @@ import {
     CommonModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './nurse-dashboard.component.html',

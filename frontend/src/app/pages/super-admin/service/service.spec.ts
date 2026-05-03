@@ -1,7 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { of } from 'rxjs';
 
 import { ServiceComponent } from './service';
 import { ServiceService } from 'src/app/services/superadmin/service.service';
@@ -9,6 +10,7 @@ import { ServiceService } from 'src/app/services/superadmin/service.service';
 describe('ServiceComponent', () => {
   let component: ServiceComponent;
   let fixture: ComponentFixture<ServiceComponent>;
+  let dialogSpy: jasmine.SpyObj<MatDialog>;
 
   const mockServiceService = {
     getServices: jasmine.createSpy().and.returnValue(of([])),
@@ -19,117 +21,66 @@ describe('ServiceComponent', () => {
     deactivateService: jasmine.createSpy().and.returnValue(of({})),
   };
 
-  const mockDialog = {
-    open: jasmine.createSpy().and.returnValue({
-      afterClosed: () => of(false),
-    }),
-  };
-
   beforeEach(async () => {
+    dialogSpy = jasmine.createSpyObj<MatDialog>('MatDialog', ['open']);
+
     await TestBed.configureTestingModule({
       imports: [ServiceComponent, NoopAnimationsModule],
       providers: [
         { provide: ServiceService, useValue: mockServiceService },
-        { provide: MatDialog, useValue: mockDialog },
       ],
-    }).compileComponents();
+      schemas: [NO_ERRORS_SCHEMA],
+    })
+      .overrideProvider(MatDialog, { useValue: dialogSpy })
+      .compileComponents();
 
     fixture = TestBed.createComponent(ServiceComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
 
-  // ─────────────────────────────
-  // CREATE
-  // ─────────────────────────────
-  it('should create', () => {
-    expect(component).toBeTruthy();
-  });
+  it('should create', () => { expect(component).toBeTruthy(); });
 
-  // ─────────────────────────────
-  // LOAD SERVICES
-  // ─────────────────────────────
   it('should load services on init', () => {
     expect(mockServiceService.getServices).toHaveBeenCalled();
   });
 
-  // ─────────────────────────────
-  // FILTER
-  // ─────────────────────────────
   it('should apply filter', () => {
-    const event = { target: { value: 'cardio' } } as any;
-
-    component.applyFilter(event);
-
+    component.applyFilter({ target: { value: 'cardio' } } as any);
     expect(component.dataSource.filter).toBe('cardio');
   });
 
-  // ─────────────────────────────
-  // ADD SERVICE
-  // ─────────────────────────────
   it('should open add dialog', () => {
-    mockDialog.open.and.returnValue({
-      afterClosed: () => of({ name: 'test service' }),
-    });
-
+    dialogSpy.open.and.returnValue({ afterClosed: () => of(null) } as any);
     component.addService();
-
-    expect(mockDialog.open).toHaveBeenCalled();
+    expect(dialogSpy.open).toHaveBeenCalled();
   });
 
-  // ─────────────────────────────
-  // DELETE SERVICE
-  // ─────────────────────────────
   it('should delete service when confirmed', () => {
     const service: any = { _id: '1', name: 'Test Service' };
-
-    mockDialog.open.and.returnValue({
-      afterClosed: () => of(true),
-    });
-
+    dialogSpy.open.and.returnValue({ afterClosed: () => of(true) } as any);
     component.deleteService(service);
-
     expect(mockServiceService.deleteService).toHaveBeenCalledWith('1');
   });
 
-  // ─────────────────────────────
-  // TOGGLE STATUS
-  // ─────────────────────────────
   it('should toggle service status', () => {
     const service: any = { _id: '1', name: 'Test', isActive: true };
-
-    mockDialog.open.and.returnValue({
-      afterClosed: () => of(true),
-    });
-
+    dialogSpy.open.and.returnValue({ afterClosed: () => of(true) } as any);
     component.toggleStatus(service);
-
     expect(mockServiceService.deactivateService).toHaveBeenCalledWith('1');
   });
 
-  // ─────────────────────────────
-  // VIEW SERVICE
-  // ─────────────────────────────
   it('should open view dialog', () => {
     const service: any = { _id: '1', name: 'Test' };
-
+    dialogSpy.open.and.returnValue({ afterClosed: () => of(null) } as any);
     component.viewService(service);
-
-    expect(mockDialog.open).toHaveBeenCalled();
+    expect(dialogSpy.open).toHaveBeenCalled();
   });
 
-  // ─────────────────────────────
-  // EDIT SERVICE
-  // ─────────────────────────────
   it('should open edit dialog', () => {
     const service: any = { _id: '1', name: 'Test' };
-
-    mockDialog.open.and.returnValue({
-      afterClosed: () => of({ name: 'updated' }),
-    });
-
+    dialogSpy.open.and.returnValue({ afterClosed: () => of({ name: 'updated' }) } as any);
     component.editService(service);
-
-    expect(mockDialog.open).toHaveBeenCalled();
+    expect(dialogSpy.open).toHaveBeenCalled();
   });
 });

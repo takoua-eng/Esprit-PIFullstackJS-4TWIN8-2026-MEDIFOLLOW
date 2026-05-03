@@ -1,4 +1,5 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -7,7 +8,6 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { AlertsApiService, AlertDto } from 'src/app/services/alerts-api.service';
 import { QuestionnaireApiService } from 'src/app/services/questionnaire-api.service';
 import { UserListRow, UsersApiService } from 'src/app/services/users-api.service';
@@ -39,7 +39,7 @@ interface MonitoredPatientRow {
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
     NgApexchartsModule,
     SendQuestionnaireDialog,
@@ -53,7 +53,7 @@ export class DoctorDashboardComponent implements OnInit {
 
   assignedPatients = 0;
   activeAlerts: number | null = null;
-  /** Share of assigned patients who completed a questionnaire today (0–100). */
+  /** Share of assigned patients who completed a questionnaire today (0â€“100). */
   questionnaireCompliancePct: number | null = null;
 
   patients: MonitoredPatientRow[] = [];
@@ -311,12 +311,12 @@ export class DoctorDashboardComponent implements OnInit {
   private formatLatest(v: VitalDto): string {
     const parts: string[] = [];
     if (v.heartRate != null) parts.push(`HR ${v.heartRate}`);
-    if (v.temperature != null) parts.push(`${v.temperature}°C`);
+    if (v.temperature != null) parts.push(`${v.temperature}\u00b0C`);
     if (v.weight != null) parts.push(`${v.weight} kg`);
     if (parts.length === 0 && v.bloodPressure?.trim())
       parts.push(v.bloodPressure.trim());
     const t = new Date(v.recordedAt).toLocaleString();
-    return parts.length ? `${parts.join(' · ')} · ${t}` : t;
+    return parts.length ? `${parts.join(' \u00b7 ')} \u00b7 ${t}` : t;
   }
 
   private rebuildChartAndTrend(): void {
@@ -370,13 +370,13 @@ export class DoctorDashboardComponent implements OnInit {
       const data = list.map((v) => v.temperature ?? null);
       this.vitalChartOptions = this.lineChart(
         labels,
-        [{ name: '°C', data }],
-        '°C',
+        [{ name: 'Â°C', data }],
+        'Â°C',
         ['#e53935'],
       );
       this.trendInsight = this.computeTrendInsight(
         list.map((v) => v.temperature ?? NaN).filter((n) => !Number.isNaN(n)),
-        '°C',
+        'Â°C',
       );
       return;
     }
@@ -465,7 +465,7 @@ export class DoctorDashboardComponent implements OnInit {
     if (delta > 0) {
       return `Upward pattern: average ${a2.toFixed(1)} ${unit} vs ${a1.toFixed(1)} ${unit} earlier in the window.`;
     }
-    return `稳定在 ${a2.toFixed(1)} ${unit} (对比窗口前后半段).`;
+    return `ç¨³å®šåœ¨ ${a2.toFixed(1)} ${unit} (å¯¹æ¯”çª—å£å‰åŽåŠæ®µ).`;
   }
 
   openSendQuestionnaireDialog(row: MonitoredPatientRow): void {

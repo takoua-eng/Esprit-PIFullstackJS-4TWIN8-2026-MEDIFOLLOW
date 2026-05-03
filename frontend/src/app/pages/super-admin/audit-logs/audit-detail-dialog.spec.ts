@@ -1,16 +1,15 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
-
 import { AuditDetailDialog } from './audit-detail-dialog';
 
 describe('AuditDetailDialog', () => {
   let component: AuditDetailDialog;
   let fixture: ComponentFixture<AuditDetailDialog>;
 
-  const mockDialogRef = {
-    close: jasmine.createSpy('close'),
-  };
+  const mockDialogRef = { close: jasmine.createSpy('close') };
 
   const mockData = {
     userEmail: 'test@mail.com',
@@ -34,9 +33,11 @@ describe('AuditDetailDialog', () => {
     await TestBed.configureTestingModule({
       imports: [AuditDetailDialog, NoopAnimationsModule],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: MAT_DIALOG_DATA, useValue: mockData },
         { provide: MatDialogRef, useValue: mockDialogRef },
       ],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AuditDetailDialog);

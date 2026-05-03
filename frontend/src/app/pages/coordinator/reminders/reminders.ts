@@ -1,9 +1,9 @@
-import { Component, OnInit, inject } from '@angular/core';
+﻿﻿import { Component, OnInit, inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   CoordinatorService,
   CoordinatorPatientRow,
@@ -17,7 +17,7 @@ import { CoreService } from 'src/app/services/core.service';
 @Component({
   selector: 'app-reminders',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, ReactiveFormsModule, FormsModule, TranslateModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent, ReactiveFormsModule, FormsModule, TranslateModule],
   templateUrl: './reminders.html',
   styleUrls: ['./reminders.scss'],
 })
@@ -188,7 +188,7 @@ if (!this.coordinatorId) {
         error: (err) => console.error('Update error', err),
       });
   } else {
-    // Créer en tant que SCHEDULED uniquement — pas d'envoi
+    // Créer en tant que SCHEDULED uniquement â€” pas d'envoi
     this.coordinatorService.createReminder(this.coordinatorId, {
       patientId, type, message, scheduledAt, status: 'scheduled'
     }).subscribe({

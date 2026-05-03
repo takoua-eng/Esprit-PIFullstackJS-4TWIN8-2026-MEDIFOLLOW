@@ -1,4 +1,5 @@
-import { BreakpointObserver } from '@angular/cdk/layout';
+﻿import { BreakpointObserver } from '@angular/cdk/layout';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
 import { MatSidenav, MatSidenavContent } from '@angular/material/sidenav';
@@ -7,7 +8,6 @@ import { filter } from 'rxjs/operators';
 import { NavigationEnd, Router, RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
 import { NgScrollbarModule } from 'ngx-scrollbar';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { HeaderComponent } from './header/header.component';
 import { SidebarComponent } from './sidebar/sidebar.component';
 import { AppNavItemComponent } from './sidebar/nav-item/nav-item.component';
@@ -36,7 +36,7 @@ const TABLET_VIEW = 'screen and (min-width: 769px) and (max-width: 1024px)';
     MaterialModule,
     SidebarComponent,
     NgScrollbarModule,
-    TablerIconsModule,
+    TablerIconComponent,
     HeaderComponent,
     AppTopstripComponent,
     VoiceAssistantComponent,
@@ -102,7 +102,7 @@ export class FullComponent implements OnInit {
 
 
   
-  // ✅ LOGIQUE FIX
+  // âœ… LOGIQUE FIX
   private updateSidebar(url: string) {
     const role = normalizeRoleKey(
       typeof localStorage !== 'undefined'

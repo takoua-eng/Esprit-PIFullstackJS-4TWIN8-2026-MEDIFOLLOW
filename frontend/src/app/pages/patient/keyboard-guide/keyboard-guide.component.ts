@@ -1,14 +1,14 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { KeyboardAccessibilityService } from 'src/app/services/keyboard-accessibility.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-keyboard-guide',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent],
   templateUrl: './keyboard-guide.component.html',
   styleUrls: ['./keyboard-guide.component.scss'],
 })

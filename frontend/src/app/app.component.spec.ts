@@ -1,7 +1,7 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { TestBed } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { AppComponent } from './app.component';
 
@@ -11,9 +11,9 @@ describe('AppComponent', () => {
       imports: [
         RouterTestingModule,
         AppComponent,
-        TablerIconsModule.pick({}),
         TranslateModule.forRoot()
       ],
+      providers: [...TABLER_TEST_PROVIDERS],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   });

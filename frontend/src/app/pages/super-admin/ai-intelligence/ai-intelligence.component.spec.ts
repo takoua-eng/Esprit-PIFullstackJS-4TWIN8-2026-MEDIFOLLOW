@@ -1,6 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NO_ERRORS_SCHEMA } from '@angular/core';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 
 import { AiIntelligenceComponent } from './ai-intelligence.component';
 
@@ -11,6 +13,8 @@ describe('AiIntelligenceComponent', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [AiIntelligenceComponent, NoopAnimationsModule, HttpClientTestingModule],
+      providers: [...TABLER_TEST_PROVIDERS],
+      schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AiIntelligenceComponent);

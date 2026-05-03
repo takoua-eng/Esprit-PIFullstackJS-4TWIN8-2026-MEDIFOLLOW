@@ -1,10 +1,10 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -31,7 +31,7 @@ import { VideoCallsApiService } from 'src/app/services/video-calls-api.service';
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './doctor-alerts.component.html',
@@ -45,7 +45,7 @@ export class DoctorAlertsComponent implements OnInit {
   alerts: AlertDto[] = [];
   reviewQueue: ClinicalReviewQueueItemDto[] = [];
   queueSortedBy: 'ai' | 'heuristic' | null = null;
-  // ── Clinical Review Queue filters ──────────────────────────────────
+  // â”€â”€ Clinical Review Queue filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   queueTypeFilter = 'all';
   queueUrgencyFilter = 'all';
   queueSearchText = '';
@@ -53,7 +53,7 @@ export class DoctorAlertsComponent implements OnInit {
   queuePageSize = 10;
   readonly queuePageSizeOptions = [5, 10, 25];
 
-  // ── Issued Alerts filters ───────────────────────────────────────────
+  // â”€â”€ Issued Alerts filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   filter: 'all' | 'open' = 'open';
   severityFilter = 'all';
   typeFilter = 'all';
@@ -63,7 +63,7 @@ export class DoctorAlertsComponent implements OnInit {
   readonly pageSizeOptions = [5, 10, 25, 50];
 
   activePhysicianId: string | null = null;
-  /** No Mongo user id in JWT — cannot scope alerts */
+  /** No Mongo user id in JWT â€” cannot scope alerts */
   noDoctorSession = false;
   sending = false;
 
@@ -172,7 +172,7 @@ export class DoctorAlertsComponent implements OnInit {
     });
   }
 
-  /** Reload only issued alerts — keeps clinical review visible (no full-page queue spinner). */
+  /** Reload only issued alerts â€” keeps clinical review visible (no full-page queue spinner). */
   private refreshIssuedAlertsOnly(doctorId: string): void {
     this.alertsApi.getAlerts({ doctorId }).subscribe({
       next: (list) => {
@@ -198,7 +198,7 @@ export class DoctorAlertsComponent implements OnInit {
     });
   }
 
-  // ── Clinical Review Queue helpers ──────────────────────────────────
+  // â”€â”€ Clinical Review Queue helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   get filteredQueue(): ClinicalReviewQueueItemDto[] {
     let list = this.reviewQueue;
@@ -253,7 +253,7 @@ export class DoctorAlertsComponent implements OnInit {
     );
   }
 
-  // ── Issued Alerts helpers ───────────────────────────────────────────
+  // â”€â”€ Issued Alerts helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   get filteredAlerts(): AlertDto[] {
     let list = this.alerts;
@@ -465,7 +465,7 @@ export class DoctorAlertsComponent implements OnInit {
               undefined,
               { duration: 3500 },
             );
-            // Issued alert is new; clinical review is still driven by vitals/symptoms — do not
+            // Issued alert is new; clinical review is still driven by vitals/symptoms â€” do not
             // run full load() (that clears the queue UI with queueLoading). Refresh lists separately.
             if (this.activePhysicianId) {
               this.refreshIssuedAlertsOnly(this.activePhysicianId);

@@ -1,17 +1,17 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { API_BASE_URL } from 'src/app/core/api.config';
 import { AuthSessionService } from 'src/app/services/auth-session.service';
 
 @Component({
   selector: 'app-stroke-risk',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './stroke-risk.component.html',
   styleUrls: ['./stroke-risk.component.scss'],
 })
@@ -51,7 +51,7 @@ export class StrokeRiskComponent implements OnInit {
     });
   }
 
-  // 🔥 IMPORTANT FIX NORMALIZATION
+  // ðŸ”¥ IMPORTANT FIX NORMALIZATION
   getLevel(r: any): string {
     const level = r?.prediction?.riskLevel;
     if (!level) return 'LOW';
@@ -60,7 +60,7 @@ export class StrokeRiskComponent implements OnInit {
 
   getLabel(level: string): string {
     switch (level) {
-      case 'HIGH': return 'Profil à risque élevé';
+      case 'HIGH': return 'Profil Ã  risque élevé';
       case 'MEDIUM': return 'Risque modéré';
       default: return 'Faible risque';
     }
@@ -69,15 +69,15 @@ export class StrokeRiskComponent implements OnInit {
   levelColor(level: string): string {
     return {
       HIGH: '#d63031',
-      MEDIUM: '#e17055',
+      MEDIUM: '#fdcb6e',
       LOW: '#00b894'
-    }[level] || '#999';
+    }[level] || '#b2bec3';
   }
 
   levelBg(level: string): string {
     return {
       HIGH: '#d6303115',
-      MEDIUM: '#e1705515',
+      MEDIUM: '#fdcb6e15',
       LOW: '#00b89415'
     }[level] || '#eee';
   }

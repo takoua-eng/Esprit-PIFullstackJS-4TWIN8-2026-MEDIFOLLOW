@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit } from '@angular/core';
+﻿﻿import { Component, Inject, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -6,7 +7,6 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   UsersApiService,
@@ -34,7 +34,7 @@ type VitalParam = 'heartRate' | 'temperature' | 'weight' | 'bloodPressure';
     CommonModule,
     FormsModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
     NgApexchartsModule,
   ],
@@ -42,13 +42,13 @@ type VitalParam = 'heartRate' | 'temperature' | 'weight' | 'bloodPressure';
   styleUrls: ['./patient-medical-file-dialog.component.scss'],
 })
 export class PatientMedicalFileDialogComponent implements OnInit {
-  // ── Medical file ─────────────────────────────────────────────────────
+  // â”€â”€ Medical file â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   loading = true;
   error: string | null = null;
   dossier: NurseDossierPayload | null = null;
   patient: UserApiRow | null = null;
 
-  // ── Vital parameters chart ────────────────────────────────────────────
+  // â”€â”€ Vital parameters chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   vitalsLoading = true;
   allVitals: VitalDto[] = [];
   selectedParameter: VitalParam = 'heartRate';
@@ -104,7 +104,7 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     });
   }
 
-  // ── Filters ─────────────────────────────────────────────────────────
+  // â”€â”€ Filters â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   onParamChange(p: VitalParam): void {
     this.selectedParameter = p;
     this.rebuildChart();
@@ -115,7 +115,7 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     this.rebuildChart();
   }
 
-  // ── Chart ────────────────────────────────────────────────────────────
+  // â”€â”€ Chart â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   private rebuildChart(): void {
     this.vitalChartOptions = null;
     this.trendInsight = null;
@@ -141,8 +141,8 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     }
     if (this.selectedParameter === 'temperature') {
       const data = list.map((v) => v.temperature ?? null);
-      this.vitalChartOptions = this.lineChart(labels, [{ name: '°C', data }], '°C', ['#e53935']);
-      this.trendInsight = this.computeTrend(list.map((v) => v.temperature ?? NaN).filter(Number.isFinite), '°C');
+      this.vitalChartOptions = this.lineChart(labels, [{ name: 'Â°C', data }], 'Â°C', ['#e53935']);
+      this.trendInsight = this.computeTrend(list.map((v) => v.temperature ?? NaN).filter(Number.isFinite), 'Â°C');
       return;
     }
     if (this.selectedParameter === 'weight') {
@@ -198,11 +198,11 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     const a2 = avg(values.slice(mid));
     const rel = a1 !== 0 ? ((a2 - a1) / a1) * 100 : 0;
     if (Math.abs(rel) < 3) return `Stable around ${a2.toFixed(1)} ${unit}`;
-    if (a2 > a1) return `Upward trend: ${a1.toFixed(1)} → ${a2.toFixed(1)} ${unit}`;
-    return `Downward trend: ${a1.toFixed(1)} → ${a2.toFixed(1)} ${unit}`;
+    if (a2 > a1) return `Upward trend: ${a1.toFixed(1)} â†’ ${a2.toFixed(1)} ${unit}`;
+    return `Downward trend: ${a1.toFixed(1)} â†’ ${a2.toFixed(1)} ${unit}`;
   }
 
-  // ── Helpers ──────────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   private extractPatientId(r: VitalParametersRaw): string {
     if (typeof r.patientId === 'object' && r.patientId) {
       return String(r.patientId._id ?? '');
@@ -225,9 +225,9 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     return {
       _id: `vp-${String(raw._id)}`,
       patientId: pid,
-      patientName: pName || '—',
+      patientName: pName || 'â€”',
       recordedBy: '',
-      recorderName: '—',
+      recorderName: 'â€”',
       entrySource: 'patient',
       temperature: raw.temperature,
       bloodPressure,
@@ -246,7 +246,7 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     return { sys: +m[1], dia: +m[2] };
   }
 
-  // ── Dossier helpers ──────────────────────────────────────────────────
+  // â”€â”€ Dossier helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get latestEntry(): DiagnosisEntry | null {
     const entries = this.dossier?.diagnosisEntries;
     if (!entries?.length) return null;

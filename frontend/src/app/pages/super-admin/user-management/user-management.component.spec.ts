@@ -1,9 +1,8 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
-import { TablerIconsModule } from 'angular-tabler-icons';
-
 import { UserManagementComponent } from './user-management.component';
 
 describe('UserManagementComponent', () => {
@@ -14,7 +13,6 @@ describe('UserManagementComponent', () => {
     await TestBed.configureTestingModule({
       imports: [
         UserManagementComponent,
-        TablerIconsModule.pick({}),
         HttpClientTestingModule,
         NoopAnimationsModule
       ],
