@@ -1,10 +1,11 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { of } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
+import { TablerIconsModule } from 'angular-tabler-icons';
 
 import { UserManagementComponent } from './user-management.component';
 
-fdescribe('UserManagementComponent', () => {
+describe('UserManagementComponent', () => {
   let component: UserManagementComponent;
   let fixture: ComponentFixture<UserManagementComponent>;
 
@@ -21,7 +22,10 @@ fdescribe('UserManagementComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UserManagementComponent],
+      imports: [
+        UserManagementComponent,
+        TablerIconsModule.pick({})
+      ],
       providers: [
         { provide: 'UserManagementService', useValue: mockUserService },
         { provide: MatDialog, useValue: mockDialog },
