@@ -107,7 +107,7 @@ jobs:
         run: mkdir -p backend/coverage
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarqube-scan-action@v5
+        uses: SonarSource/sonarcloud-github-action@master
         with:
           projectBaseDir: backend
         env:
