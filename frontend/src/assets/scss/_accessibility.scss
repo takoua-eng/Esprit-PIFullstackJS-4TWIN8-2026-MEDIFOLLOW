@@ -48,11 +48,7 @@ $root-font-size: 16px;
   $b: if($bottom, ($bottom / 16) * 1rem, ($top / 16) * 1rem);
   $l: if($left, ($left / 16) * 1rem, ($r));
   $t: ($top / 16) * 1rem;
-<<<<<<< HEAD
 
-=======
-  
->>>>>>> superadmin
   padding: $t $r $b $l;
 }
 

@@ -2,7 +2,7 @@ name: CI Backend
 
 on:
   push:
-    branches: [main, coordinator3]
+    branches: [main, coordinator3, final-patient]
     paths:
       - 'backend/**'
       - '.github/workflows/ci-backend.yml'
@@ -107,7 +107,7 @@ jobs:
         run: mkdir -p backend/coverage
 
       - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
+        uses: SonarSource/sonarqube-scan-action@v5
         with:
           projectBaseDir: backend
         env:
