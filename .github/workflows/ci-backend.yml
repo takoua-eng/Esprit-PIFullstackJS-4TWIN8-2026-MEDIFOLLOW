@@ -65,24 +65,30 @@ jobs:
 
       - name: Run all backend tests
         working-directory: backend
-        run: |
-          mkdir -p coverage
-          npx jest --coverage --coverageDirectory=coverage --passWithNoTests
+        run: npx jest --coverage --coverageDirectory=coverage --passWithNoTests
         env:
           NODE_ENV: test
 
+      - name: Ensure coverage directory exists
+        if: always()
+        working-directory: backend
+        run: |
+          mkdir -p coverage
+          echo "Coverage placeholder" > coverage/.placeholder
+
       - name: Upload coverage report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/coverage/
           retention-days: 7
-          if-no-files-found: warn
 
   analyze:
     name: Code Analysis
     runs-on: ubuntu-latest
     needs: test
+    if: always() && needs.test.result != 'cancelled'
 
     steps:
       - name: Checkout repository
