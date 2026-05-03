@@ -99,8 +99,12 @@ jobs:
       - name: Download coverage report
         uses: actions/download-artifact@v4
         with:
-          name: backend-coverage
+          pattern: backend-coverage
           path: backend/coverage/
+          merge-multiple: true
+
+      - name: Ensure coverage directory exists
+        run: mkdir -p backend/coverage
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
