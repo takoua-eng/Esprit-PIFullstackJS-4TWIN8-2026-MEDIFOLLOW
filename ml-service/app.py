@@ -1,193 +1,180 @@
-"""
-Flask ML API — Stroke Risk Prediction
-Run: python app.py
-Port: 5001
-"""
-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import joblib
 import numpy as np
+import pandas as pd
+import logging
+import sys
+
+# Configuration logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app)
 
-# ── Load models ───────────────────────────────────────────────
-MODELS_DIR = 'models'
+MODELS_DIR = "models"
 
-def load_models():
-    global xgb_model, kmeans_model, scaler, meta
-    try:
-        xgb_model    = joblib.load(f'{MODELS_DIR}/xgboost_stroke.pkl')
-        kmeans_model = joblib.load(f'{MODELS_DIR}/kmeans_stroke.pkl')
-        scaler       = joblib.load(f'{MODELS_DIR}/scaler.pkl')
-        meta         = joblib.load(f'{MODELS_DIR}/meta.pkl')
-        print("✅ Models loaded successfully")
-    except Exception as e:
-        print(f"❌ Error loading models: {e}")
-        xgb_model = kmeans_model = scaler = meta = None
+# Charger les modèles
+try:
+    xgb_model = joblib.load(f"{MODELS_DIR}/xgboost_stroke.pkl")
+    kmeans_model = joblib.load(f"{MODELS_DIR}/kmeans_stroke.pkl")
+    scaler = joblib.load(f"{MODELS_DIR}/scaler.pkl")
+    meta = joblib.load(f"{MODELS_DIR}/meta.pkl")
+    logger.info("✅ Modèles chargés avec succès")
+except Exception as e:
+    logger.error(f"❌ Erreur chargement: {e}")
+    raise
 
-load_models()
+# Mappings
+WORK_MAP = {"private": 0, "self employed": 1, "self-employed": 1, "govt job": 2, "govt_job": 2, "children": 3, "never worked": 4}
+SMOKE_MAP = {"never smoked": 0, "formerly smoked": 1, "smokes": 2, "unknown": 3}
+FEATURE_ORDER = ["age", "hypertension", "heart_disease", "gender", "ever_married", 
+                 "work_type", "Residence_type", "avg_glucose_level", "bmi", "smoking_status"]
 
-# ── Preprocessing ─────────────────────────────────────────────
-WORK_MAP  = {'Private': 0, 'Self-employed': 1, 'Govt_job': 2, 'children': 3, 'Never_worked': 4}
-SMOKE_MAP = {'never smoked': 0, 'formerly smoked': 1, 'smokes': 2, 'Unknown': 3}
+def normalize(v):
+    if not v: 
+        return "private"
+    return str(v).strip().lower().replace("_", " ").replace("-", " ")
 
-def preprocess(data: dict):
-    try:
-        # safe parsing
-        age     = float(data.get('age', 40))
-        bmi     = float(data.get('bmi', 28.0))
-        glucose = float(data.get('avg_glucose_level', 100))
+def get_recommendations(level: str, data: dict) -> list:
+    recs = []
+    if level == "HIGH":
+        recs = ["🩺 Consulter un cardiologue en urgence", "📊 Surveillance tensionnelle quotidienne", "🥗 Régime pauvre en sel", "🚭 Arrêt du tabac", "🏃 Activité physique 30min/jour"]
+        if data.get("avg_glucose_level", 0) > 140: recs.append(f"🔬 Glycémie à surveiller ({data['avg_glucose_level']} mg/dL)")
+        if data.get("bmi", 0) > 30: recs.append(f"⚖️ Prise en charge nutritionnelle (IMC: {data['bmi']})")
+        if data.get("heart_disease", 0) == 1: recs.append("❤️ Suivi cardiologique renforcé")
+    elif level == "MEDIUM":
+        recs = ["🩺 Bilan médical annuel", "🥗 Alimentation équilibrée", "🚶 Marche quotidienne"]
+    else:
+        recs = ["✅ Mode de vie sain", "🔄 Bilan préventif"]
+    return recs
 
-        hypert  = int(data.get('hypertension', 0))
-        heart   = int(data.get('heart_disease', 0))
-
-        gender    = 1 if data.get('gender') == 'Male' else 0
-        married   = 1 if data.get('ever_married') == 'Yes' else 0
-        residence = 1 if data.get('Residence_type') == 'Urban' else 0
-
-        work  = WORK_MAP.get(data.get('work_type'), 0)
-        smoke = SMOKE_MAP.get(data.get('smoking_status'), 3)
-
-        features = np.array([
-            age, hypert, heart,
-            gender, married,
-            work, residence,
-            glucose, bmi,
-            smoke
-        ], dtype=float)
-
-        # replace NaN or inf
-        features = np.nan_to_num(features)
-
-        return features.reshape(1, -1)
-
-    except Exception as e:
-        raise ValueError(f"Preprocess error: {str(e)}")
-
-
-def get_cluster_features(features):
-    # features is numpy array (1,10)
-    return np.array([
-        features[0][0],  # age
-        features[0][7],  # glucose
-        features[0][8],  # bmi
-        features[0][1],  # hypertension
-        features[0][2]   # heart
-    ]).reshape(1, -1)
-
-# ── Routes ────────────────────────────────────────────────────
-
-@app.route('/health', methods=['GET'])
-def health():
-    return jsonify({'status': 'ok', 'models_loaded': xgb_model is not None})
-
-
-@app.route('/predict', methods=['POST'])
+@app.route("/predict", methods=["POST"])
 def predict():
-    if xgb_model is None:
-        return jsonify({'error': 'Models not loaded'}), 503
-
-    data = request.get_json()
-    if not data:
-        return jsonify({'error': 'No data provided'}), 400
-
+    logger.info("🚀 [DEBUG] Entrée dans /predict")
     try:
-        features = preprocess(data)
+        data = request.get_json()
+        
+        # ✅ CORRECTION: condition COMPLÈTE
+        if not data:
+            logger.error("❌ JSON vide")
+            return jsonify({"error": "JSON vide"}), 400
 
-        # ── Prediction ──
-        prob = float(xgb_model.predict_proba(features)[0][1])
-        risk_score = round(prob * 100, 1)
+        logger.info(f"📥 Données reçues: {data}")
 
-        # ── Risk level ──
-        if risk_score >= 60:
-            risk_level = 'HIGH'
-            risk_color = '#d63031'
-        elif risk_score >= 30:
-            risk_level = 'MEDIUM'
-            risk_color = '#fdcb6e'
+        # Encoder variables catégoriques
+        if isinstance(data.get("work_type"), str):
+            data["work_type"] = WORK_MAP.get(normalize(data["work_type"]), 0)
+        if isinstance(data.get("smoking_status"), str):
+            data["smoking_status"] = SMOKE_MAP.get(normalize(data["smoking_status"]), 3)
+
+        # Créer DataFrame dans le bon ordre
+        df_input = pd.DataFrame([data])
+        for col in FEATURE_ORDER:
+            if col not in df_input.columns:
+                df_input[col] = 0
+        df_input = df_input[FEATURE_ORDER]
+        logger.info(f"🔍 DataFrame: {df_input.to_dict('records')[0]}")
+
+        # Prédiction XGBoost
+        proba_array = xgb_model.predict_proba(df_input)
+        logger.info(f"🎯 predict_proba: {proba_array}")
+        
+        prob_stroke = float(proba_array[0][1])
+        score = round(prob_stroke * 100, 1)
+        logger.info(f"📊 Probabilité stroke: {prob_stroke*100:.2f}% → Score: {score}%")
+
+        # 🔥 Comptage facteurs critiques
+        critical = []
+        if data.get("age", 0) >= 70: 
+            critical.append("age")
+            logger.info("  ✓ Age ≥ 70")
+        if data.get("hypertension", 0) == 1: 
+            critical.append("htn")
+            logger.info("  ✓ Hypertension")
+        if data.get("heart_disease", 0) == 1: 
+            critical.append("heart")
+            logger.info("  ✓ Maladie cardiaque")
+        if data.get("avg_glucose_level", 0) > 200: 
+            critical.append("glucose")
+            logger.info("  ✓ Glucose > 200")
+        if data.get("bmi", 0) > 30: 
+            critical.append("bmi")
+            logger.info("  ✓ BMI > 30")
+        
+        logger.info(f"🔍 Facteurs critiques: {len(critical)}/5 → {critical}")
+
+        # Classification avec seuils BAS
+        if prob_stroke >= 0.05:
+            level = "HIGH"
+            logger.info("🎯 Classification: HIGH (prob ≥ 5%)")
+        elif prob_stroke >= 0.03:
+            level = "MEDIUM"
+            logger.info("🎯 Classification: MEDIUM (prob ≥ 3%)")
         else:
-            risk_level = 'LOW'
-            risk_color = '#00b894'
+            level = "LOW"
+            logger.info("🎯 Classification: LOW (prob < 3%)")
 
-        # ── Clustering ──
-        cluster_feats = get_cluster_features(features)
+        # 🚨 Upgrade automatique si ≥3 facteurs
+        if len(critical) >= 3 and level != "HIGH":
+            logger.warning(f"⚠️ UPGRADE: {level} → HIGH ({len(critical)} facteurs)")
+            level = "HIGH"
+        
+        logger.info(f"✅ Niveau FINAL: {level}")
 
-        if scaler:
-            cluster_feats = scaler.transform(cluster_feats)
+        # Couleurs
+        color_map = {
+            "HIGH": ("#ef4444", "Élevé"),
+            "MEDIUM": ("#f59e0b", "Modéré"),
+            "LOW": ("#22c55e", "Faible")
+        }
+        color, label = color_map[level]
 
-        cluster = int(kmeans_model.predict(cluster_feats)[0])
-        high_risk_c = meta.get('high_risk_cluster', 1) if meta else 1
-        is_high_risk = (cluster == high_risk_c)
-
-        # ── Recommendations ──
-        age, hypert, heart, _, _, _, _, glucose, bmi, smoke = features[0]
-
-        recommendations = []
-
-        if age > 65:
-            recommendations.append("Âge > 65 ans : surveillance recommandée")
-        if hypert:
-            recommendations.append("Hypertension : contrôle régulier")
-        if heart:
-            recommendations.append("Maladie cardiaque : suivi prioritaire")
-        if glucose > 200:
-            recommendations.append("Glycémie élevée : consulter")
-        if bmi > 30:
-            recommendations.append("IMC élevé : perte de poids recommandée")
-        if smoke == 2:
-            recommendations.append("Tabagisme actif : arrêt conseillé")
-
-        if not recommendations:
-            recommendations.append("Faible risque — maintenir hygiène de vie")
+        # Clustering
+        cluster_feats = meta.get("cluster_features", ["age", "avg_glucose_level", "bmi", "hypertension", "heart_disease"])
+        X_cluster = df_input[cluster_feats].values
+        X_cluster_scaled = scaler.transform(X_cluster)
+        cluster = int(kmeans_model.predict(X_cluster_scaled)[0])
+        is_high_risk_cluster = (cluster == meta.get("high_risk_cluster", 1))
 
         return jsonify({
-            'riskScore': risk_score,
-            'riskLevel': risk_level,
-            'riskColor': risk_color,
-            'probability': round(prob, 4),
-            'cluster': cluster,
-            'clusterLabel': 'Profil à risque élevé' if is_high_risk else 'Profil sain',
-            'isHighRisk': is_high_risk,
-            'recommendations': recommendations
+            "success": True,
+            "prediction": {
+                "riskScore": score,
+                "riskProbability": round(prob_stroke, 4),
+                "riskLevel": level,
+                "riskLabel": label,
+                "riskColor": color,
+                "isHighRisk": level == "HIGH"
+            },
+            "clustering": {
+                "cluster": cluster,
+                "isHighRiskCluster": is_high_risk_cluster
+            },
+            "recommendations": get_recommendations(level, data)
         })
 
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        logger.exception(f"❌ Erreur API: {e}")
+        return jsonify({"success": False, "error": str(e)}), 500
 
+@app.route("/health", methods=["GET"])
+def health():
+    return jsonify({"status": "ok", "service": "stroke-ml-api"}), 200
 
-@app.route('/predict/batch', methods=['POST'])
-def predict_batch():
-    if xgb_model is None:
-        return jsonify({'error': 'Models not loaded'}), 503
+@app.route("/debug", methods=["GET"])
+def debug():
+    return jsonify({
+        "status": "alive",
+        "thresholds": {"HIGH": "≥5%", "MEDIUM": "≥3%", "LOW": "<3%"},
+        "upgrade_rule": "≥3 facteurs critiques → HIGH"
+    }), 200
 
-    patients = request.get_json()
-    if not isinstance(patients, list):
-        return jsonify({'error': 'Expected list'}), 400
-
-    results = []
-
-    for p in patients:
-        try:
-            features = preprocess(p)
-            prob = float(xgb_model.predict_proba(features)[0][1])
-            risk_score = round(prob * 100, 1)
-
-            results.append({
-                'id': p.get('id'),
-                'name': p.get('name', ''),
-                'riskScore': risk_score,
-                'riskLevel': 'HIGH' if risk_score >= 60 else 'MEDIUM' if risk_score >= 30 else 'LOW'
-            })
-
-        except Exception as e:
-            results.append({'id': p.get('id'), 'error': str(e)})
-
-    results.sort(key=lambda x: x.get('riskScore', 0), reverse=True)
-    return jsonify(results)
-
-
-if __name__ == '__main__':
-    print("🚀 ML Service running on http://localhost:5001")
-    app.run(host='0.0.0.0', port=5001, debug=False)
+if __name__ == "__main__":
+    logger.info("🚀 Flask server starting on port 5001...")
+    app.run(host="0.0.0.0", port=5001, debug=True)

@@ -18,8 +18,8 @@ export class Reminder {
   @Prop({ required: true })
   message: string;
 
-  /** pending | sent | completed | cancelled */
-  @Prop({ default: 'pending' })
+  /** pending | sent | answered | missed | failed | completed | cancelled */
+  @Prop({ default: 'pending', enum: ['pending', 'sent', 'answered', 'missed', 'failed', 'completed', 'cancelled'] })
   status: string;
 
   @Prop()

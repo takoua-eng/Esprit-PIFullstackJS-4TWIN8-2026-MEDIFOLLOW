@@ -123,13 +123,18 @@
                 <button mat-icon-button color="accent" (click)="openView(u)" matTooltip="View details">
                   <mat-icon>visibility</mat-icon>
                 </button>
-                <mat-slide-toggle
-                  *ngIf="!u.isArchived && canEdit()"
-                  [checked]="u.isActive"
-                  (change)="toggleActive(u, $event)"
-                  color="primary"
-                  [matTooltip]="u.isActive ? 'Deactivate' : 'Activate'">
-                </mat-slide-toggle>
+                <!-- ACTIVATE/DEACTIVATE TOGGLE BUTTON -->
+                <button *ngIf="!u.isArchived"
+                  class="custom-toggle"
+                  [class.is-active]="u.isActive"
+                  (click)="toggleActive(u)"
+                  [matTooltip]="u.isActive ? 'Click to deactivate' : 'Click to activate'">
+                  <span class="toggle-track">
+                    <span class="toggle-thumb">
+                      <mat-icon>{{ u.isActive ? 'check' : 'close' }}</mat-icon>
+                    </span>
+                  </span>
+                </button>
 
                 <button mat-icon-button color="primary" (click)="openEdit(u)"
                   *ngIf="canEdit()" matTooltip="Edit">

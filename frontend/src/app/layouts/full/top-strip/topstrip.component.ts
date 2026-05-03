@@ -128,6 +128,17 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
       this.notifications.forEach(n => n.isRead = true);
       this.unreadCount = 0;
     });
+    const role = (localStorage.getItem('user_role') || '').toLowerCase();
+    if (role === 'doctor' || role === 'physician') {
+      this.router.navigate(['/dashboard/doctor/notifications']);
+    }
+  }
+
+  goToAllNotifications(): void {
+    const role = (localStorage.getItem('user_role') || '').toLowerCase();
+    if (role === 'doctor' || role === 'physician') {
+      this.router.navigate(['/dashboard/doctor/notifications']);
+    }
   }
 
   getTypeIcon(type: string): string {

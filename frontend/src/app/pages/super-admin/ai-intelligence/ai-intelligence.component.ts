@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
 import { TablerIconsModule } from 'angular-tabler-icons';
 import { HttpClient } from '@angular/common/http';
@@ -42,7 +43,7 @@ const REPORT_TYPES = [
 @Component({
   selector: 'app-ai-intelligence',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
   templateUrl: './ai-intelligence.component.html',
   styleUrls: ['./ai-intelligence.component.scss'],
 })
@@ -54,6 +55,10 @@ export class AiIntelligenceComponent implements OnInit {
   activeType = '';
   result: ReportResult | null = null;
   history: ReportResult[] = [];
+
+  // ── Date selector ────────────────────────────────────────
+  selectedDate: string = new Date().toISOString().split('T')[0]; // today by default
+  readonly today: string = new Date().toISOString().split('T')[0];
 
   // ── LOGO URL ────────────────────────────────────────────
   logoUrl = 'assets/images/medifollow-logo.png';
@@ -69,7 +74,7 @@ export class AiIntelligenceComponent implements OnInit {
     this.activeType = type;
     this.result = null;
 
-    this.http.post<ReportResult>(`${API_BASE_URL}/ai/report`, { type })
+    this.http.post<ReportResult>(`${API_BASE_URL}/ai/report`, { type, date: this.selectedDate })
       .pipe(catchError(() => of({
         type,
         report: { resume: 'Service AI indisponible.', problemes: [], causes: [], recommandations: [] },

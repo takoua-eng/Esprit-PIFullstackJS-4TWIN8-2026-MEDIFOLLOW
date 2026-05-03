@@ -54,52 +54,57 @@
 
     <mat-menu #notifMenu="matMenu" xPosition="before" class="notif-menu" panelClass="premium-menu-panel">
       <!-- Header -->
-      <div class="d-flex align-items-center justify-content-between p-x-20 p-y-16" style="border-bottom: 1px solid rgba(0,0,0,0.05); min-width: 320px; background: #fff;">
-        <h6 class="m-0 f-w-600 f-s-16 text-dark">Notifications</h6>
+      <div class="d-flex align-items-center justify-content-between p-x-20 p-y-16" style="border-bottom: 1px solid rgba(0,0,0,0.05); min-width: 360px; background: #fff;">
+        <div class="d-flex align-items-center gap-8">
+          <h6 class="m-0 f-w-600 f-s-16 text-dark">Notifications</h6>
+          <span *ngIf="unreadCount > 0" class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:22px;height:22px;background:#468ecf;color:#fff;font-size:11px;font-weight:700;">
+            {{ unreadCount > 9 ? '9+' : unreadCount }}
+          </span>
+        </div>
         <button mat-button class="text-primary p-0 f-s-13 f-w-500" style="min-width: auto; line-height: 1;" (click)="markAllRead(); $event.stopPropagation()">
-          <i-tabler name="checks" class="icon-16 m-r-4 align-middle"></i-tabler> <span class="align-middle">Tout lire</span>
+          <i-tabler name="checks" class="icon-16 m-r-4 align-middle"></i-tabler>
+          <span class="align-middle">Tout lire</span>
         </button>
       </div>
 
       <!-- Notifications List -->
-      <div style="max-height: 350px; overflow-y: auto;" class="p-8">
-        
-        <!-- Section label for unread -->
+      <div style="max-height: 340px; overflow-y: auto;" class="p-8">
+
+        <!-- Unread -->
         <ng-container *ngIf="unreadNotifs.length > 0">
-          <div class="p-x-12 p-y-8 f-s-12 f-w-600 text-muted text-uppercase" style="letter-spacing: 0.5px;" (click)="$event.stopPropagation()">Récents</div>
-          
-          <div *ngFor="let n of unreadNotifs" class="d-flex align-items-start p-12 m-b-4 rounded" style="transition: background 0.2s; cursor: pointer; background: rgba(70, 142, 207, 0.04);" (click)="markRead(n)" onmouseover="this.style.background='rgba(70, 142, 207, 0.08)'" onmouseout="this.style.background='rgba(70, 142, 207, 0.04)'">
-            <!-- Icon/Avatar -->
-            <div class="d-flex align-items-center justify-content-center rounded-circle m-r-12 flex-shrink-0" [ngStyle]="{'background': n.type === 'alert' ? 'rgba(214, 48, 49, 0.1)' : 'rgba(70, 142, 207, 0.1)', 'color': n.type === 'alert' ? '#d63031' : '#468ecf', 'width': '40px', 'height': '40px'}">
-               <i-tabler [name]="getTypeIcon(n.type)" class="icon-20"></i-tabler>
+          <div class="p-x-12 p-y-6 f-s-11 f-w-700 text-muted text-uppercase" style="letter-spacing: 0.8px;" (click)="$event.stopPropagation()">Récents</div>
+
+          <div *ngFor="let n of unreadNotifs" class="d-flex align-items-start p-12 m-b-4 rounded-2" style="transition: background 0.2s; cursor: pointer; background: rgba(70,142,207,0.05); border-left: 3px solid #468ecf;" (click)="markRead(n); $event.stopPropagation()">
+            <div class="d-flex align-items-center justify-content-center rounded-2 m-r-12 flex-shrink-0" [ngStyle]="{'background': n.type === 'alert' ? 'rgba(214,48,49,0.1)' : 'rgba(70,142,207,0.1)', 'color': n.type === 'alert' ? '#d63031' : '#468ecf', 'width': '38px', 'height': '38px'}">
+              <i-tabler [name]="getTypeIcon(n.type)" class="icon-18 d-flex"></i-tabler>
             </div>
-            
-            <!-- Content -->
-            <div class="flex-grow-1">
-              <div class="f-w-600 f-s-14 text-dark m-b-4" style="line-height: 1.2;">{{ n.title }}</div>
-              <div class="f-s-13 text-muted m-b-8" style="line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">{{ n.message }}</div>
-              <div class="f-s-11 text-muted d-flex align-items-center">
-                <i-tabler name="clock" class="icon-14 m-r-4"></i-tabler> {{ timeAgo(n.createdAt) }}
+            <div class="flex-grow-1" style="min-width:0;">
+              <div class="f-w-600 f-s-13 text-dark" style="line-height:1.3;margin-bottom:2px;">{{ n.title }}</div>
+              <div class="f-s-12 text-muted" style="line-height:1.4;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;">{{ n.message }}</div>
+              <div class="f-s-11 text-muted d-flex align-items-center m-t-4">
+                <i-tabler name="clock" class="icon-12 m-r-4"></i-tabler> {{ timeAgo(n.createdAt) }}
               </div>
             </div>
-            
-            <!-- Unread Dot -->
-            <div class="flex-shrink-0 m-l-8 m-t-4">
-              <span class="d-block rounded-circle" style="width: 8px; height: 8px; background: #468ecf;"></span>
-            </div>
+            <span class="d-block rounded-circle flex-shrink-0 m-l-8 m-t-4" style="width:8px;height:8px;background:#468ecf;"></span>
           </div>
         </ng-container>
 
         <!-- Empty State -->
         <div *ngIf="notifications.length === 0" class="d-flex flex-column align-items-center justify-content-center p-y-32 text-muted" (click)="$event.stopPropagation()">
-          <div class="rounded-circle d-flex align-items-center justify-content-center m-b-16" style="width: 64px; height: 64px; background: rgba(0,0,0,0.02);">
-            <i-tabler name="bell-off" class="icon-32" style="color: #adb5bd;"></i-tabler>
-          </div>
-          <h6 class="f-w-600 m-b-4 text-dark">Aucune notification</h6>
-          <p class="f-s-13 m-0 text-center" style="max-width: 200px;">Vous êtes à jour ! Revenez plus tard.</p>
+          <i-tabler name="bell-off" class="icon-36 m-b-12" style="color:#adb5bd;"></i-tabler>
+          <span class="f-s-13">Aucune notification</span>
         </div>
 
       </div>
+
+      <!-- Footer -->
+      <div style="border-top: 1px solid rgba(0,0,0,0.06); padding: 10px 16px;" (click)="$event.stopPropagation()">
+        <button mat-button class="w-100 f-s-13 f-w-500" style="color:#468ecf; justify-content:center;" (click)="goToAllNotifications()">
+          <i-tabler name="list" class="icon-16 m-r-6 align-middle"></i-tabler>
+          <span class="align-middle">Voir toutes les notifications</span>
+        </button>
+      </div>
+
     </mat-menu>
 
     <!-- Profile -->

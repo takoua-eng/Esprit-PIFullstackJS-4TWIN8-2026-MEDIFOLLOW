@@ -390,21 +390,29 @@ export class UsersService {
   }
 
   async activateUser(id: string) {
-    const user = await this.userModel.findById(id);
-
-    if (!user) throw new NotFoundException('User not found');
-
-    user.isActive = true;
-    return user.save();
+    this.logger.log(`🔵 activateUser called for id: ${id}`);
+    // Use findByIdAndUpdate to bypass Mongoose document validation on corrupt fields
+    const updated = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: { isActive: true } },
+      { new: true, strict: false },
+    ).lean();
+    if (!updated) throw new NotFoundException('User not found');
+    this.logger.log(`✅ activateUser done: ${id} isActive=true`);
+    return updated;
   }
 
   async deactivateUser(id: string) {
-    const user = await this.userModel.findById(id);
-
-    if (!user) throw new NotFoundException('User not found');
-
-    user.isActive = false;
-    return user.save();
+    this.logger.log(`🔴 deactivateUser called for id: ${id}`);
+    // Use findByIdAndUpdate to bypass Mongoose document validation on corrupt fields
+    const updated = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: { isActive: false } },
+      { new: true, strict: false },
+    ).lean();
+    if (!updated) throw new NotFoundException('User not found');
+    this.logger.log(`✅ deactivateUser done: ${id} isActive=false`);
+    return updated;
   }
 
   /** Users with the given role name (e.g. Patient) — for nurse data entry / lists. */
