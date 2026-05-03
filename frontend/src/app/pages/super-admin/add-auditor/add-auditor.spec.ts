@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { MatDialogRef } from '@angular/material/dialog';
 import { AddAuditorDialog } from './add-auditor';
 
 describe('AddAuditorDialog', () => {
@@ -7,7 +9,10 @@ describe('AddAuditorDialog', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AddAuditorDialog]
+      imports: [AddAuditorDialog, NoopAnimationsModule],
+      providers: [
+        { provide: MatDialogRef, useValue: { close: jasmine.createSpy('close') } },
+      ],
     }).compileComponents();
 
     fixture = TestBed.createComponent(AddAuditorDialog);

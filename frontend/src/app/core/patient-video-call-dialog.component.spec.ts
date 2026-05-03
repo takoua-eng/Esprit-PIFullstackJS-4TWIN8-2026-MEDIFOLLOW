@@ -1,5 +1,8 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { TranslateModule } from '@ngx-translate/core';
+import { MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { PatientVideoCallDialogComponent } from './patient-video-call-dialog.component';
 
 describe('PatientVideoCallDialogComponent', () => {
@@ -8,7 +11,11 @@ describe('PatientVideoCallDialogComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [PatientVideoCallDialogComponent],
+      imports: [PatientVideoCallDialogComponent, TablerIconsModule.pick({}), TranslateModule.forRoot()],
+      providers: [
+        { provide: MatDialogRef, useValue: { close: jasmine.createSpy('close') } },
+        { provide: MAT_DIALOG_DATA, useValue: { roomName: 'test-room', physicianName: 'Dr. Test' } },
+      ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   });

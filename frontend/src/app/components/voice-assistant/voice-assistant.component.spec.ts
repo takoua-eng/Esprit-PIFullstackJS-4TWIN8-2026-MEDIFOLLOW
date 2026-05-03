@@ -8,7 +8,7 @@ describe('VoiceAssistantComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      declarations: [VoiceAssistantComponent],
+      imports: [VoiceAssistantComponent],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();
   });
