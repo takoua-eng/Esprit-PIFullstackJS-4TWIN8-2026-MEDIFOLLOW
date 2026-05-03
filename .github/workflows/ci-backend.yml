@@ -5,10 +5,12 @@ on:
     branches: [main, coordinator3]
     paths:
       - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
   pull_request:
     branches: [main]
     paths:
       - 'backend/**'
+      - '.github/workflows/ci-backend.yml'
 
 jobs:
   build:
