@@ -18,6 +18,7 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json",
+    "test:patient": "jest \"src/modules/vital-parameters/**/*.spec.ts\" \"src/modules/symptoms/**/*.spec.ts\" \"src/modules/messages-patient-doctor/**/*.spec.ts\" \"src/modules/auto-alerts/**/*.spec.ts\" --runInBand",
     "postman": "node scripts/generate-postman.js",
     "seed:test-nurse": "ts-node scripts/seed-test-nurse.ts"
   },
@@ -91,6 +92,9 @@
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"
+    },
+    "moduleNameMapper": {
+      "^src/(.*)$": "<rootDir>/$1"
     },
     "collectCoverageFrom": [
       "**/*.(t|j)s"

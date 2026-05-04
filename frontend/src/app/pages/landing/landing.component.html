@@ -1,7 +1,9 @@
 <div class="landing-page">
 
-  <!-- HERO -->
-  <section
+  <main id="main" role="main">
+
+    <!-- HERO -->
+    <section
     class="hero"
     style="
       background-image:
@@ -26,6 +28,7 @@
             mat-stroked-button
             color="primary"
             class="btn-secondary"
+            aria-label="Sign in to MediFollow"
             [routerLink]="['/authentication/login']"
           >
             Sign in
@@ -253,6 +256,7 @@
           mat-stroked-button
           color="primary"
           class="btn-secondary"
+          aria-label="Sign in to MediFollow"
           [routerLink]="['/authentication/login']"
         >
           Sign in
@@ -260,5 +264,7 @@
       </div>
     </div>
   </section>
+
+  </main>
 
 </div>

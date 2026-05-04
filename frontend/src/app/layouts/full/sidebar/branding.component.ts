@@ -5,9 +5,9 @@ import { CoreService } from 'src/app/services/core.service';
   selector: 'app-branding',
   imports: [],
   template: `
-    <a href="/" class="logodark d-flex align-items-center m-2" style="text-decoration: none;">
-      <span class="f-w-600 f-s-18 text-dark"></span>
-    </a>
+    <div class="logodark d-flex align-items-center m-2" style="text-decoration: none;">
+      <span class="f-w-600 f-s-18 text-dark" role="heading" aria-level="2">MediFollow</span>
+    </div>
   `,
 })
 export class BrandingComponent {

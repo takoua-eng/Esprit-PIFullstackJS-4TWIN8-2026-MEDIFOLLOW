@@ -76,10 +76,10 @@ import { FaceRecognitionService } from 'src/app/services/face-recognition';
     }
     .message-box {
       margin-top: 12px; padding: 10px 14px; border-radius: 8px; font-weight: 500; font-size: 13px; text-align: center; width: 100%;
-      background: rgba(93, 135, 255, 0.1); color: #5d87ff;
+      background: rgba(45, 91, 215, 0.08); color: #2d5bd7;
     }
-    .message-box.error { background: rgba(250, 137, 107, 0.1); color: #fa896b; }
-    .message-box.success { background: rgba(19, 222, 185, 0.1); color: #13deb9; }
+    .message-box.error { background: rgba(201, 66, 47, 0.08); color: #c9422f; }
+    .message-box.success { background: rgba(15, 154, 117, 0.08); color: #0f9a75; }
   `]
 })
 export class AppSideLoginComponent implements OnInit {

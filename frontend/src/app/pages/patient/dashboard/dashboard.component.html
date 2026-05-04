@@ -176,9 +176,9 @@
       <div class="bottom-col bottom-col--narrow">
         <p class="section-label" id="alerts-label">{{ 'RECENT_ALERTS' | translate }}</p>
         <div id="recent-alerts-section" class="glass-card alerts-card" role="list" aria-labelledby="alerts-label">
-          <div *ngIf="recentAlerts.length === 0" class="empty-box-sm" role="status">
+          <div *ngIf="recentAlerts.length === 0" class="empty-box-sm" role="listitem">
             <mat-icon aria-hidden="true">notifications_none</mat-icon>
-            <p>{{ 'NO_RECENT_ALERTS' | translate }}</p>
+            <p role="status" aria-live="polite">{{ 'NO_RECENT_ALERTS' | translate }}</p>
           </div>
           <div
             *ngFor="let alert of recentAlerts"

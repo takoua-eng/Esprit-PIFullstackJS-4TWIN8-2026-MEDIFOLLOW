@@ -3,7 +3,7 @@
 
   <!-- Left: Toggle + Logo -->
   <div class="d-flex align-items-center gap-12">
-    <button mat-icon-button class="text-white" (click)="toggleNav.emit()" *ngIf="showToggle">
+    <button mat-icon-button class="text-white" (click)="toggleNav.emit()" *ngIf="showToggle" aria-label="Toggle navigation">
       <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
     </button>
     <img src="assets/images/medifollow-logo.png" alt="MediFollow" height="36" />
@@ -29,7 +29,7 @@
 
     <!-- Notification Bell: Pour Patient -> navigate to alerts, Pour autres -> notification panel -->
     <!-- Version Patient: Naviguer vers alerts -->
-    <button *ngIf="isPatient()" mat-icon-button (click)="goToAlerts()" class="text-white position-relative" matTooltip="Mes Alertes" style="width: 44px; height: 44px;">
+    <button *ngIf="isPatient()" mat-icon-button (click)="goToAlerts()" class="text-white position-relative" matTooltip="Mes Alertes" style="width: 44px; height: 44px;" aria-label="Open alerts">
       <div class="d-flex align-items-center justify-content-center rounded-circle w-100 h-100" style="transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
         <i-tabler name="bell" class="icon-22"></i-tabler>
       </div>
@@ -41,7 +41,7 @@
     </button>
 
     <!-- Version autres rôles: Panel Notifications -->
-    <button *ngIf="!isPatient()" mat-icon-button [matMenuTriggerFor]="notifMenu" class="text-white position-relative" matTooltip="Notifications" style="width: 44px; height: 44px;">
+    <button *ngIf="!isPatient()" mat-icon-button [matMenuTriggerFor]="notifMenu" class="text-white position-relative" matTooltip="Notifications" style="width: 44px; height: 44px;" aria-label="Open notifications">
       <div class="d-flex align-items-center justify-content-center rounded-circle w-100 h-100" style="transition: background 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'" onmouseout="this.style.background='transparent'">
         <i-tabler name="bell" class="icon-22"></i-tabler>
       </div>
@@ -103,8 +103,8 @@
     </mat-menu>
 
     <!-- Profile -->
-    <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="text-white">
-      <img *ngIf="userAvatar" [src]="userAvatar" class="rounded-circle object-cover d-block" width="32" height="32" style="border:2px solid rgba(255,255,255,.5)" />
+    <button mat-icon-button [matMenuTriggerFor]="profileMenu" class="text-white" aria-label="Open profile menu">
+      <img *ngIf="userAvatar" [src]="userAvatar" class="rounded-circle object-cover d-block" width="32" height="32" style="border:2px solid rgba(255,255,255,.5)" alt="{{ currentUserData.firstName ? (currentUserData.firstName + (currentUserData.lastName ? ' ' + currentUserData.lastName : '')) : (userEmail || 'Profile') }}" />
       <div *ngIf="!userAvatar" class="rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; border:2px solid rgba(255,255,255,.5); background: linear-gradient(135deg, #468ecf 0%, #1e40af 100%); color: white; font-size: 14px; font-weight: 700; text-transform: uppercase;">
         {{ userInitials }}
       </div>
@@ -112,7 +112,7 @@
 
     <mat-menu #profileMenu="matMenu" xPosition="before" class="profile-menu" panelClass="premium-menu-panel">
       <div class="d-flex align-items-center p-x-20 p-y-16" style="background: linear-gradient(145deg, #f8f9fa, #e9ecef); border-bottom: 1px solid rgba(0,0,0,0.05); min-width: 250px;">
-        <img *ngIf="userAvatar" [src]="userAvatar" class="rounded-circle shadow-sm m-r-16" width="50" height="50" style="border: 2px solid #fff;" />
+        <img *ngIf="userAvatar" [src]="userAvatar" class="rounded-circle shadow-sm m-r-16" width="50" height="50" style="border: 2px solid #fff;" alt="{{ currentUserData.firstName ? (currentUserData.firstName + (currentUserData.lastName ? ' ' + currentUserData.lastName : '')) : (userEmail || 'Profile') }}" />
         <div *ngIf="!userAvatar" class="rounded-circle shadow-sm m-r-16 d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; border: 2px solid #fff; background: linear-gradient(135deg, #468ecf 0%, #1e40af 100%); color: white; font-size: 20px; font-weight: 700; text-transform: uppercase;">
           {{ userInitials }}
         </div>

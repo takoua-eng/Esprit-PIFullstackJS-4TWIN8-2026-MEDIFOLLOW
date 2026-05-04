@@ -36,7 +36,7 @@
         <fieldset class="symptoms-fieldset">
           <legend class="symptoms-legend">Select your symptoms</legend>
 
-          <div class="symptoms-list" role="group" aria-label="Symptom checkboxes">
+          <div class="symptoms-list" role="list" aria-label="Symptom checkboxes">
             <div
                 *ngFor="let symptom of availableSymptoms; let i = index"
                 class="symptom-item"
@@ -51,8 +51,8 @@
                     <mat-checkbox
                       [formControl]="getFormControl(symptom.name)"
                       [id]="'symptom-' + symptom.name"
-                      [attr.aria-labelledby]="'label-' + symptom.name"
                       tabindex="0">
+                      <span class="visually-hidden">{{ symptom.label }}</span>
                     </mat-checkbox>
 
                     <mat-form-field

@@ -1,12 +1,13 @@
 <div class="login-wrapper">
 
-  <mat-card class="login-card">
+  <main id="main" role="main">
+    <mat-card class="login-card">
 
-    <div class="login-grid">
+      <div class="login-grid">
 
       <!-- LEFT SIDE -->
-      <div class="login-image">
-        <img src="assets/images/login.png" alt="login-image" />
+      <div class="login-image" role="img" aria-label="Login illustration">
+        <img src="assets/images/login.png" alt="Login illustration" />
       </div>
 
       <!-- RIGHT SIDE -->
@@ -21,7 +22,7 @@
 
         <!-- SOCIAL LOGIN -->
         <div class="social-login">
-          <button mat-stroked-button type="button" class="social-btn" disabled>
+          <button mat-stroked-button type="button" class="social-btn" disabled aria-label="Sign in with Google">
             <mat-icon>login</mat-icon>
             Google
           </button>
@@ -30,29 +31,28 @@
         <div class="divider">or sign in with</div>
 
         <!-- 🧠 FACE LOGIN BUTTON -->
-        <button mat-stroked-button color="accent" class="face-btn" (click)="startFaceLogin()">
-
+        <button mat-stroked-button color="accent" class="face-btn" (click)="startFaceLogin()" aria-label="Login with Face ID">
           📷 Login with Face ID
         </button>
 
         <!-- 🎥 IMPROVED CAMERA VIEW -->
         <div *ngIf="showCamera" class="face-id-scanner" [class.scanning]="loadingFace">
           
-          <div class="video-wrapper">
-            <video #video autoplay playsinline *ngIf="useVideo"></video>
-            <img #image *ngIf="!useVideo" src="assets/test/test-face.jpg" style="width:100%; height:auto;" />
-            <!-- Animated Scan Line -->
-            <div class="scan-overlay" *ngIf="loadingFace"></div>
-          </div>
+            <div class="video-wrapper">
+              <video #video aria-label="Camera preview" autoplay playsinline *ngIf="useVideo"></video>
+              <img #image *ngIf="!useVideo" src="assets/test/test-face.jpg" alt="Face preview" style="width:100%; height:auto;" />
+              <!-- Animated Scan Line -->
+              <div class="scan-overlay" *ngIf="loadingFace"></div>
+            </div>
 
-          <div class="camera-controls">
-            <button mat-flat-button color="primary" type="button" (click)="captureAndLogin()" [disabled]="loadingFace">🔓 Login</button>
-            <button mat-stroked-button color="accent" type="button" (click)="enrollFace()" [disabled]="loadingFace">➕ Enroll Face</button>
-            <button mat-stroked-button color="warn" type="button" (click)="closeCamera()">Cancel</button>
-          </div>
+            <div class="camera-controls">
+              <button mat-flat-button color="primary" type="button" (click)="captureAndLogin()" [disabled]="loadingFace" aria-label="Capture and login with face">🔓 Login</button>
+              <button mat-stroked-button color="accent" type="button" (click)="enrollFace()" [disabled]="loadingFace" aria-label="Enroll face">➕ Enroll Face</button>
+              <button mat-stroked-button color="warn" type="button" (click)="closeCamera()" aria-label="Close camera">Cancel</button>
+            </div>
 
           <!-- Message Box with dynamic color class -->
-          <div class="message-box" *ngIf="faceMessage" [ngClass]="getMessageClass()">
+          <div class="message-box" *ngIf="faceMessage" [ngClass]="getMessageClass()" role="status" aria-live="polite">
             {{ faceMessage }}
           </div>
         </div>
@@ -60,7 +60,7 @@
 
 
         <!-- 🧾 MESSAGE -->
-        <div class="face-message" *ngIf="faceMessage">
+        <div class="face-message" *ngIf="faceMessage" aria-hidden="true">
           {{ faceMessage }}
         </div>
 
@@ -102,7 +102,7 @@
               Keep me logged in
             </mat-checkbox>
 
-            <a routerLink="/authentication/forgot-password">
+            <a routerLink="/authentication/forgot-password" class="forgot-link">
               Forgot password?
             </a>
           </div>
@@ -119,6 +119,7 @@
 
     </div>
 
-  </mat-card>
+    </mat-card>
+  </main>
 
 </div>

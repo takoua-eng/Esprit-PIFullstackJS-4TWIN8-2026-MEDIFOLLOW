@@ -4,6 +4,7 @@
     mat-icon-button
     (click)="toggleMobileNav.emit()"
     class="d-flex d-md-none justify-content-center"
+    aria-label="Open main menu"
   >
     <i-tabler name="menu-2" class="icon-20 d-flex"></i-tabler>
   </button>
@@ -58,6 +59,7 @@
       class="rounded-circle object-cover d-block"
       width="35"
       height="35"
+      alt="{{ currentUser ? (currentUser.lastName + ' ' + currentUser.firstName) : 'User profile' }}"
     />
   </button>
 
