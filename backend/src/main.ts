@@ -21,28 +21,12 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // ✅ ACTIVER CORS POUR ANGULAR
-// ✅ ACTIVER CORS POUR ANGULAR
+  // ✅ ACTIVER CORS POUR ANGULAR + PRODUCTION
   app.enableCors({
-    origin: (origin, callback) => {
-      const allowed = [
-        'http://localhost:4200',
-        process.env.FRONTEND_URL,
-      ];
-      if (
-        !origin ||
-        allowed.includes(origin) ||
-        /https:\/\/esprit-pi-fullstack-js-4-twin-8-2026-medifollow.*\.vercel\.app/.test(origin)
-      ) {
-        callback(null, true);
-      } else {
-        callback(new Error(`CORS blocked: ${origin}`));
-      }
-    },
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
   });
+
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Mediflow API')
@@ -62,6 +46,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
   const roleModel = app.get<Model<RoleDocument>>(getModelToken(Role.name));
   await seedRoles(roleModel);
 
