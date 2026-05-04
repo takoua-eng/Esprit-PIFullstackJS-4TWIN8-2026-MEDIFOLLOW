@@ -1,6 +1,6 @@
 import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../core/api.config';
 
@@ -9,6 +9,7 @@ export interface UserListRow {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
 }
 
 /** Full user row from `GET /users` (role populated when present). */
@@ -127,8 +128,11 @@ export class UsersApiService {
     });
   }
 
-  getPatients(): Observable<UserListRow[]> {
-    return this.http.get<UserListRow[]>(`${this.base}/patients`);
+  getPatients(opts?: { limit?: number; skip?: number }): Observable<UserListRow[]> {
+    let params = new HttpParams();
+    if (opts?.limit != null) params = params.set('limit', String(opts.limit));
+    if (opts?.skip != null) params = params.set('skip', String(opts.skip));
+    return this.http.get<UserListRow[]>(`${this.base}/patients`, { params });
   }
 
   getNurses(): Observable<UserListRow[]> {

@@ -1,3 +1,19 @@
+// Fixed-position progress bar — stays outside document flow so page content never shifts
+.dash-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  transition: opacity 0.2s;
+}
+
+// Reserve fixed height for KPI numbers to prevent CLS when loading → data transition
+.kpi-value {
+  min-height: 40px;
+  line-height: 1.1;
+}
+
 .nurse-kpi {
   border-radius: 18px;
   color: #fff;

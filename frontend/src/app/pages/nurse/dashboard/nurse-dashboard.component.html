@@ -25,12 +25,11 @@
   </div>
 </div>
 
-@if (loading) {
-  <div class="m-b-24">
-    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
-    <p class="f-s-13 text-muted m-t-12 m-b-0">{{ 'NURSE_DASHBOARD_LOADING' | translate }}</p>
-  </div>
-}
+<mat-progress-bar
+  class="dash-progress-bar"
+  mode="indeterminate"
+  [style.visibility]="loading ? 'visible' : 'hidden'"
+></mat-progress-bar>
 
 @if (loadError) {
   <mat-card class="cardWithShadow m-b-24">
@@ -45,12 +44,8 @@
     <mat-card class="cardWithShadow nurse-kpi nurse-kpi--patients">
       <mat-card-content class="p-20">
         <i-tabler name="users-group" class="icon-24 d-block m-b-8"></i-tabler>
-        <div class="f-w-700 f-s-28 m-b-4">
-          @if (loading) {
-            <span class="f-s-16">—</span>
-          } @else {
-            {{ assignedPatients }}
-          }
+        <div class="f-w-700 f-s-28 m-b-4 kpi-value">
+          {{ loading ? '—' : assignedPatients }}
         </div>
         <div class="f-s-14 f-w-600">{{ 'NURSE_KPI_ASSIGNED_PATIENTS' | translate }}</div>
       </mat-card-content>
@@ -66,14 +61,8 @@
     >
       <mat-card-content class="p-20">
         <i-tabler name="bell-ringing" class="icon-24 d-block m-b-8"></i-tabler>
-        <div class="f-w-700 f-s-28 m-b-4">
-          @if (activeAlerts === null && !loading) {
-            <span class="f-s-16">—</span>
-          } @else if (loading) {
-            <span class="f-s-16">—</span>
-          } @else {
-            {{ activeAlerts }}
-          }
+        <div class="f-w-700 f-s-28 m-b-4 kpi-value">
+          {{ (loading || activeAlerts === null) ? '—' : activeAlerts }}
         </div>
         <div class="f-s-14 f-w-600">{{ 'NURSE_KPI_ACTIVE_ALERTS' | translate }}</div>
         <div class="f-s-12 m-t-8 nurse-kpi-hint">{{ 'NURSE_KPI_ALERTS_HINT' | translate }}</div>
@@ -90,14 +79,8 @@
     >
       <mat-card-content class="p-20">
         <i-tabler name="calendar-event" class="icon-24 d-block m-b-8"></i-tabler>
-        <div class="f-w-700 f-s-28 m-b-4">
-          @if (pendingReminders === null && !loading) {
-            <span class="f-s-16">—</span>
-          } @else if (loading) {
-            <span class="f-s-16">—</span>
-          } @else {
-            {{ pendingReminders }}
-          }
+        <div class="f-w-700 f-s-28 m-b-4 kpi-value">
+          {{ (loading || pendingReminders === null) ? '—' : pendingReminders }}
         </div>
         <div class="f-s-14 f-w-600">{{ 'NURSE_KPI_FOLLOWUPS_DUE' | translate }}</div>
         <div class="f-s-12 m-t-8 nurse-kpi-hint">{{ 'NURSE_KPI_REMINDERS_HINT' | translate }}</div>
@@ -115,13 +98,11 @@
           {{ 'NURSE_ASSIGNED_TABLE_HINT' | translate }}
         </mat-card-subtitle>
 
-        @if (loading) {
-          <p class="f-s-13 text-muted m-b-0">{{ 'NURSE_DASHBOARD_LOADING' | translate }}</p>
-        } @else if (patientRows.length === 0) {
+        @if (patientRows.length === 0 && !loading) {
           <p class="text-muted m-b-0">{{ 'NURSE_DASHBOARD_NO_PATIENTS' | translate }}</p>
         } @else {
           <div class="table-responsive">
-            <table mat-table [dataSource]="patientRows" class="w-100 nurse-patient-table">
+            <table mat-table [dataSource]="dataSource" class="w-100 nurse-patient-table">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
                 <td mat-cell *matCellDef="let row">{{ row.firstName }} {{ row.lastName }}</td>
@@ -132,7 +113,7 @@
               </ng-container>
               <ng-container matColumnDef="phone">
                 <th mat-header-cell *matHeaderCellDef>{{ 'NURSE_DASHBOARD_COL_PHONE' | translate }}</th>
-                <td mat-cell *matCellDef="let row">{{ phoneFor(row) }}</td>
+                <td mat-cell *matCellDef="let row">{{ row.phone }}</td>
               </ng-container>
               <ng-container matColumnDef="actions">
                 <th mat-header-cell *matHeaderCellDef class="text-end">{{ 'ACTIONS' | translate }}</th>
@@ -151,6 +132,11 @@
               <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table>
           </div>
+          <mat-paginator
+            [pageSizeOptions]="[10, 25, 50]"
+            pageSize="10"
+            showFirstLastButtons
+          ></mat-paginator>
         }
       </mat-card-content>
     </mat-card>
@@ -167,9 +153,7 @@
           <a mat-button color="primary" routerLink="/dashboard/nurse/alerts">{{ 'NURSE_DASHBOARD_VIEW_ALL' | translate }}</a>
         </div>
 
-        @if (loading) {
-          <p class="f-s-13 text-muted m-b-0">{{ 'NURSE_DASHBOARD_LOADING' | translate }}</p>
-        } @else if (recentAlerts.length === 0) {
+        @if (recentAlerts.length === 0 && !loading) {
           <p class="text-muted m-b-0">{{ 'NURSE_DASHBOARD_RECENT_ALERTS_EMPTY' | translate }}</p>
         } @else {
           <div class="nurse-recent-list">

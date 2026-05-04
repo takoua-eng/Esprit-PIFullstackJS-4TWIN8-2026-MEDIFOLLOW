@@ -8,8 +8,15 @@ export class VitalsController {
   constructor(private readonly vitalsService: VitalsService) {}
 
   @Get()
-  findAll(@Query('patientId') patientId?: string) {
-    return this.vitalsService.findAll(patientId);
+  findAll(
+    @Query('patientId') patientId?: string,
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
+  ) {
+    return this.vitalsService.findAll(patientId, {
+      limit: limit ? +limit : undefined,
+      skip: skip ? +skip : undefined,
+    });
   }
 
   @Post()

@@ -1,5 +1,13 @@
-import { Component, OnInit } from '@angular/core';
-import { TablerIconComponent } from 'angular-tabler-icons';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  inject,
+  OnInit,
+  ViewChild,
+} from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
@@ -8,6 +16,9 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { forkJoin, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 import { MaterialModule } from 'src/app/material.module';
+import { TablerIconsModule } from 'angular-tabler-icons';
+import { MatPaginator } from '@angular/material/paginator';
+import { MatTableDataSource } from '@angular/material/table';
 import { AlertsApiService, AlertDto } from 'src/app/services/alerts-api.service';
 import { QuestionnaireApiService } from 'src/app/services/questionnaire-api.service';
 import { UserListRow, UsersApiService } from 'src/app/services/users-api.service';
@@ -34,12 +45,13 @@ interface MonitoredPatientRow {
 
 @Component({
   selector: 'app-doctor-dashboard',
+  changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     CommonModule,
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconComponent,
+    TablerIconsModule,
     TranslateModule,
     NgApexchartsModule,
     SendQuestionnaireDialog,
@@ -48,16 +60,29 @@ interface MonitoredPatientRow {
   styleUrls: ['./doctor-dashboard.component.scss'],
 })
 export class DoctorDashboardComponent implements OnInit {
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+
+  @ViewChild(MatPaginator) set paginator(p: MatPaginator) {
+    this.dataSource.paginator = p ?? null;
+  }
+
   loading = true;
   loadError = false;
 
   assignedPatients = 0;
   activeAlerts: number | null = null;
-  /** Share of assigned patients who completed a questionnaire today (0â€“100). */
   questionnaireCompliancePct: number | null = null;
 
-  patients: MonitoredPatientRow[] = [];
-  /** When the doctor profile has no `assignedPatients`, we list all patients. */
+  dataSource = new MatTableDataSource<MonitoredPatientRow>([]);
+
+  get patients(): MonitoredPatientRow[] {
+    return this.dataSource.data;
+  }
+  set patients(rows: MonitoredPatientRow[]) {
+    this.dataSource.data = rows;
+  }
+
   showingAllPatientsFallback = false;
 
   allVitals: VitalDto[] = [];
@@ -66,7 +91,6 @@ export class DoctorDashboardComponent implements OnInit {
   selectedPatientId = '';
   rangeDays: 7 | 30 | 90 = 7;
   selectedParameter: VParam = 'heartRate';
-  /** ApexCharts config bundle (`any` for template bindings to ng-apexcharts). */
   vitalChartOptions: any = null;
   trendInsight: string | null = null;
 
@@ -78,7 +102,7 @@ export class DoctorDashboardComponent implements OnInit {
     'lastReading',
     'questionnaire',
     'status',
-    'actions'
+    'actions',
   ];
 
   constructor(
@@ -111,12 +135,9 @@ export class DoctorDashboardComponent implements OnInit {
 
   onChartFiltersChange(): void {
     this.rebuildChartAndTrend();
+    this.cdr.markForCheck();
   }
 
-  /**
-   * Nurse `/vitals` uses `bloodPressure` string; patient `/vital-parameters` uses
-   * `bloodPressureSystolic` / `bloodPressureDiastolic`. Merge for one chart/table view.
-   */
   private mergeVitalSources(
     nurseVitals: VitalDto[],
     rawParams: VitalParametersRaw[],
@@ -168,7 +189,7 @@ export class DoctorDashboardComponent implements OnInit {
     };
   }
 
-  private load(): void {
+  load(): void {
     this.loading = true;
     this.loadError = false;
     this.noDoctorSession = false;
@@ -179,156 +200,180 @@ export class DoctorDashboardComponent implements OnInit {
       this.loading = false;
       return;
     }
+
+    // Phase 1: fetch core data to render the table immediately
     forkJoin({
-      profile: this.usersApi.getUserById(doctorId).pipe(
-        catchError(() => of(null)),
-      ),
-      patients: this.usersApi.getPatients().pipe(catchError(() => of([]))),
-      vitals: this.vitalsApi.getVitals().pipe(catchError(() => of([]))),
-      /** Patient app + Compass use `vitalparameters` (numeric BP fields), not only `vitals`. */
-      vitalParameters: this.vitalParametersApi.getAll().pipe(
-        catchError(() => of([] as VitalParametersRaw[])),
-      ),
-      alerts: this.alertsApi
-        .getAlerts({ doctorId })
-        .pipe(catchError(() => of([]))),
-      openCount: this.alertsApi.getOpenCount({ doctorId }).pipe(
-        catchError(() => of({ count: 0 })),
-      ),
-    }).subscribe({
-      next: ({
-        profile,
-        patients,
-        vitals,
-        vitalParameters,
-        alerts,
-        openCount,
-      }) => {
-        const merged = this.mergeVitalSources(vitals, vitalParameters);
-        this.allVitals = merged;
-        this.activeAlerts = openCount.count;
-        const openAlerts = alerts.filter(
-          (a) => (a.status || '').toLowerCase() === 'open',
-        );
-        this.recentAlerts = openAlerts
-          .sort(
-            (a, b) =>
-              new Date(b.createdAt ?? 0).getTime() -
-              new Date(a.createdAt ?? 0).getTime(),
-          )
-          .slice(0, 5);
+      profile: this.usersApi.getUserById(doctorId).pipe(catchError(() => of(null))),
+      patients: this.usersApi.getPatients().pipe(catchError(() => of([] as UserListRow[]))),
+      openCount: this.alertsApi
+        .getOpenCount({ doctorId })
+        .pipe(catchError(() => of({ count: 0 }))),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ profile, patients, openCount }) => {
+          this.activeAlerts = openCount.count;
 
-        const assignedIds = new Set(
-          (profile?.assignedPatients ?? []).map((id) => String(id)),
-        );
-        let rows: UserListRow[] = patients;
-        this.showingAllPatientsFallback = assignedIds.size === 0;
-        if (assignedIds.size > 0) {
-          rows = patients.filter((p) => assignedIds.has(p._id));
-        }
-        this.assignedPatients = rows.length;
+          const assignedIds = new Set(
+            (profile?.assignedPatients ?? []).map((id) => String(id)),
+          );
+          let rows: UserListRow[] = patients;
+          this.showingAllPatientsFallback = assignedIds.size === 0;
+          if (assignedIds.size > 0) {
+            rows = patients.filter((p) => assignedIds.has(p._id));
+          }
+          this.assignedPatients = rows.length;
 
-        const qCalls = rows.slice(0, 30).map((p) =>
-          this.questionnaireApi.hasRespondedToday(p._id).pipe(
-            map((done) => ({ id: p._id, done })),
-            catchError(() => of({ id: p._id, done: false })),
-          ),
-        );
-        if (qCalls.length === 0) {
-          this.questionnaireCompliancePct = null;
-          this.finishPatientRows(rows, merged, openAlerts, new Map());
+          // Render table with placeholder values so UI is visible immediately
+          this.patients = rows.map((row) => ({
+            patientId: row._id,
+            name: `${row.firstName} ${row.lastName}`.trim(),
+            service: '—',
+            lastReading: '—',
+            status: 'Stable' as const,
+            questionnaireToday: false,
+            unreviewedResponses: 0,
+          }));
+
+          if (this.patients.length > 0 && !this.selectedPatientId) {
+            this.selectedPatientId = this.patients[0].patientId;
+          }
+
           this.loading = false;
-          return;
-        }
-        forkJoin(qCalls).subscribe({
-          next: (qResults) => {
-            const qMap = new Map(qResults.map((r) => [r.id, r.done]));
-            const doneCount = qResults.filter((r) => r.done).length;
-            this.questionnaireCompliancePct =
-              qResults.length > 0
-                ? Math.round((doneCount / qResults.length) * 100)
-                : 0;
-            this.finishPatientRows(rows, merged, openAlerts, qMap);
-            this.loading = false;
-          },
-          error: () => {
-            this.questionnaireCompliancePct = null;
-            this.finishPatientRows(rows, merged, openAlerts, new Map());
-            this.loading = false;
-          },
-        });
-      },
-      error: () => {
-        this.loadError = true;
-        this.loading = false;
-        this.activeAlerts = null;
-      },
-    });
+          this.cdr.markForCheck();
+
+          // Phase 2: enrich with vitals + alerts + questionnaires in background
+          this.loadPhase2(rows, doctorId);
+        },
+        error: () => {
+          this.loadError = true;
+          this.loading = false;
+          this.activeAlerts = null;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
-  private finishPatientRows(
-    rows: UserListRow[],
-    vitals: VitalDto[],
-    openAlerts: AlertDto[],
-    questionnaireMap: Map<string, boolean>,
-  ): void {
-    const byPatient = new Map<string, VitalDto[]>();
-    for (const v of vitals) {
-      const pid = v.patientId;
-      if (!byPatient.has(pid)) byPatient.set(pid, []);
-      byPatient.get(pid)!.push(v);
-    }
-    for (const list of byPatient.values()) {
-      list.sort(
-        (a, b) =>
-          new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
-      );
+  /** Phase 2: load vitals, alerts, questionnaires — enriches already-rendered table. */
+  private loadPhase2(rows: UserListRow[], doctorId: string): void {
+    forkJoin({
+      vitals: this.vitalsApi.getVitals(undefined, { limit: 200 }).pipe(catchError(() => of([] as VitalDto[]))),
+      vitalParameters: this.vitalParametersApi
+        .getAll()
+        .pipe(catchError(() => of([] as VitalParametersRaw[]))),
+      alerts: this.alertsApi
+        .getAlerts({ doctorId, limit: 50 })
+        .pipe(catchError(() => of([] as AlertDto[]))),
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ vitals, vitalParameters, alerts }) => {
+          const merged = this.mergeVitalSources(vitals, vitalParameters);
+          this.allVitals = merged;
+
+          const openAlerts = alerts.filter(
+            (a) => (a.status || '').toLowerCase() === 'open',
+          );
+          this.recentAlerts = openAlerts
+            .sort(
+              (a, b) =>
+                new Date(b.createdAt ?? 0).getTime() -
+                new Date(a.createdAt ?? 0).getTime(),
+            )
+            .slice(0, 5);
+
+          // Enrich patient rows with lastReading and status
+          const byPatient = new Map<string, VitalDto[]>();
+          for (const v of merged) {
+            const pid = v.patientId;
+            if (!byPatient.has(pid)) byPatient.set(pid, []);
+            byPatient.get(pid)!.push(v);
+          }
+          for (const list of byPatient.values()) {
+            list.sort(
+              (a, b) =>
+                new Date(b.recordedAt).getTime() - new Date(a.recordedAt).getTime(),
+            );
+          }
+
+          this.patients = this.patients.map((row) => {
+            const pv = byPatient.get(row.patientId) ?? [];
+            const latest = pv[0];
+            const openForPatient = openAlerts.some((a) => a.patientId === row.patientId);
+            return {
+              ...row,
+              lastReading: latest ? this.formatLatest(latest) : '—',
+              status: openForPatient ? 'Watch' : 'Stable',
+            };
+          });
+
+          this.rebuildChartAndTrend();
+          this.cdr.markForCheck();
+
+          // Phase 3: questionnaire compliance (lowest priority, runs concurrently)
+          this.loadQuestionnaireCompliance(rows);
+        },
+      });
+  }
+
+  /** Phase 3: questionnaire compliance — runs after phase 2, updates compliance KPI and table column. */
+  private loadQuestionnaireCompliance(rows: UserListRow[]): void {
+    const qCalls = rows.slice(0, 30).map((p) =>
+      this.questionnaireApi.hasRespondedToday(p._id).pipe(
+        map((done) => ({ id: p._id, done })),
+        catchError(() => of({ id: p._id, done: false })),
+      ),
+    );
+
+    if (qCalls.length === 0) {
+      this.questionnaireCompliancePct = null;
+      this.cdr.markForCheck();
+      return;
     }
 
-    this.patients = rows.map((row) => {
-      const pv = byPatient.get(row._id) ?? [];
-      const latest = pv[0];
-      const openForPatient = openAlerts.some(
-        (a) => a.patientId === row._id,
-      );
-      return {
-        patientId: row._id,
-        name: `${row.firstName} ${row.lastName}`.trim(),
-        service: '—',
-        lastReading: latest ? this.formatLatest(latest) : '—',
-        status: openForPatient ? 'Watch' : 'Stable',
-        questionnaireToday: questionnaireMap.get(row._id) ?? false,
-        unreviewedResponses: 0, // Will be updated if we fetch responses
-      };
-    });
+    forkJoin(qCalls)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (qResults) => {
+          const qMap = new Map(qResults.map((r) => [r.id, r.done]));
+          const doneCount = qResults.filter((r) => r.done).length;
+          this.questionnaireCompliancePct =
+            qResults.length > 0
+              ? Math.round((doneCount / qResults.length) * 100)
+              : 0;
 
-    if (this.patients.length > 0 && !this.selectedPatientId) {
-      this.selectedPatientId = this.patients[0].patientId;
-    }
-    this.rebuildChartAndTrend();
+          this.patients = this.patients.map((row) => ({
+            ...row,
+            questionnaireToday: qMap.get(row.patientId) ?? false,
+          }));
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.questionnaireCompliancePct = null;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   private formatLatest(v: VitalDto): string {
     const parts: string[] = [];
     if (v.heartRate != null) parts.push(`HR ${v.heartRate}`);
-    if (v.temperature != null) parts.push(`${v.temperature}\u00b0C`);
+    if (v.temperature != null) parts.push(`${v.temperature}°C`);
     if (v.weight != null) parts.push(`${v.weight} kg`);
     if (parts.length === 0 && v.bloodPressure?.trim())
       parts.push(v.bloodPressure.trim());
     const t = new Date(v.recordedAt).toLocaleString();
-    return parts.length ? `${parts.join(' \u00b7 ')} \u00b7 ${t}` : t;
+    return parts.length ? `${parts.join(' · ')} · ${t}` : t;
   }
 
   private rebuildChartAndTrend(): void {
     this.vitalChartOptions = null;
     this.trendInsight = null;
 
-    if (!this.selectedPatientId) {
-      return;
-    }
+    if (!this.selectedPatientId) return;
 
     const cutoff = Date.now() - this.rangeDays * 86_400_000;
-    let list = this.allVitals
+    const list = this.allVitals
       .filter(
         (v) =>
           v.patientId === this.selectedPatientId &&
@@ -339,9 +384,7 @@ export class DoctorDashboardComponent implements OnInit {
           new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime(),
       );
 
-    if (list.length === 0) {
-      return;
-    }
+    if (list.length === 0) return;
 
     const labels = list.map((v) =>
       new Date(v.recordedAt).toLocaleDateString(undefined, {
@@ -354,12 +397,7 @@ export class DoctorDashboardComponent implements OnInit {
 
     if (this.selectedParameter === 'heartRate') {
       const data = list.map((v) => v.heartRate ?? null);
-      this.vitalChartOptions = this.lineChart(
-        labels,
-        [{ name: 'HR (bpm)', data }],
-        'bpm',
-        ['#d32f2f'],
-      );
+      this.vitalChartOptions = this.lineChart(labels, [{ name: 'HR (bpm)', data }], 'bpm', ['#d32f2f']);
       this.trendInsight = this.computeTrendInsight(
         list.map((v) => v.heartRate ?? NaN).filter((n) => !Number.isNaN(n)),
         'bpm',
@@ -368,32 +406,23 @@ export class DoctorDashboardComponent implements OnInit {
     }
     if (this.selectedParameter === 'temperature') {
       const data = list.map((v) => v.temperature ?? null);
-      this.vitalChartOptions = this.lineChart(
-        labels,
-        [{ name: 'Â°C', data }],
-        'Â°C',
-        ['#e53935'],
-      );
+      this.vitalChartOptions = this.lineChart(labels, [{ name: '°C', data }], '°C', ['#e53935']);
       this.trendInsight = this.computeTrendInsight(
         list.map((v) => v.temperature ?? NaN).filter((n) => !Number.isNaN(n)),
-        'Â°C',
+        '°C',
       );
       return;
     }
     if (this.selectedParameter === 'weight') {
       const data = list.map((v) => v.weight ?? null);
-      this.vitalChartOptions = this.lineChart(
-        labels,
-        [{ name: 'kg', data }],
-        'kg',
-        ['#7b1fa2'],
-      );
+      this.vitalChartOptions = this.lineChart(labels, [{ name: 'kg', data }], 'kg', ['#7b1fa2']);
       this.trendInsight = this.computeTrendInsight(
         list.map((v) => v.weight ?? NaN).filter((n) => !Number.isNaN(n)),
         'kg',
       );
       return;
     }
+
     const sys: (number | null)[] = [];
     const dia: (number | null)[] = [];
     for (const v of list) {
@@ -403,10 +432,7 @@ export class DoctorDashboardComponent implements OnInit {
     }
     this.vitalChartOptions = this.lineChart(
       labels,
-      [
-        { name: 'Systolic', data: sys },
-        { name: 'Diastolic', data: dia },
-      ],
+      [{ name: 'Systolic', data: sys }, { name: 'Diastolic', data: dia }],
       'mmHg',
       ['#1565c0', '#0288d1'],
     );
@@ -416,7 +442,7 @@ export class DoctorDashboardComponent implements OnInit {
     this.trendInsight = this.computeTrendInsight(validSys, 'mmHg systolic');
   }
 
-  private parseBp(s: string | undefined): { sys: number; dia: number } | null {
+  parseBp(s: string | undefined): { sys: number; dia: number } | null {
     if (!s?.trim()) return null;
     const m = s.trim().match(/(\d+)\s*\/\s*(\d+)/);
     if (!m) return null;
@@ -431,12 +457,7 @@ export class DoctorDashboardComponent implements OnInit {
   ): any {
     return {
       series,
-      chart: {
-        type: 'line',
-        height: 320,
-        toolbar: { show: true },
-        zoom: { enabled: true },
-      },
+      chart: { type: 'line', height: 320, toolbar: { show: true }, zoom: { enabled: true } },
       stroke: { curve: 'smooth', width: 2 },
       dataLabels: { enabled: false },
       markers: { size: 4 },
@@ -448,57 +469,54 @@ export class DoctorDashboardComponent implements OnInit {
     };
   }
 
-  private computeTrendInsight(values: number[], unit: string): string | null {
+  computeTrendInsight(values: number[], unit: string): string | null {
     if (values.length < 2) return null;
     const mid = Math.floor(values.length / 2);
-    const first = values.slice(0, mid);
-    const second = values.slice(mid);
-    const avg = (a: number[]) =>
-      a.reduce((s, x) => s + x, 0) / Math.max(a.length, 1);
-    const a1 = avg(first);
-    const a2 = avg(second);
+    const avg = (a: number[]) => a.reduce((s, x) => s + x, 0) / Math.max(a.length, 1);
+    const a1 = avg(values.slice(0, mid));
+    const a2 = avg(values.slice(mid));
     const delta = a2 - a1;
     const rel = a1 !== 0 ? (delta / a1) * 100 : 0;
-    if (Math.abs(rel) < 3) {
-      return `Stable around ${a2.toFixed(1)} ${unit} (compare first vs second half of period).`;
-    }
-    if (delta > 0) {
-      return `Upward pattern: average ${a2.toFixed(1)} ${unit} vs ${a1.toFixed(1)} ${unit} earlier in the window.`;
-    }
-    return `ç¨³å®šåœ¨ ${a2.toFixed(1)} ${unit} (å¯¹æ¯”çª—å£å‰åŽåŠæ®µ).`;
+    if (Math.abs(rel) < 3) return `Stable around ${a2.toFixed(1)} ${unit}.`;
+    if (delta > 0) return `Upward pattern: avg ${a2.toFixed(1)} vs ${a1.toFixed(1)} ${unit} earlier.`;
+    return `Downward pattern: avg ${a2.toFixed(1)} vs ${a1.toFixed(1)} ${unit} earlier.`;
   }
 
   openSendQuestionnaireDialog(row: MonitoredPatientRow): void {
     const dialogRef = this.dialog.open(SendQuestionnaireDialog, {
       width: '500px',
-      data: { patientName: row.name, patientId: row.patientId }
+      data: { patientName: row.name, patientId: row.patientId },
     });
 
-    dialogRef.afterClosed().subscribe(templateId => {
-      if (templateId) {
+    dialogRef
+      .afterClosed()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((templateId) => {
+        if (!templateId) return;
         const doctorId = this.userIdFromAccessToken();
         if (!doctorId) return;
 
-        this.questionnaireApi.createInstance({
-          templateId,
-          patientId: row.patientId,
-          doctorId
-        }).subscribe({
-          next: () => {
-            this.snackBar.open('Questionnaire envoyé avec succès', 'OK', { duration: 3000 });
-            this.load(); // Refresh to update questionnaireToday if applicable
-          },
-          error: (err) => {
-            this.snackBar.open('Échec de l\'envoi du questionnaire', 'OK', { duration: 3000 });
-          }
-        });
-      }
-    });
+        this.questionnaireApi
+          .createInstance({ templateId, patientId: row.patientId, doctorId })
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: () => {
+              this.patients = this.patients.map((p) =>
+                p.patientId === row.patientId
+                  ? { ...p, questionnaireToday: true }
+                  : p,
+              );
+              this.snackBar.open('Questionnaire envoyé avec succès', 'OK', { duration: 3000 });
+              this.cdr.markForCheck();
+            },
+            error: () => {
+              this.snackBar.open("Échec de l'envoi du questionnaire", 'OK', { duration: 3000 });
+            },
+          });
+      });
   }
 
   viewResponses(row: MonitoredPatientRow): void {
-    // This could navigate to a dedicated review page or open another dialog
-    this.snackBar.open('Review feature coming soon (Navigating to patient file...)', 'OK', { duration: 3000 });
-    // In a real app, you might do: this.router.navigate(['/dashboard/doctor/patient', row.patientId, 'responses']);
+    this.snackBar.open('Review feature coming soon', 'OK', { duration: 3000 });
   }
 }

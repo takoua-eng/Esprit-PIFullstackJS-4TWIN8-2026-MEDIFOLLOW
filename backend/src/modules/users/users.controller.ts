@@ -6,6 +6,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UploadedFile,
   UseGuards,
@@ -123,14 +124,21 @@ export class UsersController {
 
   @Get('patients')
   @Permissions('patients:read') // ✅ Patient ne peut PAS voir la liste
-  getPatients(@Request() req) {
+  getPatients(
+    @Request() req,
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
+  ) {
     const user = req.user;
     const perms: string[] = user?.permissions ?? [];
     // Doctor sees only their assigned patients; admins/super-admins see all
     const isDoctor = user?.role === 'doctor';
     const isSuperAdmin = perms.includes('*');
     const doctorId = isDoctor && !isSuperAdmin ? user._id : undefined;
-    return this.usersService.findPatientsByDoctor(doctorId);
+    return this.usersService.findPatientsByDoctor(doctorId, {
+      limit: limit ? +limit : undefined,
+      skip: skip ? +skip : undefined,
+    });
   }
 
   @Get('doctors')

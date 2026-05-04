@@ -10,7 +10,7 @@ class MockTranslatePipe implements PipeTransform {
 }
 import { AlertsApiService, AlertDto } from 'src/app/services/alerts-api.service';
 import { RemindersApiService } from 'src/app/services/reminders-api.service';
-import { UsersApiService, UserListRow, UserApiRow } from 'src/app/services/users-api.service';
+import { UsersApiService, UserListRow } from 'src/app/services/users-api.service';
 
 const makeAlert = (overrides: Partial<AlertDto> = {}): AlertDto => ({
   _id: 'a1',
@@ -24,11 +24,12 @@ const makeAlert = (overrides: Partial<AlertDto> = {}): AlertDto => ({
   ...overrides,
 });
 
-const makePatient = (id: string): UserListRow => ({
+const makePatient = (id: string, phone?: string): UserListRow => ({
   _id: id,
   firstName: 'Pat',
   lastName: 'Smith',
   email: `pat${id}@test.com`,
+  ...(phone !== undefined ? { phone } : {}),
 });
 
 describe('NurseDashboardComponent', () => {
@@ -41,13 +42,12 @@ describe('NurseDashboardComponent', () => {
   beforeEach(async () => {
     alertsApi = jasmine.createSpyObj('AlertsApiService', ['getAlerts', 'getOpenCount']);
     remindersApi = jasmine.createSpyObj('RemindersApiService', ['getPendingCount']);
-    usersApi = jasmine.createSpyObj('UsersApiService', ['getPatients', 'getAllUsers']);
+    usersApi = jasmine.createSpyObj('UsersApiService', ['getPatients']);
 
     alertsApi.getAlerts.and.returnValue(of([]));
     alertsApi.getOpenCount.and.returnValue(of({ count: 0 }));
     remindersApi.getPendingCount.and.returnValue(of({ count: 0 }));
     usersApi.getPatients.and.returnValue(of([]));
-    usersApi.getAllUsers.and.returnValue(of([]));
 
     await TestBed.configureTestingModule({
       imports: [NurseDashboardComponent],
@@ -77,14 +77,10 @@ describe('NurseDashboardComponent', () => {
   describe('ngOnInit()', () => {
     it('should set assignedPatients, activeAlerts and pendingReminders on success', () => {
       const patients = [makePatient('p1'), makePatient('p2')];
-      const users: UserApiRow[] = [
-        { _id: 'p1', firstName: 'Pat', lastName: 'Smith', email: 'p@t.com', phone: '123' },
-      ];
       alertsApi.getAlerts.and.returnValue(of([makeAlert({ status: 'open' })]));
       alertsApi.getOpenCount.and.returnValue(of({ count: 3 }));
       remindersApi.getPendingCount.and.returnValue(of({ count: 2 }));
       usersApi.getPatients.and.returnValue(of(patients));
-      usersApi.getAllUsers.and.returnValue(of(users));
 
       fixture.detectChanges();
 
@@ -105,7 +101,6 @@ describe('NurseDashboardComponent', () => {
       );
       alertsApi.getAlerts.and.returnValue(of(alerts));
       usersApi.getPatients.and.returnValue(of([]));
-      usersApi.getAllUsers.and.returnValue(of([]));
       fixture.detectChanges();
 
       expect(component.recentAlerts.length).toBeLessThanOrEqual(5);
@@ -119,7 +114,6 @@ describe('NurseDashboardComponent', () => {
       ];
       alertsApi.getAlerts.and.returnValue(of(alerts));
       usersApi.getPatients.and.returnValue(of([]));
-      usersApi.getAllUsers.and.returnValue(of([]));
       fixture.detectChanges();
 
       expect(component.recentAlerts.every(a => a.status === 'open')).toBeTrue();
@@ -135,28 +129,25 @@ describe('NurseDashboardComponent', () => {
     });
   });
 
-  // ─── phoneFor() ──────────────────────────────────────────────────────────────
+  // ─── patientRows phone ───────────────────────────────────────────────────────
 
-  describe('phoneFor()', () => {
-    it('should return the phone number when present in patientDetails', () => {
-      const patient = makePatient('p1');
-      (component as any).patientDetails = new Map<string, UserApiRow>([
-        ['p1', { _id: 'p1', firstName: 'Pat', lastName: 'S', email: 'p@t.com', phone: '0612345678' }],
-      ]);
-      expect(component.phoneFor(patient)).toBe('0612345678');
+  describe('patientRows phone (from patients endpoint)', () => {
+    it('should include phone from patient when present', () => {
+      usersApi.getPatients.and.returnValue(of([makePatient('p1', '0612345678')]));
+      fixture.detectChanges();
+      expect(component.patientRows[0].phone).toBe('0612345678');
     });
 
-    it('should return "—" when patient has no phone', () => {
-      const patient = makePatient('p2');
-      (component as any).patientDetails = new Map<string, UserApiRow>([
-        ['p2', { _id: 'p2', firstName: 'Pat', lastName: 'S', email: 'p@t.com' }],
-      ]);
-      expect(component.phoneFor(patient)).toBe('—');
+    it('should set phone to "—" when patient has no phone field', () => {
+      usersApi.getPatients.and.returnValue(of([makePatient('p2')]));
+      fixture.detectChanges();
+      expect(component.patientRows[0].phone).toBe('—');
     });
 
-    it('should return "—" when patient not in patientDetails', () => {
-      (component as any).patientDetails = new Map();
-      expect(component.phoneFor(makePatient('unknown'))).toBe('—');
+    it('should trim whitespace from phone', () => {
+      usersApi.getPatients.and.returnValue(of([makePatient('p3', '  0612345678  ')]));
+      fixture.detectChanges();
+      expect(component.patientRows[0].phone).toBe('0612345678');
     });
   });
 

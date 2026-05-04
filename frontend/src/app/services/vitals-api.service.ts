@@ -1,6 +1,6 @@
 import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { API_BASE_URL } from '../core/api.config';
 
@@ -27,9 +27,12 @@ export class VitalsApiService {
 
   constructor(private readonly http: HttpClient) {}
 
-  getVitals(patientId?: string): Observable<VitalDto[]> {
-    const q = patientId ? `?patientId=${encodeURIComponent(patientId)}` : '';
-    return this.http.get<VitalDto[]>(`${this.base}${q}`);
+  getVitals(patientId?: string, opts?: { limit?: number; skip?: number }): Observable<VitalDto[]> {
+    let params = new HttpParams();
+    if (patientId) params = params.set('patientId', patientId);
+    if (opts?.limit != null) params = params.set('limit', String(opts.limit));
+    if (opts?.skip != null) params = params.set('skip', String(opts.skip));
+    return this.http.get<VitalDto[]>(this.base, { params });
   }
 
   create(body: {

@@ -44,8 +44,15 @@ export class AlertsController {
   findAll(
     @Query('doctorId') doctorId?: string,
     @Query('patientId') patientId?: string,
+    @Query('limit') limit?: string,
+    @Query('skip') skip?: string,
   ) {
-    return this.alertsService.findAll({ doctorId, patientId });
+    return this.alertsService.findAll({
+      doctorId,
+      patientId,
+      limit: limit ? +limit : undefined,
+      skip: skip ? +skip : undefined,
+    });
   }
 
   /** Optional `doctorId` (ignored for filtering; queue lists all patients with clinical data). */
