@@ -21,9 +21,9 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // ✅ ACTIVER CORS POUR ANGULAR
+  // ✅ ACTIVER CORS POUR ANGULAR + PRODUCTION
   app.enableCors({
-    origin: 'http://localhost:4200', // Angular
+    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
     credentials: true,
   });
 
@@ -46,6 +46,7 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
+
   const roleModel = app.get<Model<RoleDocument>>(getModelToken(Role.name));
   await seedRoles(roleModel);
 
