@@ -22,10 +22,14 @@ async function bootstrap() {
   });
 
   // ✅ ACTIVER CORS POUR ANGULAR
-  app.enableCors({
-    origin: 'http://localhost:4200', // Angular
-    credentials: true,
-  });
+app.enableCors({
+  origin: process.env.FRONTEND_URL 
+    ? [process.env.FRONTEND_URL, 'http://localhost:4200'] 
+    : '*', // Fallback pour dev
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+});
 
   // Swagger
   const config = new DocumentBuilder()
