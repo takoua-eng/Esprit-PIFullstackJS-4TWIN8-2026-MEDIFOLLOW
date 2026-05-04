@@ -6,7 +6,7 @@ import {
   RequestMethod,
 } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AuditInterceptor } from './modules/audit/audit.interceptor';
 import { MongooseModule } from '@nestjs/mongoose';
 
@@ -15,7 +15,8 @@ import {
   ensureDatabasePathInUri,
   readEnvTrimmed,
 } from './config/mongo-env.util';
-
+import { JwtModule } from '@nestjs/jwt';
+import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 // Modules
 import { UsersModule } from './modules/users/users.module';
 import { RolesModule } from './modules/roles/roles.module';
@@ -88,7 +89,18 @@ import { AiModule } from './modules/ai/ai.module';
 
     // ✅ SINGLE Mongo connection (correct)
     MongooseModule.forRootAsync({
-      imports: [ConfigModule],
+      imports: [ConfigModule,
+        JwtModule.registerAsync({
+  imports: [ConfigModule],
+  useFactory: (config: ConfigService) => ({
+    secret: config.get('JWT_SECRET') || process.env.JWT_SECRET,
+    signOptions: { expiresIn: '24h' },
+  }),
+  inject: [ConfigService],
+  global: true,
+}),
+
+      ],
       useFactory: (config: ConfigService) => {
         const dbName =
           readEnvTrimmed(config, 'MONGODB_DB_NAME') || DEFAULT_MONGODB_DB_NAME;
@@ -115,6 +127,7 @@ import { AiModule } from './modules/ai/ai.module';
         };
       },
       inject: [ConfigService],
+      
     }),
 
     // Schemas
@@ -156,12 +169,16 @@ import { AiModule } from './modules/ai/ai.module';
     PrescriptionsModule,
   ],
   providers: [
-    JwtStrategy,
-    AppService,
-    {
-      provide: APP_INTERCEPTOR,
-      useClass: AuditInterceptor,
-    },
+ JwtStrategy,
+  AppService,
+  {
+    provide: APP_GUARD,
+    useClass: JwtAuthGuard,
+  },
+  {
+    provide: APP_INTERCEPTOR,
+    useClass: AuditInterceptor,
+  },
   ],
 })
 export class AppModule implements NestModule {

@@ -20,14 +20,14 @@ export class Notification {
   @Prop({ required: true })
   message: string;
 
-  @Prop({ default: 'GENERAL' })
+  @Prop({ type: String, default: 'GENERAL', enum: ['PATIENT_ASSIGNED', 'WELCOME', 'GENERAL'] })
   type: NotifType;
 
   @Prop({ default: false })
   isRead: boolean;
 
   @Prop({ type: Types.ObjectId, ref: 'User' })
-  relatedUserId?: Types.ObjectId;  // patient or doctor linked
+  relatedUserId?: Types.ObjectId;
 }
 
 export const NotificationSchema = SchemaFactory.createForClass(Notification);

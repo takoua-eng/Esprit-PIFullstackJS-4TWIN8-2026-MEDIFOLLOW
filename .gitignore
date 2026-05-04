@@ -1,1 +1,5 @@
 k8s/secrets.yml
+
+backend/node_modules
+
+frontend/node_modules
