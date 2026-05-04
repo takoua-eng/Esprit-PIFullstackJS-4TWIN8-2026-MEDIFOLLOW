@@ -28,15 +28,14 @@ import { AuditModule } from '../audit/audit.module';
       }),
       inject: [ConfigService],
     }),
-    UsersModule,
   ],
   controllers: [AuthController],
   providers: [
     AuthService,
-    JwtStrategy, // ✅ NestJS injectera automatiquement ConfigService + UsersService
-   
+    JwtStrategy,
+    JwtAuthGuard,      // ✅ ajouté dans providers
     PermissionsGuard,
   ],
-  exports: [AuthService, JwtAuthGuard, PermissionsGuard],
+  exports: [AuthService, JwtAuthGuard, PermissionsGuard], // ✅ maintenant exportable
 })
 export class AuthModule {}

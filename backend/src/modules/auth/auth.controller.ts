@@ -13,7 +13,7 @@ import { SignInDto } from '../auth/dto/SignIn.dto';
 import { ForgotPasswordDto } from '../auth/dto/forgot-password.dto';
 import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
-import { Public } from './decorators/public.decorator';
+
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { RoleDocument } from '../roles/role.schema';
@@ -34,7 +34,7 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  @Public()
+
   @Post('login')
   signIn(@Body() signInDto: SignInDto, @Req() req: express.Request) {
     return this.authService.signIn(signInDto, req);
@@ -60,25 +60,25 @@ export class AuthController {
     return { message: 'Logged out successfully' };
   }
 
-  @Public()
+  
   @Post('forgot-password')
   forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.forgotPassword(body.email);
   }
 
-  @Public()
+
   @Post('reset-password')
   resetPassword(@Body() body: ResetPasswordDto) {
     return this.authService.resetPassword(body.token, body.newPassword);
   }
 
-  @Public()
+ 
   @Post('change-password')
   changePassword(@Body() body: any) {
     return this.authService.changePassword(body.email, body.currentPassword, body.newPassword, body.token);
   }
 
-  @Public()
+ 
   @Post('face-login')
   async faceLogin(@Body() body: any) {
     const { faceDescriptor } = body;
@@ -124,7 +124,7 @@ export class AuthController {
     return { message: 'Face successfully registered' };
   }
 
-  @Public()
+
   @Post('enroll-face')
   async enrollFacePublic(@Body() body: any) {
     const { email, faceDescriptor } = body;
