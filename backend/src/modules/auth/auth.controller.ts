@@ -13,6 +13,7 @@ import { SignInDto } from '../auth/dto/SignIn.dto';
 import { ForgotPasswordDto } from '../auth/dto/forgot-password.dto';
 import { ResetPasswordDto } from '../auth/dto/reset-password.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { Public } from './decorators/public.decorator';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { RoleDocument } from '../roles/role.schema';
@@ -22,7 +23,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { JwtService } from '@nestjs/jwt';
 
-// 👇 عدّل path حسب مشروعك
 import { User, UserDocument } from '../users/users.schema';
 
 @Controller('auth')
@@ -34,13 +34,12 @@ export class AuthController {
     private readonly usersService: UsersService,
   ) {}
 
-  // ================= CLASSIC LOGIN =================
+  @Public()
   @Post('login')
   signIn(@Body() signInDto: SignInDto, @Req() req: express.Request) {
     return this.authService.signIn(signInDto, req);
   }
 
-  /** Refresh permissions from DB — call on app init or after role change */
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async getMe(@Request() req: any) {
@@ -55,54 +54,46 @@ export class AuthController {
     };
   }
 
-  // ================= LOGOUT =================
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   async logout(@Request() req: any) {
-    // Interceptor will auto-log this as LOGOUT action
     return { message: 'Logged out successfully' };
   }
 
-  // ================= FORGOT PASSWORD =================
+  @Public()
   @Post('forgot-password')
   forgotPassword(@Body() body: ForgotPasswordDto) {
     return this.authService.forgotPassword(body.email);
   }
 
-  // ================= RESET PASSWORD =================
+  @Public()
   @Post('reset-password')
   resetPassword(@Body() body: ResetPasswordDto) {
     return this.authService.resetPassword(body.token, body.newPassword);
   }
 
-  // ================= CHANGE PASSWORD (LOGGED IN) =================
+  @Public()
   @Post('change-password')
   changePassword(@Body() body: any) {
     return this.authService.changePassword(body.email, body.currentPassword, body.newPassword, body.token);
   }
 
-  // ================= FACE LOGIN =================
+  @Public()
   @Post('face-login')
   async faceLogin(@Body() body: any) {
     const { faceDescriptor } = body;
-
     if (!faceDescriptor) {
       throw new UnauthorizedException('No face data provided');
     }
-
     const users = await this.userModel.find({
       faceDescriptor: { $exists: true, $ne: [] },
     }).populate('role', 'name permissions');
 
-    let bestMatch: any = null; // Use any to allow populated role access
+    let bestMatch: any = null;
     let minDistance = Infinity;
 
     for (const user of users) {
-      const distance = this.euclideanDistance(
-        faceDescriptor,
-        user.faceDescriptor,
-      );
-
+      const distance = this.euclideanDistance(faceDescriptor, user.faceDescriptor);
       if (distance < minDistance) {
         minDistance = distance;
         bestMatch = user;
@@ -118,18 +109,14 @@ export class AuthController {
         token: this.generateJWT(bestMatch, roleName),
       };
     }
-
     throw new UnauthorizedException('Face not recognized');
   }
 
-  // ================= REGISTER FACE =================
   @UseGuards(JwtAuthGuard)
   @Post('register-face')
   async registerFace(@Request() req: any, @Body() body: any) {
     const { faceDescriptor } = body;
-    if (!faceDescriptor) {
-      throw new BadRequestException('No face data provided');
-    }
+    if (!faceDescriptor) throw new BadRequestException('No face data provided');
     const user = await this.userModel.findById(req.user._id);
     if (!user) throw new NotFoundException('User not found');
     user.faceDescriptor = faceDescriptor;
@@ -137,29 +124,22 @@ export class AuthController {
     return { message: 'Face successfully registered' };
   }
 
-  // ================= ENROLL FACE (DEMO/TESTING) =================
+  @Public()
   @Post('enroll-face')
   async enrollFacePublic(@Body() body: any) {
     const { email, faceDescriptor } = body;
-    if (!email || !faceDescriptor) {
-      throw new BadRequestException('Email and face data required');
-    }
+    if (!email || !faceDescriptor) throw new BadRequestException('Email and face data required');
     const user = await this.userModel.findOne({ email });
     if (!user) throw new NotFoundException('User not found');
-    
     user.faceDescriptor = faceDescriptor;
     await user.save();
     return { message: 'Face successfully enrolled' };
   }
 
-  // ================= DISTANCE =================
   euclideanDistance(desc1: number[], desc2: number[]) {
-    return Math.sqrt(
-      desc1.reduce((sum, val, i) => sum + Math.pow(val - desc2[i], 2), 0),
-    );
+    return Math.sqrt(desc1.reduce((sum, val, i) => sum + Math.pow(val - desc2[i], 2), 0));
   }
 
-  // ================= JWT =================
   generateJWT(user: any, roleName: string) {
     return this.jwtService.sign({
       sub: user._id,

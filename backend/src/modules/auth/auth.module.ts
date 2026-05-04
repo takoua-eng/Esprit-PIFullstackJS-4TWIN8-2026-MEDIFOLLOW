@@ -34,7 +34,7 @@ import { AuditModule } from '../audit/audit.module';
   providers: [
     AuthService,
     JwtStrategy, // ✅ NestJS injectera automatiquement ConfigService + UsersService
-    JwtAuthGuard,
+   
     PermissionsGuard,
   ],
   exports: [AuthService, JwtAuthGuard, PermissionsGuard],
