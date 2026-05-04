@@ -12,7 +12,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { environment } from 'src/environments/environment';
 import { AddPatientDialog } from '../add-patient-dialog/add-patient-dialog';
 import {
   PatientService,

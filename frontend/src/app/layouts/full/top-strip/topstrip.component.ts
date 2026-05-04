@@ -13,7 +13,7 @@ import { of } from 'rxjs';
 import { NotificationBellService, AppNotification } from 'src/app/services/notification-bell.service';
 import { clearAuthLocalStorage } from 'src/app/core/app-storage';
 import { CoreService } from 'src/app/services/core.service';
-
+import { environment } from "src/environments/environment";
 @Component({
   selector: 'app-topstrip',
   standalone: true,

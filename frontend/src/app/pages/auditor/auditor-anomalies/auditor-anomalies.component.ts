@@ -1,4 +1,4 @@
-?import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -56,11 +56,11 @@ export class AuditorAnomaliesComponent implements OnInit {
 
           let issue = '';
           if (!p.vitalsToday && !p.symptomsToday) {
-            issue = 'Aucune soumission de vitaux ni de symptômes aujourd\'hui';
+            issue = 'Aucune soumission de vitaux ni de symptï¿½mes aujourd\'hui';
           } else if (!p.vitalsToday) {
             issue = 'Signes vitaux manquants aujourd\'hui';
           } else {
-            issue = 'Rapport de symptômes manquant aujourd\'hui';
+            issue = 'Rapport de symptï¿½mes manquant aujourd\'hui';
           }
 
           rows.push({

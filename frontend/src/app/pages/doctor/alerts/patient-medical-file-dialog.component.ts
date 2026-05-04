@@ -1,4 +1,4 @@
-?import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -269,7 +269,7 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     const mh = this.dossier?.medicalHistory;
     if (!mh) return [];
     const flags: { label: string; key: string }[] = [
-      { label: 'Diabète', key: 'diabetes' },
+      { label: 'Diabï¿½te', key: 'diabetes' },
       { label: 'Hypertension', key: 'hypertension' },
       { label: 'Cardiopathie', key: 'heartDisease' },
       { label: 'Asthme / BPCO', key: 'asthmaOrCOPD' },

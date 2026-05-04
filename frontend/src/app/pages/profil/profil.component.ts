@@ -1,5 +1,5 @@
 import { environment } from 'src/environments/environment';
-?import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -65,7 +65,7 @@ export class ProfilComponent implements OnInit {
   }
 
   loadProfile() {
-    // 1. Charger immédiatement depuis le localStorage pour éviter l'effet "vide"
+    // 1. Charger immï¿½diatement depuis le localStorage pour ï¿½viter l'effet "vide"
     const localData = localStorage.getItem('medi_follow_user_data');
     if (localData) {
       try {
@@ -76,17 +76,17 @@ export class ProfilComponent implements OnInit {
       }
     }
 
-    // 2. Mettre Ã  jour avec les données fraîches de l'API
+    // 2. Mettre Ã  jour avec les donnï¿½es fraï¿½ches de l'API
     this.userService.getProfile().subscribe({
       next: (user) => {
         if (user) {
           this.updateProfileState(user);
-          // Mettre Ã  jour le cache local si nécessaire
+          // Mettre Ã  jour le cache local si nï¿½cessaire
           localStorage.setItem('medi_follow_user_data', JSON.stringify(user));
         }
       },
       error: (err) => {
-        console.error('Erreur chargement profil API, utilisation des données locales', err);
+        console.error('Erreur chargement profil API, utilisation des donnï¿½es locales', err);
       }
     });
   }
@@ -95,7 +95,7 @@ export class ProfilComponent implements OnInit {
     this.rawUserData = user;
     let avatarUrl: string | null = null;
     
-    // Gérer l'URL de la photo
+    // Gï¿½rer l'URL de la photo
     const photoSource = user.photo || user.image || user.avatar;
     if (photoSource && typeof photoSource === 'string' && photoSource !== 'null' && photoSource !== 'undefined' && photoSource !== '') {
       const photoPath = photoSource.replace(/\\/g, '/');
@@ -112,10 +112,10 @@ export class ProfilComponent implements OnInit {
     const fName = user.firstName || user.name || '';
     const lName = user.lastName || '';
 
-    // Construire le rôle
+    // Construire le rï¿½le
     const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
 
-    // Ajouter Dr. pour les médecins
+    // Ajouter Dr. pour les mï¿½decins
     const isDoctor = userRole.toLowerCase() === 'doctor';
     const prefix = isDoctor ? 'Dr. ' : '';
     const fullName = `${prefix}${lName} ${fName}`.trim() || 'Utilisateur';
@@ -132,10 +132,10 @@ export class ProfilComponent implements OnInit {
 
     this.profile = {
       name: fullName,
-      email: user.email || 'Non renseigné',
+      email: user.email || 'Non renseignï¿½',
       role: userRole,
-      phone: user.phone || user.telephone || 'Non renseigné',
-      service: user.service?.name || user.service || 'Non spécifié',
+      phone: user.phone || user.telephone || 'Non renseignï¿½',
+      service: user.service?.name || user.service || 'Non spï¿½cifiï¿½',
       hospital: 'MediFollow Demo Hospital',
       avatar: avatarUrl,
       initials: computedInitials

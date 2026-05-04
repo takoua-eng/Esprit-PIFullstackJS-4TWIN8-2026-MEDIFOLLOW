@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserRow } from '../../../services/superadmin/user-management.service';
-
+import { environment } from 'src/environments/environment';
 const ROLE_COLORS: Record<string, string> = {
   patient: '#e17055', doctor: '#0984e3', nurse: '#00b894',
   coordinator: '#fdcb6e', auditor: '#a29bfe', admin: '#2d3436',

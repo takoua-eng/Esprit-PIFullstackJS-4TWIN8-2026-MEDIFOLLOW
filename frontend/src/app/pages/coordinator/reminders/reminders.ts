@@ -1,4 +1,4 @@
-?import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -58,7 +58,7 @@ export class RemindersComponent implements OnInit {
   ];
 
   ngOnInit(): void {
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // Lire l'ID depuis le JWT stockï¿½ dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {
@@ -188,7 +188,7 @@ if (!this.coordinatorId) {
         error: (err) => console.error('Update error', err),
       });
   } else {
-    // Créer en tant que SCHEDULED uniquement â€” pas d'envoi
+    // Crï¿½er en tant que SCHEDULED uniquement â€” pas d'envoi
     this.coordinatorService.createReminder(this.coordinatorId, {
       patientId, type, message, scheduledAt, status: 'scheduled'
     }).subscribe({
@@ -202,7 +202,7 @@ submitAndSend(): void {
   if (this.reminderForm.invalid) { this.reminderForm.markAllAsTouched(); return; }
   const { patientId, type, message, scheduledAt } = this.reminderForm.value;
 
-  // Créer puis envoyer immédiatement (email + SMS planifié)
+  // Crï¿½er puis envoyer immï¿½diatement (email + SMS planifiï¿½)
   this.coordinatorService.createReminder(this.coordinatorId, {
     patientId, type, message, scheduledAt, status: 'scheduled'
   }).subscribe({

@@ -1,4 +1,4 @@
-?import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -79,8 +79,8 @@ export class CoordinatorDashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // ── R�cup�rer l'ID du coordinator connect� ──────────────
-    // Lire l'ID depuis le JWT stock� dans localStorage
+    // ── R�cup�rer l'ID du coordinator connect� ──────────────
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {
