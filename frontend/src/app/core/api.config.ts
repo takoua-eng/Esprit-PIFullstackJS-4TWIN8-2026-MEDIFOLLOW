@@ -1,12 +1,16 @@
 import { environment } from "src/environments/environment";
 
 
-/** Backend API origin (no trailing slash). Override via `window` in index.html if needed. */
 export const API_BASE_URL =
   (typeof window !== 'undefined' &&
     (window as unknown as { __API_BASE_URL__?: string }).__API_BASE_URL__) ||
   environment.apiUrl;
-
+/** Backend API origin (no trailing slash). Override via `window` in index.html if needed. */
+/**export const API_BASE_URL =
+  (typeof window !== 'undefined' &&
+    (window as unknown as { __API_BASE_URL__?: string }).__API_BASE_URL__) ||
+  environment.apiUrl;
+*/
 /**
  * Base URL for browser video calls (no trailing slash), e.g. Jitsi Meet.
  * Override with `window.__VIDEO_CALL_BASE_URL__` in index.html for a self-hosted instance.

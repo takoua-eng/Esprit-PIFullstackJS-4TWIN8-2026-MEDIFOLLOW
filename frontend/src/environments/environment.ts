@@ -1,4 +1,4 @@
 export const environment = {
-  production: false,
-  apiUrl: '${environment.apiUrl}'
+  production: true,
+  apiUrl: 'https://esprit-pi-fullstack-js-4-twin-8-202-ten.vercel.app'
 };
