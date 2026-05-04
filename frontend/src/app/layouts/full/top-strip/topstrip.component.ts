@@ -1,11 +1,11 @@
 import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { interval, Subscription } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
@@ -13,12 +13,12 @@ import { of } from 'rxjs';
 import { NotificationBellService, AppNotification } from 'src/app/services/notification-bell.service';
 import { clearAuthLocalStorage } from 'src/app/core/app-storage';
 import { CoreService } from 'src/app/services/core.service';
-
+import { environment } from "src/environments/environment";
 @Component({
   selector: 'app-topstrip',
   standalone: true,
   imports: [
-    CommonModule, UpperCasePipe, TablerIconsModule,
+    CommonModule, UpperCasePipe, TablerIconComponent,
     MatButtonModule, MatMenuModule, MatTooltipModule, MatDividerModule,
     TranslateModule,
   ],
@@ -82,9 +82,9 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
       if (photoPath.startsWith('http')) {
         return photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        return `http://localhost:3000/${photoPath}`;
+        return `${environment.apiUrl}/${photoPath}`;
       } else {
-        return `http://localhost:3000/uploads/${photoPath}`;
+        return `${environment.apiUrl}/uploads/${photoPath}`;
       }
     }
     return null;
@@ -128,6 +128,17 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
       this.notifications.forEach(n => n.isRead = true);
       this.unreadCount = 0;
     });
+    const role = (localStorage.getItem('user_role') || '').toLowerCase();
+    if (role === 'doctor' || role === 'physician') {
+      this.router.navigate(['/dashboard/doctor/notifications']);
+    }
+  }
+
+  goToAllNotifications(): void {
+    const role = (localStorage.getItem('user_role') || '').toLowerCase();
+    if (role === 'doctor' || role === 'physician') {
+      this.router.navigate(['/dashboard/doctor/notifications']);
+    }
   }
 
   getTypeIcon(type: string): string {

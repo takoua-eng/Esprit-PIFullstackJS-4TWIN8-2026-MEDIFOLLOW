@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+?import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditProfileDialogComponent } from './edit-profile-dialog.component';
@@ -10,7 +10,7 @@ import { EditProfileDialogComponent } from './edit-profile-dialog.component';
 @Component({
   selector: 'app-admin-profile',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconsModule],
+  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -45,8 +45,8 @@ export class ProfilComponent implements OnInit {
         if (user.photo && typeof user.photo === 'string' && user.photo !== 'null' && user.photo !== 'undefined' && user.photo !== '') {
           const photoPath = user.photo.replace(/\\/g, '/');
           avatarUrl = photoPath.startsWith('uploads/') || photoPath.startsWith('http')
-            ? `http://localhost:3000/${photoPath}`
-            : `http://localhost:3000/uploads/${photoPath}`;
+            ? `${environment.apiUrl}/${photoPath}`
+            : `${environment.apiUrl}/uploads/${photoPath}`;
         }
 
         this.profile = {

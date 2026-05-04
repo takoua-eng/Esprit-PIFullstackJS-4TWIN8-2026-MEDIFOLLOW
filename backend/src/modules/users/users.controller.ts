@@ -474,6 +474,27 @@ updateAuditor(
   }*/
 
   // =========================
+  // ✅ ACTIVATE/DEACTIVATE/RESTORE - Admin only
+  // ⚠️ Ces routes DOIVENT être avant PUT ':id' pour éviter les conflits
+  // =========================
+
+  @Put(':id/restore')
+  @Permissions('users:manage')
+  restore(@Param('id') id: string) {
+    return this.usersService.restoreUser(id);
+  }
+
+  @Put(':id/activate')
+  activate(@Param('id') id: string) {
+    return this.usersService.activateUser(id);
+  }
+
+  @Put(':id/deactivate')
+  deactivate(@Param('id') id: string) {
+    return this.usersService.deactivateUser(id);
+  }
+
+  // =========================
   // ✅ UPDATE USER (general — all roles)
   // =========================
   @UseInterceptors(FileInterceptor('file', multerConfig))
@@ -522,28 +543,6 @@ updateAuditor(
   @Permissions('users:delete', 'patients:delete') // Patient n'a JAMAIS ces permissions
   remove(@Param('id') id: string) {
     return this.usersService.deleteUser(id);
-  }
-
-  // =========================
-  // ✅ ACTIVATE/DEACTIVATE/RESTORE - Admin only
-  // =========================
-
-  @Put(':id/restore')
-  @Permissions('users:manage')
-  restore(@Param('id') id: string) {
-    return this.usersService.restoreUser(id);
-  }
-
-  @Put(':id/activate')
-  @Permissions('users:manage')
-  activate(@Param('id') id: string) {
-    return this.usersService.activateUser(id);
-  }
-
-  @Put(':id/deactivate')
-  @Permissions('users:manage')
-  deactivate(@Param('id') id: string) {
-    return this.usersService.deactivateUser(id);
   }
 
   //verification de l'email

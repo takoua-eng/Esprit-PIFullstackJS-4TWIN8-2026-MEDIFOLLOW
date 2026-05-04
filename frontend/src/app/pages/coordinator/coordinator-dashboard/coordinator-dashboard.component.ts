@@ -1,8 +1,8 @@
 import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import {
   CoordinatorDashboardResponse,
   ComplianceRow,
@@ -23,7 +23,7 @@ export interface ChatMessage {
 @Component({
   selector: 'app-coordinator-dashboard',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, NgApexchartsModule, FormsModule, TranslateModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent, NgApexchartsModule, FormsModule, TranslateModule],
   templateUrl: './coordinator-dashboard.component.html',
   styleUrls: ['./coordinator-dashboard.component.scss'],
 })
@@ -79,8 +79,8 @@ export class CoordinatorDashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // ── Récupérer l'ID du coordinator connecté ──────────────
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // ── R�cup�rer l'ID du coordinator connect� ──────────────
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {

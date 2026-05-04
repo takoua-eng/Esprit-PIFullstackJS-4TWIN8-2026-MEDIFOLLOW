@@ -1,3 +1,4 @@
+import { environment } from "src/environments/environment";
 import { Injectable } from '@angular/core';
 
 const ROLE_KEY = 'medi_follow_user_role';

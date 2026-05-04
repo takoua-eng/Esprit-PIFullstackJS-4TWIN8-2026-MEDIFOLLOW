@@ -1,8 +1,9 @@
+import { environment } from 'src/environments/environment';
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ChangePasswordDialogComponent } from './change-password-dialog/change-password-dialog.component';
@@ -11,7 +12,7 @@ import { EditProfileDialogComponent } from './edit-profile-dialog/edit-profile-d
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconsModule, MatDialogModule],
+  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconComponent, MatDialogModule],
   templateUrl: './profil.component.html',
   styleUrls: ['./profil.component.scss'],
 })
@@ -64,7 +65,7 @@ export class ProfilComponent implements OnInit {
   }
 
   loadProfile() {
-    // 1. Charger immédiatement depuis le localStorage pour éviter l'effet "vide"
+    // 1. Charger imm�diatement depuis le localStorage pour �viter l'effet "vide"
     const localData = localStorage.getItem('medi_follow_user_data');
     if (localData) {
       try {
@@ -75,17 +76,17 @@ export class ProfilComponent implements OnInit {
       }
     }
 
-    // 2. Mettre à jour avec les données fraîches de l'API
+    // 2. Mettre à jour avec les donn�es fra�ches de l'API
     this.userService.getProfile().subscribe({
       next: (user) => {
         if (user) {
           this.updateProfileState(user);
-          // Mettre à jour le cache local si nécessaire
+          // Mettre à jour le cache local si n�cessaire
           localStorage.setItem('medi_follow_user_data', JSON.stringify(user));
         }
       },
       error: (err) => {
-        console.error('Erreur chargement profil API, utilisation des données locales', err);
+        console.error('Erreur chargement profil API, utilisation des donn�es locales', err);
       }
     });
   }
@@ -94,16 +95,16 @@ export class ProfilComponent implements OnInit {
     this.rawUserData = user;
     let avatarUrl: string | null = null;
     
-    // Gérer l'URL de la photo
+    // G�rer l'URL de la photo
     const photoSource = user.photo || user.image || user.avatar;
     if (photoSource && typeof photoSource === 'string' && photoSource !== 'null' && photoSource !== 'undefined' && photoSource !== '') {
       const photoPath = photoSource.replace(/\\/g, '/');
       if (photoPath.startsWith('http')) {
         avatarUrl = photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        avatarUrl = `http://localhost:3000/${photoPath}`;
+        avatarUrl = `${environment.apiUrl}/${photoPath}`;
       } else {
-        avatarUrl = `http://localhost:3000/uploads/${photoPath}`;
+        avatarUrl = `${environment.apiUrl}/uploads/${photoPath}`;
       }
     }
 
@@ -111,10 +112,10 @@ export class ProfilComponent implements OnInit {
     const fName = user.firstName || user.name || '';
     const lName = user.lastName || '';
 
-    // Construire le rôle
+    // Construire le r�le
     const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
 
-    // Ajouter Dr. pour les médecins
+    // Ajouter Dr. pour les m�decins
     const isDoctor = userRole.toLowerCase() === 'doctor';
     const prefix = isDoctor ? 'Dr. ' : '';
     const fullName = `${prefix}${lName} ${fName}`.trim() || 'Utilisateur';
@@ -131,10 +132,10 @@ export class ProfilComponent implements OnInit {
 
     this.profile = {
       name: fullName,
-      email: user.email || 'Non renseigné',
+      email: user.email || 'Non renseign�',
       role: userRole,
-      phone: user.phone || user.telephone || 'Non renseigné',
-      service: user.service?.name || user.service || 'Non spécifié',
+      phone: user.phone || user.telephone || 'Non renseign�',
+      service: user.service?.name || user.service || 'Non sp�cifi�',
       hospital: 'MediFollow Demo Hospital',
       avatar: avatarUrl,
       initials: computedInitials

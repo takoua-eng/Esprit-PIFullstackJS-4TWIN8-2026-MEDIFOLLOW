@@ -14,7 +14,7 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatDividerModule } from '@angular/material/divider';
 import { forkJoin } from 'rxjs';
-
+import { environment } from 'src/environments/environment';
 import { ServiceService } from '../../../services/superadmin/service.service';
 import { RoleService, Role } from '../../../services/superadmin/role.service';
 import { DoctorService, Doctor } from '../../../services/superadmin/doctor.service';
@@ -270,7 +270,7 @@ export class UserFormDialog implements OnInit {
       specialization:   u.specialization ?? '',
       isActive:         u.isActive ?? true,
     });
-    if (u.photo) this.photoPreview = `http://localhost:3000/uploads/${u.photo}`;
+    if (u.photo) this.photoPreview = `${environment.apiUrl}/uploads/${u.photo}`;
     if (u.dateOfBirth) this.calculatedAge = this.calcAge(new Date(u.dateOfBirth));
   }
 

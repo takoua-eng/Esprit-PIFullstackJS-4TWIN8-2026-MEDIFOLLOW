@@ -1,11 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDividerModule } from '@angular/material/divider';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { interval, Subscription } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
@@ -18,7 +18,7 @@ import { CoreService } from 'src/app/services/core.service';
   selector: 'app-super-topstrip',
   standalone: true,
   imports: [
-    CommonModule, UpperCasePipe, TablerIconsModule,
+    CommonModule, UpperCasePipe, TablerIconComponent,
     MatButtonModule, MatMenuModule, MatTooltipModule, MatDividerModule,
     TranslateModule,
   ],

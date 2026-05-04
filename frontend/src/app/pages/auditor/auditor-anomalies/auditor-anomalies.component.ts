@@ -1,8 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/api.config';
@@ -23,7 +23,7 @@ interface AnomalyRow {
 @Component({
   selector: 'app-auditor-anomalies',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-anomalies.component.html',
   styleUrls: ['./auditor-anomalies.component.scss'],
 })
@@ -56,11 +56,11 @@ export class AuditorAnomaliesComponent implements OnInit {
 
           let issue = '';
           if (!p.vitalsToday && !p.symptomsToday) {
-            issue = 'Aucune soumission de vitaux ni de symptômes aujourd\'hui';
+            issue = 'Aucune soumission de vitaux ni de sympt�mes aujourd\'hui';
           } else if (!p.vitalsToday) {
             issue = 'Signes vitaux manquants aujourd\'hui';
           } else {
-            issue = 'Rapport de symptômes manquant aujourd\'hui';
+            issue = 'Rapport de sympt�mes manquant aujourd\'hui';
           }
 
           rows.push({

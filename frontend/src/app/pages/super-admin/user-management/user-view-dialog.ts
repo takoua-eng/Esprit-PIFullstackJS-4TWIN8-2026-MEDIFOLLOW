@@ -5,7 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatDividerModule } from '@angular/material/divider';
 import { UserRow } from '../../../services/superadmin/user-management.service';
-
+import { environment } from 'src/environments/environment';
 const ROLE_COLORS: Record<string, string> = {
   patient: '#e17055', doctor: '#0984e3', nurse: '#00b894',
   coordinator: '#fdcb6e', auditor: '#a29bfe', admin: '#2d3436',
@@ -136,7 +136,7 @@ export class UserViewDialog {
     @Inject(MAT_DIALOG_DATA) public data: UserRow,
   ) {
     this.u = data;
-    this.photoUrl = data.photo ? `http://localhost:3000/uploads/${data.photo}` : '';
+    this.photoUrl = data.photo ? `${environment.apiUrl}/uploads/${data.photo}` : '';
   }
 
   get fullName(): string {

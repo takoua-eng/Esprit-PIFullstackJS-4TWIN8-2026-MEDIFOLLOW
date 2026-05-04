@@ -1,4 +1,5 @@
 import { Component, Inject, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogRef } from '@angular/material/dialog';
@@ -6,7 +7,6 @@ import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import {
   UsersApiService,
@@ -34,7 +34,7 @@ type VitalParam = 'heartRate' | 'temperature' | 'weight' | 'bloodPressure';
     CommonModule,
     FormsModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
     NgApexchartsModule,
   ],
@@ -269,7 +269,7 @@ export class PatientMedicalFileDialogComponent implements OnInit {
     const mh = this.dossier?.medicalHistory;
     if (!mh) return [];
     const flags: { label: string; key: string }[] = [
-      { label: 'Diabète', key: 'diabetes' },
+      { label: 'Diab�te', key: 'diabetes' },
       { label: 'Hypertension', key: 'hypertension' },
       { label: 'Cardiopathie', key: 'heartDisease' },
       { label: 'Asthme / BPCO', key: 'asthmaOrCOPD' },

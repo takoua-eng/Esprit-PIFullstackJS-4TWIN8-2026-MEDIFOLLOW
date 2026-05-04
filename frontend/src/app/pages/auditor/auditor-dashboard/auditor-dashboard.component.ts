@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -12,7 +12,7 @@ import { API_BASE_URL } from 'src/app/core/api.config';
 @Component({
   selector: 'app-auditor-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-dashboard.component.html',
   styleUrls: ['./auditor-dashboard.component.scss'],
 })
@@ -116,7 +116,7 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   }
 
   delayLabel(min: number | null): string {
-    if (min === null) return 'â€”';
+    if (min === null) return '—';
     if (min < 60) return `${min}m`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
   }

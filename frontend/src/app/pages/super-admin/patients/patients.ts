@@ -12,7 +12,7 @@ import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-
+import { environment } from 'src/environments/environment';
 import { AddPatientDialog } from '../add-patient-dialog/add-patient-dialog';
 import {
   PatientService,
@@ -100,7 +100,7 @@ export class Patients implements OnInit, AfterViewInit {
           phone: p.phone || '-',
           gender: p.gender || 'N/A',
           isActive: p.isActive ?? true,
-          photo: p.photo ? `http://localhost:3000/uploads/${p.photo}` : '',
+          photo: p.photo ? `${environment.apiUrl}/uploads/${p.photo}` : '',
         }));
         this.loading = false;
       },

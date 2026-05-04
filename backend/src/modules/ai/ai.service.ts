@@ -54,22 +54,23 @@ export class AiService {
 
   // ─── DATA COLLECTION ─────────────────────────────────────────
 
-  private async collectData() {
+  private async collectData(dateStr?: string) {
+    // Use provided date or today
+    const targetDate = dateStr ? new Date(dateStr) : new Date();
+    const todayStart = new Date(targetDate); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd   = new Date(targetDate); todayEnd.setHours(23, 59, 59, 999);
+    const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(todayStart.getDate() - 1);
+    const yesterdayEnd   = new Date(todayEnd);   yesterdayEnd.setDate(todayEnd.getDate() - 1);
     const [patientRole, coordRole] = await Promise.all([
       this.roleModel.findOne({ name: 'patient' }).lean(),
       this.roleModel.findOne({ name: 'coordinator' }).lean(),
     ]);
 
-    const [patients, coordinators, allReminders] = await Promise.all([
+    const [patients, coordinators, remindersToday] = await Promise.all([
       patientRole ? this.userModel.find({ role: patientRole._id, isArchived: { $ne: true } }).lean() : [],
       coordRole   ? this.userModel.find({ role: coordRole._id,   isArchived: { $ne: true } }).lean() : [],
-      this.reminderModel.find().lean(),
+      this.reminderModel.find({ createdAt: { $gte: todayStart, $lte: todayEnd } }).lean(),
     ]);
-
-    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
-    const yesterdayStart = new Date(todayStart); yesterdayStart.setDate(todayStart.getDate() - 1);
-    const yesterdayEnd   = new Date(todayEnd);   yesterdayEnd.setDate(todayEnd.getDate() - 1);
 
     const patientIds = (patients as any[]).map(p => p._id);
 
@@ -93,15 +94,28 @@ export class AiService {
 
     const complianceToday     = totalPatients ? Math.round((okToday     / totalPatients) * 100) : 0;
     const complianceYesterday = totalPatients ? Math.round((okYesterday / totalPatients) * 100) : 0;
-    const sentReminders       = (allReminders as any[]).filter(r => r.status === 'sent').length;
-    const responseRate        = sentReminders ? Math.round((okToday / sentReminders) * 100) : 0;
+
+    // ── Reminder Analytics — même période (aujourd'hui) ──────────
+    const sentToday     = (remindersToday as any[]).filter(r => r.status === 'sent').length;
+    const answeredToday = (remindersToday as any[]).filter(r => r.status === 'answered').length;
+    const missedToday   = (remindersToday as any[]).filter(r => r.status === 'missed').length;
+    const pendingToday  = (remindersToday as any[]).filter(r => r.status === 'pending').length;
+    const sentReminders = sentToday;
+    const responseRate  = sentToday ? Math.round((answeredToday / sentToday) * 100) : 0;
 
     const alerts: string[] = [];
     if (complianceToday === 0)                      alerts.push("Aucun patient actif aujourd'hui");
-    if (responseRate    === 0)                      alerts.push('Taux de réponse = 0%');
+    if (responseRate    === 0 && sentToday > 0)     alerts.push('Taux de réponse = 0%');
     if (complianceToday < complianceYesterday - 20) alerts.push('Chute importante de compliance');
+    if (missedToday > 3)                            alerts.push(`${missedToday} rappels ignorés aujourd'hui`);
 
-    return { totalPatients, totalCoordinators, complianceToday, complianceYesterday, responseRate, sentReminders, alerts };
+    return {
+      totalPatients, totalCoordinators,
+      complianceToday, complianceYesterday,
+      responseRate, sentReminders,
+      reminderAnalytics: { sent: sentToday, answered: answeredToday, missed: missedToday, pending: pendingToday, responseRate },
+      alerts,
+    };
   }
 
   // ─── SERVICE INTELLIGENCE (5 analyses) ──────────────────────
@@ -282,8 +296,8 @@ NO TEXT OUTSIDE JSON.`;
 
   // ─── SUPER ADMIN REPORT ───────────────────────────────────────
 
-  async generateReport(type: string) {
-    const d = await this.collectData();
+  async generateReport(type: string, dateStr?: string) {
+    const d = await this.collectData(dateStr);
 
     const focus: Record<string, string> = {
       monthly:      'Rapport mensuel global avec tendances.',
@@ -658,97 +672,140 @@ FORMAT JSON STRICT:
     } catch { return ''; }
   }
 
-  // ─── STROKE RISK PREDICTION (ML Service) ────────────────────
+
+  // 🔥 MAPPINGS pour encoder les variables catégorielles
+private readonly WORK_TYPE_MAP: Record<string, number> = {
+  'private': 0,
+  'self employed': 1,
+  'self-employed': 1,
+  'govt job': 2,
+  'govt_job': 2,
+  'children': 3,
+  'never worked': 4
+};
+
+private readonly SMOKE_MAP: Record<string, number> = {
+  'never smoked': 0,
+  'formerly smoked': 1,
+  'smokes': 2,
+  'unknown': 3
+};
+
+/**
+ * Encode work_type en nombre (0-4) comme attendu par le modèle ML
+ */
+private encodeWorkType(work: string | undefined): number {
+  if (!work) return 0;
+  const normalized = work.toLowerCase().trim().replace(/[_-]/g, ' ');
+  return this.WORK_TYPE_MAP[normalized] ?? 0;
+}
+
+/**
+ * Encode smoking_status en nombre (0-3) comme attendu par le modèle ML
+ */
+private encodeSmokingStatus(smoke: string | undefined): number {
+  if (!smoke) return 3;
+  const s = smoke.toLowerCase().trim().replace(/[_-]/g, ' ');
+  
+  if (s.includes('smok') && !s.includes('never') && !s.includes('former')) return 2;
+  if (s.includes('never')) return 0;
+  if (s.includes('former') || s.includes('ex')) return 1;
+  return 3;
+}
+
+/**
+ * Génère les recommandations selon le niveau de risque
+ */
+private buildRecommendations(riskLevel: string, input: any): string[] {
+  const recs: string[] = [];
+  
+  if (riskLevel === 'HIGH') {
+    recs.push('Consultation cardiologique urgente recommandée');
+    recs.push('Surveillance tensionnelle quotidienne');
+    recs.push('Bilan sanguin complet (glycémie, cholestérol)');
+  } else if (riskLevel === 'MEDIUM') {
+    recs.push('Suivi médical régulier conseillé');
+    recs.push('Activité physique modérée 30 min/jour');
+    recs.push('Régime alimentaire équilibré, réduction du sel');
+  } else {
+    recs.push('Faible risque — maintenir hygiène de vie');
+    recs.push('Contrôle annuel recommandé');
+  }
+  
+  if (input.hypertension) recs.push('Traitement antihypertenseur à surveiller');
+  if (input.heart_disease) recs.push('Suivi cardiologique régulier obligatoire');
+  if (input.avg_glucose_level > 150) recs.push('Glycémie élevée — consulter un endocrinologue');
+  if (input.bmi > 30) recs.push('IMC élevé — programme de perte de poids conseillé');
+  
+  return recs;
+}
 
 async predictStrokeRisk(patientId: string) {
-  const patient = await this.userModel.findById(patientId).select('+nurseDossier').lean();
+  const patient = await this.userModel
+    .findById(patientId)
+    .select('+nurseDossier')
+    .lean() as any;
+
   if (!patient) throw new Error('Patient not found');
 
   const latestVital = await this.vitalModel
-    .findOne({ patientId: (patient as any)._id })
+    .findOne({ patientId: patient._id })
     .sort({ recordedAt: -1 })
-    .lean();
+    .lean() as any;
 
-  const nurseDossier: any = (patient as any).nurseDossier ?? null;
+  const nurseDossier: any = patient.nurseDossier ?? null;
 
-  // ── AGE ─────────────────────────────
-  const dob = (patient as any).dateOfBirth;
-  const age =
-    (patient as any).age ??
-    (dob
-      ? Math.floor(
-          (Date.now() - new Date(dob).getTime()) /
-            (365.25 * 24 * 60 * 60 * 1000)
-        )
+  // ── AGE ──────────────────────────────────────────────────
+  const age = patient.age ??
+    (patient.dateOfBirth
+      ? Math.floor((Date.now() - new Date(patient.dateOfBirth).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
       : 50);
 
-  // ── WEIGHT / HEIGHT / BMI ───────────
-  const weight = latestVital?.weight ?? nurseDossier?.weight;
+  // ── BMI ──────────────────────────────────────────────────
+  const weight = latestVital?.weight ?? nurseDossier?.weight ?? 70;
+  const heightCm = nurseDossier?.height ?? patient.height ?? 175;
+  const heightM = heightCm > 10 ? heightCm / 100 : heightCm;
+  const bmi = +(weight / (heightM * heightM)).toFixed(1);
 
-  const height = nurseDossier?.height ?? 1.75;
+  // ── HYPERTENSION ─────────────────────────────────────────
+  const systolic = latestVital?.bloodPressureSystolic ?? latestVital?.bloodPressuresystolic ?? 0;
+  const hypertension = (nurseDossier?.medicalHistory?.hypertension || systolic > 140) ? 1 : 0;
 
-  const bmi = weight
-    ? parseFloat((weight / (height * height)).toFixed(1))
-    : 28;
+  // ── HEART DISEASE ────────────────────────────────────────
+  const heart_disease = (nurseDossier?.medicalHistory?.heartDisease ||
+    (latestVital?.heartRate && latestVital.heartRate > 100)) ? 1 : 0;
 
-  // ── BLOOD PRESSURE ──────────────────
-  const systolic =
-    latestVital?.bloodPressureSystolic ||
-    latestVital?.bloodPressuresystolic ||
-    0;
+  // ── GLUCOSE ──────────────────────────────────────────────
+  const avg_glucose_level = latestVital?.bloodGlucose
+    ?? (latestVital?.glucoseLevel != null ? latestVital.glucoseLevel * 100 : null)
+    ?? (age > 60 ? 180 : age > 45 ? 130 : 95);
 
-  const hypertension =
-    nurseDossier?.medicalHistory?.hypertension ||
-    systolic > 140;
+  // ── GENDER ───────────────────────────────────────────────
+  const genderRaw = (patient.gender ?? '').toLowerCase();
+  const gender = genderRaw === 'male' ? 1 : 0;
 
-  // ── HEART DISEASE ───────────────────
-  const heart_disease =
-    nurseDossier?.medicalHistory?.heartDisease ||
-    (latestVital?.heartRate ? latestVital.heartRate > 100 : false);
+  // ── MARITAL STATUS ───────────────────────────────────────
+  const marital = (patient.maritalStatus ?? '').toLowerCase();
+  const ever_married = (marital === 'married' || marital === 'yes') ? 1 : 0;
 
-  // ── GLUCOSE ─────────────────────────
-  const glucoseRaw =
-    latestVital?.bloodGlucose ??
-    (latestVital?.glucoseLevel != null
-      ? latestVital.glucoseLevel * 100
-      : undefined);
+  // ── WORK TYPE 🔥 ENCODÉ EN NOMBRE 🔥 ─────────────────────
+  const work_type = this.encodeWorkType(patient.workType);
 
-  const avg_glucose_level =
-    glucoseRaw ?? (age > 60 ? 180 : age > 45 ? 130 : 95);
+  // ── RESIDENCE TYPE ───────────────────────────────────────
+  const residenceRaw = (patient.residenceType ?? patient.address ?? '').toLowerCase();
+  const Residence_type = residenceRaw.includes('urban') ? 1 : 0;
 
-  // ── GENDER ──────────────────────────
-  const gender =
-    (patient as any).gender === 'male' ? 'Male' : 'Female';
+  // ── SMOKING STATUS 🔥 ENCODÉ EN NOMBRE 🔥 ────────────────
+  const smoking_status = this.encodeSmokingStatus(
+    nurseDossier?.substanceUse ?? patient.smokingStatus ?? ''
+  );
 
-  // ── MARITAL STATUS ──────────────────
-  const ever_married =
-    (patient as any).maritalStatus ?? 'No';
-
-  // ── WORK TYPE (FROM DB) ─────────────
-  const work_type =
-    (patient as any).workType ??
-    nurseDossier?.primaryDiagnosis ??
-    'Private';
-
-  // ── RESIDENCE TYPE (FROM DB) ────────
-  const Residence_type =
-    (patient as any).residenceType ??
-    (patient as any).address?.includes('Urban')
-      ? 'Urban'
-      : 'Rural';
-
-  // ── SMOKING STATUS ──────────────────
-  const smoking_status =
-    nurseDossier?.substanceUse ??
-    nurseDossier?.medicalHistory?.otherConditions ??
-    'Unknown';
-
-  // ── FINAL ML INPUT ───────────────────
+  // ── ML INPUT (valeurs NUMÉRIQUES) ────────────────────────
   const mlInput = {
     age,
+    hypertension,
+    heart_disease,
     gender,
-    hypertension: hypertension ? 1 : 0,
-    heart_disease: heart_disease ? 1 : 0,
     ever_married,
     work_type,
     Residence_type,
@@ -757,6 +814,8 @@ async predictStrokeRisk(patientId: string) {
     smoking_status,
   };
 
+  this.logger.log(`🔥 ML input for ${patientId}: ${JSON.stringify(mlInput)}`);
+
   try {
     const res = await fetch('http://localhost:5001/predict', {
       method: 'POST',
@@ -764,35 +823,97 @@ async predictStrokeRisk(patientId: string) {
       body: JSON.stringify(mlInput),
     });
 
-    if (!res.ok) throw new Error(`ML service HTTP ${res.status}`);
+    if (!res.ok) {
+      const errorText = await res.text();
+      this.logger.error(`❌ ML service HTTP ${res.status}: ${errorText}`);
+      throw new Error(`ML service HTTP ${res.status}`);
+    }
 
-    const prediction = await res.json();
+    const mlResult: any = await res.json();
+    
+    // 🔥 CORRECTION PRINCIPALE : Extraire correctement la réponse Flask
+    const flaskPrediction = mlResult.prediction || {};
+    const flaskClustering = mlResult.clustering || {};
+    const flaskRecommendations = mlResult.recommendations || [];
+    
+    this.logger.log(`✅ ML result: level=${flaskPrediction.riskLevel}, score=${flaskPrediction.riskScore}`);
+
+    // 🔥 Utiliser les recommandations de Flask (plus complètes) OU générer les nôtres
+    const recommendations = flaskRecommendations.length > 0 
+      ? flaskRecommendations 
+      : this.buildRecommendations(flaskPrediction.riskLevel, mlInput);
 
     return {
       patientId,
-      patientName: `${patient.firstName} ${patient.lastName}`,
-      mlInput,
-      prediction,
+      patientName: `${patient.firstName ?? ''} ${patient.lastName ?? ''}`.trim(),
+      mlInput: {
+        age,
+        gender: genderRaw === 'male' ? 'Male' : 'Female',
+        hypertension: hypertension === 1,
+        heart_disease: heart_disease === 1,
+        avg_glucose_level,
+        bmi,
+      },
+      prediction: {
+        // ✅ ACCÈS CORRECT via flaskPrediction
+        riskScore: flaskPrediction.riskScore,
+        riskLevel: flaskPrediction.riskLevel,
+        riskColor: flaskPrediction.riskColor,
+        riskLabel: flaskPrediction.riskLabel,
+        riskProbability: flaskPrediction.riskProbability,
+        isHighRisk: flaskPrediction.isHighRisk,
+        // ✅ ACCÈS CORRECT via flaskClustering
+        clusterLabel: flaskClustering.isHighRiskCluster 
+          ? 'Profil à risque' 
+          : 'Profil standard',
+        recommendations,
+      },
       generatedAt: new Date().toISOString(),
     };
-  } catch (err: any) {
-    this.logger.error(`ML prediction failed: ${err.message}`);
 
+  } catch (err: any) {
+    this.logger.error(`❌ ML prediction failed for ${patientId}: ${err.message}`);
+    
     return {
       patientId,
-      error: 'ML service unavailable',
-      mlInput,
+      patientName: `${patient.firstName ?? ''} ${patient.lastName ?? ''}`.trim(),
+      mlInput: { 
+        age, 
+        gender: genderRaw, 
+        hypertension: hypertension === 1, 
+        heart_disease: heart_disease === 1, 
+        avg_glucose_level, 
+        bmi 
+      },
+      prediction: {
+        riskScore: 0,
+        riskLevel: 'LOW',
+        riskColor: '#22c55e',
+        clusterLabel: 'Service indisponible',
+        recommendations: ['Service ML indisponible — Veuillez réessayer plus tard']
+      },
+      error: 'ML service indisponible',
+      generatedAt: new Date().toISOString(),
     };
   }
 }
 
-  async predictAllPatientsRisk() {
+
+
+  async predictAllPatientsRisk(doctorId?: string) {
     const patientRole = await this.roleModel.findOne({ name: 'patient' }).lean();
     if (!patientRole) return [];
 
-    const patients = await this.userModel
-      .find({ role: patientRole._id, isArchived: { $ne: true } })
-      .lean();
+    const query: any = { role: (patientRole as any)._id, isArchived: { $ne: true } };
+
+    if (doctorId) {
+      query.$or = [
+        { doctorId: doctorId },
+        { assignedDoctor: doctorId },
+      ];
+    }
+
+    const patients = await this.userModel.find(query).lean();
 
     const results = await Promise.all(
       (patients as any[]).map(p => this.predictStrokeRisk(p._id.toString()).catch(() => null))

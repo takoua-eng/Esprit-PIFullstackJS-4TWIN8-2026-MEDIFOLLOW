@@ -214,6 +214,24 @@ export class RemindersService implements OnModuleInit {
       .exec();
   }
 
+  /**
+   * Auto-mark sent reminders as 'answered' when a patient submits vitals or symptoms.
+   * Call this from vitals.service and symptoms.service after a successful create.
+   */
+  async markAnsweredForPatient(patientId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(patientId)) return;
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const todayEnd   = new Date(); todayEnd.setHours(23, 59, 59, 999);
+    await this.reminderModel.updateMany(
+      {
+        patientId: new Types.ObjectId(patientId),
+        status: 'sent',
+        createdAt: { $gte: todayStart, $lte: todayEnd },
+      },
+      { $set: { status: 'answered' } },
+    ).exec();
+  }
+
   async complete(id: string): Promise<ReminderListItem> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(`Reminder ${id} not found`);

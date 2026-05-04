@@ -1,34 +1,22 @@
-// src/auth/guards/jwt-auth.guard.ts
-import {
-  Injectable,
-  ExecutionContext,
-  UnauthorizedException,
-} from '@nestjs/common';
-import { AuthGuard } from '@nestjs/passport';
-import { Observable } from 'rxjs';
+import { Injectable, ExecutionContext, UnauthorizedException, CanActivate } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
-export class JwtAuthGuard extends AuthGuard('jwt') {
-  // ✅ Optionnel: Personnaliser la logique d'activation
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
-    // Tu peux ajouter du logging ou des conditions ici
-    return super.canActivate(context);
-  }
+export class JwtAuthGuard implements CanActivate {
+  constructor(private jwtService: JwtService) {}
 
-  // ✅ Optionnel: Gérer les erreurs d'authentification de façon personnalisée
-  handleRequest<TUser = any>(
-    err: any,
-    user: TUser,
-    info: any,
-    context: ExecutionContext,
-    status?: any,
-  ): TUser {
-    // Si erreur ou pas d'user → rejeter avec Unauthorized
-
-
-    // ✅ Retourner l'utilisateur pour l'attacher à request.user
-    return user;
+  canActivate(context: ExecutionContext): boolean {
+    const request = context.switchToHttp().getRequest();
+    const token = request.headers.authorization?.split(' ')[1];
+    if (!token) throw new UnauthorizedException('Token manquant');
+    try {
+      const payload = this.jwtService.verify(token, {
+        secret: process.env.JWT_SECRET,
+      });
+      request.user = payload;
+      return true;
+    } catch {
+      throw new UnauthorizedException('Token invalide');
+    }
   }
 }

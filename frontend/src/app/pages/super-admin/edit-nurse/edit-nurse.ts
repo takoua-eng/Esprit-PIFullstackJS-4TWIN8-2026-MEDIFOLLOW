@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Component, Inject, OnInit } from '@angular/core';
 import {
   FormBuilder,
@@ -113,7 +114,7 @@ export class EditNurse implements OnInit {
 
     // Load photo preview if exists
     if (this.data?.photo) {
-      this.photoPreview = `http://localhost:3000/uploads/${this.data.photo}`;
+      this.photoPreview = `${environment.apiUrl}/uploads/${this.data.photo}`;
       console.log('🖼️ Photo chargée:', this.photoPreview);
     }
 

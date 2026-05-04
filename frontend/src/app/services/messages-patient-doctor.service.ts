@@ -1,3 +1,4 @@
+import { environment } from "src/environments/environment";
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -7,7 +8,7 @@ import { Observable, throwError } from 'rxjs';
 })
 export class MessagesPatientDoctorService {
 
-  private API = 'http://localhost:3000';
+  private API = '${environment.apiUrl}';
 
   constructor(private http: HttpClient) {}
 

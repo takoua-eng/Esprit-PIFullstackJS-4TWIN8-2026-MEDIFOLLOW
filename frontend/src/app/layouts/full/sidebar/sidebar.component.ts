@@ -6,13 +6,13 @@ import {
   Output,
   ViewChild,
 } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { BrandingComponent } from './branding.component';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 
 @Component({
   selector: 'app-sidebar',
-  imports: [BrandingComponent, TablerIconsModule, MaterialModule],
+  imports: [BrandingComponent, TablerIconComponent, MaterialModule],
   templateUrl: './sidebar.component.html',
 })
 export class SidebarComponent implements OnInit {

@@ -1,9 +1,9 @@
 import { Component, Inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { VideoCallInviteDto } from '../services/video-calls-api.service';
 import { buildJitsiMeetUrl } from './api.config';
 
@@ -15,7 +15,7 @@ import { buildJitsiMeetUrl } from './api.config';
     MatDialogModule,
     MatButtonModule,
     TranslateModule,
-    TablerIconsModule,
+    TablerIconComponent,
   ],
   templateUrl: './patient-video-call-dialog.component.html',
   styleUrls: ['./patient-video-call-dialog.component.scss'],

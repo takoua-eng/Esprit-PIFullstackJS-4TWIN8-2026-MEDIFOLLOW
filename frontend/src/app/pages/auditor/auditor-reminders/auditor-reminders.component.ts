@@ -1,8 +1,8 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
@@ -37,7 +37,7 @@ interface Stats {
 @Component({
   selector: 'app-auditor-reminders',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-reminders.component.html',
   styleUrls: ['./auditor-reminders.component.scss'],
 })
@@ -118,7 +118,7 @@ export class AuditorRemindersComponent implements OnInit, AfterViewInit {
   }
 
   delayLabel(min: number | null): string {
-    if (min === null) return 'â€”';
+    if (min === null) return '—';
     if (min < 60) return `${min}m`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
   }

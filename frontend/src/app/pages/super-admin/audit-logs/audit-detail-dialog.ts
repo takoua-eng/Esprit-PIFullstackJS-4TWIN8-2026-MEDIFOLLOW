@@ -1,14 +1,14 @@
 import { Component, Inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { AuditLog } from '../../../services/audit.service';
 
 @Component({
   selector: 'app-audit-detail-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconsModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconComponent],
   template: `
     <div class="ad-wrap">
 
@@ -18,7 +18,7 @@ import { AuditLog } from '../../../services/audit.service';
           <i-tabler name="shield-check" class="icon-22"></i-tabler>
         </div>
         <div>
-          <div class="ad-header-title">DÃ©tail de l'Ã©vÃ©nement</div>
+          <div class="ad-header-title">Détail de l'événement</div>
           <div class="ad-header-sub">{{ log.createdAt | date:'dd/MM/yyyy Ã  HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
@@ -121,7 +121,7 @@ import { AuditLog } from '../../../services/audit.service';
             </div>
             <div class="diff-col after">
               <div class="diff-label">
-                <i-tabler name="circle-plus" class="icon-13"></i-tabler> AprÃ¨s
+                <i-tabler name="circle-plus" class="icon-13"></i-tabler> Après
               </div>
               <div *ngFor="let key of diffKeys()" class="diff-row">
                 <span class="diff-key">{{ key }}</span>
@@ -133,7 +133,7 @@ import { AuditLog } from '../../../services/audit.service';
           <!-- JSON brut si seulement after -->
           <div *ngIf="!log.before && log.after">
             <div class="json-label">
-              <i-tabler name="circle-plus" class="icon-13" style="color:#00b894"></i-tabler> DonnÃ©es crÃ©Ã©es
+              <i-tabler name="circle-plus" class="icon-13" style="color:#00b894"></i-tabler> Données créées
             </div>
             <pre class="json-block">{{ log.after | json }}</pre>
           </div>
@@ -141,7 +141,7 @@ import { AuditLog } from '../../../services/audit.service';
           <!-- JSON brut si seulement before -->
           <div *ngIf="log.before && !log.after">
             <div class="json-label">
-              <i-tabler name="circle-minus" class="icon-13" style="color:#d63031"></i-tabler> DonnÃ©es supprimÃ©es
+              <i-tabler name="circle-minus" class="icon-13" style="color:#d63031"></i-tabler> Données supprimées
             </div>
             <pre class="json-block">{{ log.before | json }}</pre>
           </div>
@@ -150,7 +150,7 @@ import { AuditLog } from '../../../services/audit.service';
         <!-- No changes -->
         <div *ngIf="!log.after && !log.before" class="no-changes">
           <i-tabler name="info-circle" class="icon-16" style="color:#aaa"></i-tabler>
-          Aucune donnÃ©e before/after enregistrÃ©e pour cet Ã©vÃ©nement
+          Aucune donnée before/after enregistrée pour cet événement
         </div>
 
       </mat-dialog-content>
@@ -295,9 +295,9 @@ export class AuditDetailDialog {
   }
 
   getVal(obj: any, key: string): string {
-    if (!obj) return 'â€”';
+    if (!obj) return '—';
     const v = obj[key];
-    if (v === undefined || v === null) return 'â€”';
+    if (v === undefined || v === null) return '—';
     if (typeof v === 'object') return JSON.stringify(v).slice(0, 60);
     return String(v);
   }
@@ -307,8 +307,7 @@ export class AuditDetailDialog {
   }
 
   parseUA(ua: string): string {
-    if (!ua || ua === 'unknown') return 'â€”';
-    // Extract browser name
+    if (!ua || ua === 'unknown') return '—';
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

@@ -10,6 +10,11 @@ import { User } from './users.schema';
 import { Role } from '../roles/role.schema';
 import { Service } from '../service/services/service.schema';
 import { PatientDiagnosis } from './patient-diagnosis.schema';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
+import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
+import { Types } from 'mongoose';
+import { afterEach, beforeEach, describe } from 'node:test';
 import { NotificationsService } from '../notifications-super-admin/notifications.service';
 
 jest.mock('bcrypt', () => ({ hash: jest.fn(), compare: jest.fn() }));
@@ -62,7 +67,7 @@ describe('UsersService', () => {
       findOne: jest.fn().mockResolvedValue(null),
       findById: jest.fn().mockResolvedValue(mockUser),
       find: jest.fn().mockReturnValue(buildChain([mockUser])),
-      findByIdAndUpdate: jest.fn().mockResolvedValue(mockUser),
+      findByIdAndUpdate: jest.fn().mockReturnValue(buildChain(mockUser)),
       findOneAndUpdate: jest.fn().mockReturnValue(buildFoaChain(mockUser)),
       updateOne: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
       create: jest.fn().mockImplementation((dto: any) =>
@@ -240,22 +245,30 @@ describe('UsersService', () => {
 
   describe('activateUser()', () => {
     it('should set isActive = true and save', async () => {
-      await service.activateUser('123');
-      expect(mockUser.isActive).toBe(true);
-      expect(mockUser.save).toHaveBeenCalled();
+      const result = await service.activateUser('123');
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '123',
+        { $set: { isActive: true } },
+        { new: true, strict: false },
+      );
+      expect(result).toEqual(mockUser);
     });
 
     it('should throw NotFoundException when user not found', async () => {
-      userModel.findById.mockResolvedValueOnce(null);
+      userModel.findByIdAndUpdate.mockReturnValueOnce(buildChain(null));
       await expect(service.activateUser('123')).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('deactivateUser()', () => {
     it('should set isActive = false and save', async () => {
-      await service.deactivateUser('123');
-      expect(mockUser.isActive).toBe(false);
-      expect(mockUser.save).toHaveBeenCalled();
+      const result = await service.deactivateUser('123');
+      expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        '123',
+        { $set: { isActive: false } },
+        { new: true, strict: false },
+      );
+      expect(result).toEqual(mockUser);
     });
   });
 

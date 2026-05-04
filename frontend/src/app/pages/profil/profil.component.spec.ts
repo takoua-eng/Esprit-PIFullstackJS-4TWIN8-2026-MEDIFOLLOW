@@ -1,10 +1,9 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { ProfilComponent } from './profil.component';
 import { UserService } from 'src/app/services/users.service';
 import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import * as TablerIcons from 'angular-tabler-icons/icons';
 import { NEVER, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 
@@ -29,10 +28,10 @@ describe('ProfilComponent', () => {
       imports: [
         ProfilComponent,
         TranslateModule.forRoot(),
-        TablerIconsModule.pick(TablerIcons),
         NoopAnimationsModule
       ],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: UserService, useValue: userServiceSpy },
         { provide: MatDialog, useValue: dialogSpy }
       ]
@@ -123,7 +122,7 @@ describe('ProfilComponent', () => {
         photo: 'uploads/avatar.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe('http://localhost:3000/uploads/avatar.jpg');
+      expect(component.profile.avatar).toBe('${environment.apiUrl}/uploads/avatar.jpg');
     });
 
     it('should format avatar URL correctly (raw filename)', () => {
@@ -131,7 +130,7 @@ describe('ProfilComponent', () => {
         photo: 'image.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe('http://localhost:3000/uploads/image.jpg');
+      expect(component.profile.avatar).toBe('${environment.apiUrl}/uploads/image.jpg');
     });
 
     it('should handle http avatar URL correctly', () => {

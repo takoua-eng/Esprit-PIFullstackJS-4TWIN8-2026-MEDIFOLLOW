@@ -5,6 +5,7 @@ import { User, UserSchema } from '../users/users.schema';
 import { Role, RoleSchema } from '../roles/role.schema';
 import { VitalsService } from './vitals.service';
 import { VitalsController } from './vitals.controller';
+import { RemindersModule } from '../reminders/reminders.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { VitalsController } from './vitals.controller';
       { name: User.name, schema: UserSchema },
       { name: Role.name, schema: RoleSchema },
     ]),
+    RemindersModule,
   ],
   controllers: [VitalsController],
   providers: [VitalsService],

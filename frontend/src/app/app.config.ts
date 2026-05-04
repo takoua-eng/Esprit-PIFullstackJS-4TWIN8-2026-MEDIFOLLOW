@@ -18,7 +18,7 @@ import { provideTranslateHttpLoader } from '@ngx-translate/http-loader';
 import { provideNativeDateAdapter } from '@angular/material/core';
 
 // icons
-import { TablerIconsModule } from 'angular-tabler-icons';
+import { provideTablerIcons } from 'angular-tabler-icons';
 import * as TablerIcons from 'angular-tabler-icons/icons';
 
 // perfect scrollbar
@@ -30,6 +30,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    ...provideTablerIcons(TablerIcons),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(
       routes,
@@ -50,7 +51,6 @@ export const appConfig: ApplicationConfig = {
       FormsModule,
       ReactiveFormsModule,
       MaterialModule,
-      TablerIconsModule.pick(TablerIcons),
       NgScrollbarModule,
     ),
     provideTranslateHttpLoader({

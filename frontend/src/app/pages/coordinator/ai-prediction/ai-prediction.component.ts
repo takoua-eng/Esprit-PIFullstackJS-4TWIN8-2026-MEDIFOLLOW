@@ -1,12 +1,12 @@
 import { Component, OnInit, inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { CoordinatorService } from 'src/app/services/coordinator.service';
 import { CoreService } from 'src/app/services/core.service';
-
+import { environment } from 'src/environments/environment';
 export interface PatientPrediction {
   patientId: string; name: string; email: string; department: string;
   complianceRate: number; consecutiveMissingDays: number; lastSubmission: string | null;
@@ -30,7 +30,7 @@ export interface BriefingData {
 @Component({
   selector: 'app-ai-prediction',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, TranslateModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent, TranslateModule],
   templateUrl: './ai-prediction.component.html',
   styleUrls: ['./ai-prediction.component.scss'],
 })
@@ -53,7 +53,7 @@ export class AiPredictionComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {
@@ -74,7 +74,7 @@ if (!this.coordinatorId) {
 
   loadPrediction(): void {
     this.loading = true;
-    this.http.get<PredictionResponse>(`http://localhost:3000/coordinator/${this.coordinatorId}/prediction`).subscribe({
+    this.http.get<PredictionResponse>(`${environment.apiUrl}/coordinator/${this.coordinatorId}/prediction`).subscribe({
       next: (data) => { this.prediction = data; this.loading = false; this.runAiAnalysis(); },
       error: (err) => { console.error('Prediction error', err); this.loading = false; },
     });

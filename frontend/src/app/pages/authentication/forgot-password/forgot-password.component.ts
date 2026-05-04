@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -31,7 +32,7 @@ export class ForgotPasswordComponent {
   step = 1; // 1 = enter email, 2 = enter code + new password
   userEmail = ''; // To remember for visual or logic
 
-  private backendUrl = 'http://localhost:3000/auth';
+  private backendUrl = '${environment.apiUrl}/auth';
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.forgotForm = this.fb.group({

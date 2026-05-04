@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
@@ -33,7 +34,7 @@ export interface Admin {
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private baseUrl = 'http://localhost:3000/users';
+  private baseUrl = '${environment.apiUrl}/users';
 
   constructor(private http: HttpClient) {}
 

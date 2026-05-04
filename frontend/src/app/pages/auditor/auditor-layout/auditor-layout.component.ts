@@ -1,11 +1,11 @@
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule, Router, NavigationEnd } from '@angular/router';
 import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { BreakpointObserver } from '@angular/cdk/layout';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
 import { NgScrollbarModule } from 'ngx-scrollbar';
@@ -65,7 +65,7 @@ const auditorNav: NavItem[] = [
   encapsulation: ViewEncapsulation.None,
   imports: [
     CommonModule, RouterModule, MatSidenavModule, MaterialModule,
-    TablerIconsModule, TranslateModule, NgScrollbarModule,
+    TablerIconComponent, TranslateModule, NgScrollbarModule,
     BrandingComponent, AppNavItemComponent, HeaderComponent, AppTopstripComponent,
   ],
   template: `

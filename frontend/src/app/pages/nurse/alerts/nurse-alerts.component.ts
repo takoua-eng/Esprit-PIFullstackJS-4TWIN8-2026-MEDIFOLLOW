@@ -1,10 +1,10 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AlertDto, AlertsApiService } from 'src/app/services/alerts-api.service';
 import { UserListRow, UsersApiService } from 'src/app/services/users-api.service';
@@ -16,7 +16,7 @@ import { UserListRow, UsersApiService } from 'src/app/services/users-api.service
     FormsModule,
     RouterModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './nurse-alerts.component.html',

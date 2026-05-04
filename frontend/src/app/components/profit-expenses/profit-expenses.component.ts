@@ -1,5 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
+?import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -43,7 +43,7 @@ export interface ProfitExpanceChart {
 
 @Component({
   selector: 'app-profit-expenses',
-  imports: [MaterialModule, TablerIconsModule, MatButtonModule, NgApexchartsModule],
+  imports: [MaterialModule, TablerIconComponent, MatButtonModule, NgApexchartsModule],
   templateUrl: './profit-expenses.component.html',
 })
 export class AppProfitExpensesComponent implements OnChanges {
@@ -51,7 +51,7 @@ export class AppProfitExpensesComponent implements OnChanges {
 
   @Input() mode: 'day' | 'month' | 'year' = 'month';
 
-  /** DonnÃ©es sÃ©ries temps (API traffic). Si dÃ©finies et non vides, remplacent les jeux statiques. */
+  /** Données séries temps (API traffic). Si définies et non vides, remplacent les jeux statiques. */
   @Input() chartData: TrafficChartPoint[] | null = null;
 
   months: Month[] = [
@@ -115,7 +115,7 @@ export class AppProfitExpensesComponent implements OnChanges {
     }
   }
 
-  /** DonnÃ©es API prioritaires ; sinon graphique de dÃ©mo selon le mode. */
+  /** Données API prioritaires ; sinon graphique de démo selon le mode. */
   private refreshChart(): void {
     if (this.chartData && this.chartData.length > 0) {
       this.applyApiChartData(this.chartData);

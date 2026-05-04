@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -15,7 +16,7 @@ export interface Role {
   providedIn: 'root',
 })
 export class RoleService {
-  private api = 'http://localhost:3000/roles';
+  private api = '${environment.apiUrl}/roles';
 
   constructor(private http: HttpClient) {}
 
@@ -40,10 +41,10 @@ export class RoleService {
   }
 
   getUsersCountByRole(): Observable<any> {
-    return this.http.get<any>('http://localhost:3000/users/stats/roles-count');
+    return this.http.get<any>('${environment.apiUrl}/users/stats/roles-count');
   }
 
   getPermissions(): Observable<string[]> {
-    return this.http.get<string[]>('http://localhost:3000/roles/permissions');
+    return this.http.get<string[]>('${environment.apiUrl}/roles/permissions');
   }
 }

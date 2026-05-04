@@ -1,103 +1,110 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { HttpClient } from '@angular/common/http';
-import { catchError, forkJoin, of } from 'rxjs';
+import { catchError, of } from 'rxjs';
+import { MaterialModule } from 'src/app/material.module';
 import { API_BASE_URL } from 'src/app/core/api.config';
-
-interface StrokeResult {
-  patientId: string;
-  patientName: string;
-  mlInput?: any;
-  prediction?: {
-    riskScore: number;
-    riskLevel: 'LOW' | 'MEDIUM' | 'HIGH';
-    riskColor: string;
-    clusterLabel: string;
-    recommendations: string[];
-  };
-  error?: string;
-}
+import { AuthSessionService } from 'src/app/services/auth-session.service';
 
 @Component({
   selector: 'app-stroke-risk',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './stroke-risk.component.html',
   styleUrls: ['./stroke-risk.component.scss'],
 })
 export class StrokeRiskComponent implements OnInit {
-  results: StrokeResult[] = [];
-  filtered: StrokeResult[] = [];
+
+  results: any[] = [];
+  filtered: any[] = [];
+  selected: any;
   loading = false;
-  selected: StrokeResult | null = null;
+
   searchText = '';
-  filterLevel: 'ALL' | 'HIGH' | 'MEDIUM' | 'LOW' = 'ALL';
+  filterLevel: any = 'ALL';
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private authSession: AuthSessionService) {}
 
-  ngOnInit(): void { this.load(); }
-
-  private getDoctorId(): string | null {
-    const token = typeof localStorage !== 'undefined' ? localStorage.getItem('accessToken') : null;
-    if (!token) return null;
-    try {
-      const payload = JSON.parse(atob(token.split('.')[1])) as { sub?: string };
-      return payload.sub ?? null;
-    } catch { return null; }
+  ngOnInit() {
+    this.load();
   }
 
-  load(): void {
+  load() {
     this.loading = true;
-    this.selected = null;
+    this.results = [];
+    this.filtered = [];
 
-    const doctorId = this.getDoctorId();
-    if (!doctorId) { this.loading = false; return; }
+    const user = this.authSession.getUser();
+    const doctorId = user?._id || user?.id || '';
+    const url = doctorId
+      ? `${API_BASE_URL}/ai/stroke-risk-all?doctorId=${doctorId}`
+      : `${API_BASE_URL}/ai/stroke-risk-all`;
 
-    // Get patients already filtered by doctor from backend
-    this.http.get<any[]>(`${API_BASE_URL}/users/patients`).pipe(catchError(() => of([]))).subscribe(myPatients => {
-
-      if (!myPatients.length) {
-        this.results = []; this.filtered = []; this.loading = false;
-        return;
-      }
-
-      // Predict stroke risk for each patient
-      forkJoin(myPatients.map(p =>
-        this.http.get<StrokeResult>(`${API_BASE_URL}/ai/stroke-risk/${p._id}`)
-          .pipe(catchError(() => of({
-            patientId: p._id,
-            patientName: `${p.firstName} ${p.lastName}`,
-            error: 'ML service indisponible',
-          } as StrokeResult)))
-      )).subscribe(results => {
-        this.results = results.filter(r => r !== null) as StrokeResult[];
-        this.applyFilters();
-        this.loading = false;
-      });
+    this.http.get<any[]>(url).pipe(
+      catchError(() => of([]))
+    ).subscribe(res => {
+      this.results = res ?? [];
+      this.applyFilters();
+      this.loading = false;
     });
   }
 
-  applyFilters(): void {
+  // 🔥 IMPORTANT FIX NORMALIZATION
+  getLevel(r: any): string {
+    const level = r?.prediction?.riskLevel;
+    if (!level) return 'LOW';
+    return level.toUpperCase();
+  }
+
+  getLabel(level: string): string {
+    switch (level) {
+      case 'HIGH': return 'Profil à risque �lev�';
+      case 'MEDIUM': return 'Risque mod�r�';
+      default: return 'Faible risque';
+    }
+  }
+
+  levelColor(level: string): string {
+    return {
+      HIGH: '#d63031',
+      MEDIUM: '#fdcb6e',
+      LOW: '#00b894'
+    }[level] || '#b2bec3';
+  }
+
+  levelBg(level: string): string {
+    return {
+      HIGH: '#d6303115',
+      MEDIUM: '#fdcb6e15',
+      LOW: '#00b89415'
+    }[level] || '#eee';
+  }
+
+  applyFilters() {
     const s = this.searchText.toLowerCase();
+
     this.filtered = this.results.filter(r => {
-      const matchText = !s || r.patientName.toLowerCase().includes(s);
-      const matchLevel = this.filterLevel === 'ALL' || r.prediction?.riskLevel === this.filterLevel;
+
+      const level = this.getLevel(r);
+
+      const matchText = !s || r.patientName?.toLowerCase().includes(s);
+      const matchLevel = this.filterLevel === 'ALL' || level === this.filterLevel;
+
       return matchText && matchLevel;
     });
   }
 
-  get highCount():   number { return this.results.filter(r => r.prediction?.riskLevel === 'HIGH').length; }
-  get mediumCount(): number { return this.results.filter(r => r.prediction?.riskLevel === 'MEDIUM').length; }
-  get lowCount():    number { return this.results.filter(r => r.prediction?.riskLevel === 'LOW').length; }
-
-  levelColor(level: string): string {
-    return ({ HIGH: '#d63031', MEDIUM: '#fdcb6e', LOW: '#00b894' } as any)[level] ?? '#b2bec3';
+  get highCount() {
+    return this.results.filter(r => this.getLevel(r) === 'HIGH').length;
   }
 
-  levelBg(level: string): string {
-    return ({ HIGH: '#d6303115', MEDIUM: '#fdcb6e15', LOW: '#00b89415' } as any)[level] ?? '#f1f3f5';
+  get mediumCount() {
+    return this.results.filter(r => this.getLevel(r) === 'MEDIUM').length;
+  }
+
+  get lowCount() {
+    return this.results.filter(r => this.getLevel(r) === 'LOW').length;
   }
 }

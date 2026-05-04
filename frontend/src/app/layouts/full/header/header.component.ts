@@ -1,8 +1,9 @@
+import { environment } from 'src/environments/environment';
 import {
   Component, Output, EventEmitter, Input, ViewEncapsulation, OnInit, OnDestroy,
 } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterModule, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,7 +25,7 @@ import { API_BASE_URL } from 'src/app/core/api.config';
   standalone: true,
   imports: [
     CommonModule, RouterModule, NgScrollbarModule,
-    TablerIconsModule, MaterialModule, TranslateModule,
+    TablerIconComponent, MaterialModule, TranslateModule,
     ZoomControlComponent,
   ],
   templateUrl: './header.component.html',
@@ -72,8 +73,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (this.currentUser.photo && typeof this.currentUser.photo === 'string' && this.currentUser.photo !== 'null' && this.currentUser.photo !== 'undefined' && this.currentUser.photo !== '') {
           const photoPath = this.currentUser.photo.replace(/\\/g, '/');
           this.currentUser.photoUrl = photoPath.startsWith('uploads/') || photoPath.startsWith('http')
-            ? `http://localhost:3000/${photoPath}`
-            : `http://localhost:3000/uploads/${photoPath}`;
+            ? `${environment.apiUrl}/${photoPath}`
+            : `${environment.apiUrl}/uploads/${photoPath}`;
         } else {
           this.currentUser.photoUrl = '/assets/images/profile/user-1.jpg';
         }

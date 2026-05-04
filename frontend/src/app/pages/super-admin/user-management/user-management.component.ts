@@ -1,8 +1,9 @@
+import { environment } from 'src/environments/environment';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort, MatSortModule } from '@angular/material/sort';
 import { MatPaginator, MatPaginatorModule } from '@angular/material/paginator';
@@ -50,7 +51,7 @@ const CREATE_PERMISSION: Record<string, string> = {
   standalone: true,
   imports: [
     CommonModule, RouterModule, MaterialModule,
-    TablerIconsModule, MatSortModule, MatPaginatorModule,
+    TablerIconComponent, MatSortModule, MatPaginatorModule,
     MatProgressSpinnerModule, MatSnackBarModule,
   ],
   templateUrl: './user-management.component.html',
@@ -142,30 +143,34 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     }).afterClosed().subscribe(r => { if (r) this.load(); });
   }
 
-  toggleActive(user: UserRow, event?: any): void {
-    // Prevent the toggle from changing visually before confirmation
-    if (event) { event.source.checked = user.isActive; }
+  toggleActive(user: UserRow): void {
+    const isCurrentlyActive = user.isActive;
+    const action = isCurrentlyActive ? 'Deactivate' : 'Activate';
 
-    const action = user.isActive ? 'Deactivate' : 'Activate';
     this.dialog.open(ConfirmDialogComponent, {
       width: '380px',
+      disableClose: false,
       data: {
         title: `${action} User`,
         message: `Are you sure you want to ${action.toLowerCase()} ${user.firstName} ${user.lastName}?`,
         confirmLabel: action,
-        confirmColor: user.isActive ? 'warn' : 'primary',
+        confirmColor: isCurrentlyActive ? 'warn' : 'primary',
       },
-    }).afterClosed().subscribe(confirmed => {
-      if (!confirmed) return;
-      const obs = user.isActive ? this.svc.deactivate(user._id) : this.svc.activate(user._id);
-      obs.subscribe({
+    }).afterClosed().subscribe((confirmed: any) => {
+      if (confirmed !== true) return;
+
+      const obs$ = isCurrentlyActive
+        ? this.svc.deactivate(user._id)
+        : this.svc.activate(user._id);
+
+      obs$.subscribe({
         next: () => {
-          this.snack.open(`User ${action.toLowerCase()}d`, 'OK', { duration: 2500 });
+          this.snack.open(`User ${action.toLowerCase()}d successfully`, 'OK', { duration: 2500 });
           this.load();
         },
         error: (err) => {
-          console.error('Toggle error:', err);
-          this.snack.open('Error updating user — check permissions', 'OK', { duration: 3000 });
+          console.error(`${action} error:`, err);
+          this.snack.open(`Failed to ${action.toLowerCase()} user`, 'OK', { duration: 3000 });
         },
       });
     });
@@ -214,7 +219,17 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     return this.core.hasPermission(CREATE_PERMISSION[this.selectedRole] ?? 'users:create');
   }
 
-  canEdit(): boolean   { return this.core.hasPermission('users:update') || this.core.hasPermission(`${this.selectedRole}s:update`); }
+  canEdit(): boolean {
+    const perms = this.core.getPermissions();
+    if (perms.includes('*')) return true;
+    return this.core.hasPermission('users:update')
+      || this.core.hasPermission(`${this.selectedRole}s:update`)
+      || this.core.hasPermission('patients:update')
+      || this.core.hasPermission('doctors:update')
+      || this.core.hasPermission('nurses:update')
+      || this.core.hasPermission('coordinators:update')
+      || this.core.hasPermission('auditors:update');
+  }
   canDelete(): boolean { return this.core.hasPermission('users:delete') || this.core.hasPermission(`${this.selectedRole}s:delete`); }
 
   getRoleName(user: UserRow): string {
@@ -230,7 +245,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   }
 
   getPhoto(user: UserRow): string {
-    return user.photo ? `http://localhost:3000/uploads/${user.photo}` : '';
+    return user.photo ? `${environment.apiUrl}/uploads/${user.photo}` : '';
   }
 
   getInitials(user: UserRow): string {

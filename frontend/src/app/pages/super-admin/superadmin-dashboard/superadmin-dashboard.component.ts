@@ -1,8 +1,8 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
@@ -21,7 +21,7 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-superadmin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule, NgApexchartsModule, TranslateModule],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconComponent, NgApexchartsModule, TranslateModule],
   templateUrl: './superadmin-dashboard.component.html',
   styleUrls: ['./superadmin-dashboard.component.scss'],
 })

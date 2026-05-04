@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
@@ -24,7 +24,7 @@ interface CoordPerf {
 @Component({
   selector: 'app-auditor-coordinators',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-coordinators.component.html',
   styleUrls: ['./auditor-coordinators.component.scss'],
 })
@@ -92,12 +92,13 @@ export class AuditorCoordinatorsComponent implements OnInit, AfterViewInit {
   }
 
   responseLabel(min: number | null): string {
-    if (min === null) return '—';
+    if (min === null) return '\u2014';
     if (min < 60) return `${min}m`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
   }
 
   rankIcon(rank: number): string {
-    return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    return rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : `#${rank}`;
   }
 }
+

@@ -1,9 +1,9 @@
 // src/app/pages/super-admin/super-header/super-header.component.ts
+import { TablerIconComponent } from 'angular-tabler-icons';
 import {
   Component, Output, EventEmitter, Input, ViewEncapsulation, OnInit, OnDestroy,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { RouterModule, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -24,7 +24,7 @@ import { API_BASE_URL } from 'src/app/core/api.config';
   standalone: true,
   imports: [
     CommonModule, RouterModule, NgScrollbarModule,
-    TablerIconsModule, MaterialModule, TranslateModule,
+    TablerIconComponent, MaterialModule, TranslateModule,
     ZoomControlComponent,
   ],
   templateUrl: './super-header.html',

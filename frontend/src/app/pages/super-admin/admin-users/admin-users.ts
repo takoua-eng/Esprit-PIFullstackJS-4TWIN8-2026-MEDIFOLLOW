@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import {
   Component,
   inject,
@@ -21,9 +22,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { AdminService } from '../../../services/superadmin/admin.service';
 import {
-  AddMedecinDialog,
+  AddDoctorDialog as AddMedecinDialog,
   DoctorData,
-} from '../add-medecin-dialog/add-medecin-dialog';
+} from '../../admin/add-medecin-dialog/add-medecin-dialog';
 
 // ✅ Interface complète
 interface AdminRow {
@@ -110,7 +111,7 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
           service: admin.service || admin.specialty || '-',
           status: admin.status || 'Active',
           photo: admin.photo
-            ? `http://localhost:3000/uploads/${admin.photo}`
+            ? `${environment.apiUrl}/uploads/${admin.photo}`
             : '',
         }));
       },

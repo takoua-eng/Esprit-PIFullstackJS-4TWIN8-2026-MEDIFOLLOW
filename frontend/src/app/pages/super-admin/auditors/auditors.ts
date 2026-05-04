@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import {
   Component,
   inject,
@@ -213,7 +214,7 @@ export class AuditorsComponent implements OnInit, AfterViewInit {
   }
 
   getPhoto(photo?: string): string {
-    return photo ? `http://localhost:3000/uploads/${photo}` : '';
+    return photo ? `${environment.apiUrl}/uploads/${photo}` : '';
   }
 
   getInitials(name: string): string {

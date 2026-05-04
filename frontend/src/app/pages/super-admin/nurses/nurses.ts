@@ -8,7 +8,7 @@ import {
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { TranslateModule } from '@ngx-translate/core';
-
+import { environment } from 'src/environments/environment';
 import { MatCardModule } from '@angular/material/card';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
@@ -131,7 +131,7 @@ export class NursesComponent implements OnInit, AfterViewInit {
                 : n.serviceId || n.service || 'N/A',
             status: n.isArchived ? 'Inactive' : 'Active',
             isActive: n.isActive ?? true,
-            photo: n.photo ? `http://localhost:3000/uploads/${n.photo}` : '',
+            photo: n.photo ? `${environment.apiUrl}/uploads/${n.photo}` : '',
           };
         });
       },

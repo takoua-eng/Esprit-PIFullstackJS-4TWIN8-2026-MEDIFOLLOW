@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Query, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { Permissions } from '../auth/decorators/permissions.decorator';
 import { AiService } from './ai.service';
@@ -15,8 +15,8 @@ export class AiController {
    */
   @Post('report')
   @Permissions('*')
-  generateReport(@Body() body: { type: string }) {
-    return this.aiService.generateReport(body.type ?? 'monthly');
+  generateReport(@Body() body: { type: string; date?: string }) {
+    return this.aiService.generateReport(body.type ?? 'monthly', body.date);
   }
 
   @Post('audit-report')
@@ -51,8 +51,8 @@ export class AiController {
 
   @Get('stroke-risk-all')
   @Permissions('*')
-  predictAllPatientsRisk() {
-    return this.aiService.predictAllPatientsRisk();
+  predictAllPatientsRisk(@Query('doctorId') doctorId?: string) {
+    return this.aiService.predictAllPatientsRisk(doctorId);
   }
   @Get('service-intelligence')
   @Permissions('*')

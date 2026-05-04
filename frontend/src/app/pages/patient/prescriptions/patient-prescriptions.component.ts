@@ -1,7 +1,7 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { PrescriptionsApiService, PrescriptionDto } from 'src/app/services/prescriptions-api.service';
 import { CoreService } from 'src/app/services/core.service';
@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
   imports: [
     CommonModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './patient-prescriptions.component.html',

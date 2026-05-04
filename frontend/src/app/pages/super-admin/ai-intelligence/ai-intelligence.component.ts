@@ -1,7 +1,8 @@
 import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/api.config';
@@ -31,8 +32,8 @@ interface ReportResult {
 const REPORT_TYPES = [
   { key: 'monthly',      label: 'Rapport mensuel',    icon: 'calendar-stats',  color: '#0984e3', desc: 'Analyse globale du mois en cours' },
   { key: 'risk',         label: 'Patients à risque',  icon: 'alert-triangle',  color: '#d63031', desc: 'Identification des patients à surveiller' },
-  { key: 'coordinators', label: 'Coordinateurs',      icon: 'users-group',     color: '#6c5ce7', desc: 'Performance et activité des coordinateurs' },
-  { key: 'anomalies',    label: 'Anomalies',          icon: 'chart-bar',       color: '#e17055', desc: 'Patterns anormaux dans les données' },
+  { key: 'coordinators', label: 'Coordinateurs',      icon: 'users-group',     color: '#6c5ce7', desc: 'Performance et activit� des coordinateurs' },
+  { key: 'anomalies',    label: 'Anomalies',          icon: 'chart-bar',       color: '#e17055', desc: 'Patterns anormaux dans les donn�es' },
 ];
 
 // ──────────────────────────────────────────────────────────
@@ -42,7 +43,7 @@ const REPORT_TYPES = [
 @Component({
   selector: 'app-ai-intelligence',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './ai-intelligence.component.html',
   styleUrls: ['./ai-intelligence.component.scss'],
 })
@@ -55,6 +56,10 @@ export class AiIntelligenceComponent implements OnInit {
   result: ReportResult | null = null;
   history: ReportResult[] = [];
 
+  // ── Date selector ────────────────────────────────────────
+  selectedDate: string = new Date().toISOString().split('T')[0]; // today by default
+  readonly today: string = new Date().toISOString().split('T')[0];
+
   // ── LOGO URL ────────────────────────────────────────────
   logoUrl = 'assets/images/medifollow-logo.png';
 
@@ -62,14 +67,14 @@ export class AiIntelligenceComponent implements OnInit {
 
   ngOnInit(): void {}
 
-  // ── MÉTHODES AI REPORT ──────────────────────────────────
+  // ── M�THODES AI REPORT ──────────────────────────────────
 
   generate(type: string): void {
     this.loading = true;
     this.activeType = type;
     this.result = null;
 
-    this.http.post<ReportResult>(`${API_BASE_URL}/ai/report`, { type })
+    this.http.post<ReportResult>(`${API_BASE_URL}/ai/report`, { type, date: this.selectedDate })
       .pipe(catchError(() => of({
         type,
         report: { resume: 'Service AI indisponible.', problemes: [], causes: [], recommandations: [] },
@@ -88,7 +93,7 @@ export class AiIntelligenceComponent implements OnInit {
     return REPORT_TYPES.find(t => t.key === key) ?? REPORT_TYPES[0];
   }
 
-  // ── 📄 EXPORT PDF PROFESSIONNEL (CORRIGÉ) ────────────────
+  // ── 📄 EXPORT PDF PROFESSIONNEL (CORRIG�) ────────────────
 
 // ── 📄 EXPORT PDF PROFESSIONNEL (html2canvas - UTF-8 + Logo) ──
 async downloadPDF(): Promise<void> {
@@ -102,7 +107,7 @@ async downloadPDF(): Promise<void> {
     hour: '2-digit', minute: '2-digit'
   });
 
-  // ── CRÉER LE TEMPLATE HTML ────────────────────────────────
+  // ── CR�ER LE TEMPLATE HTML ────────────────────────────────
   const template = document.createElement('div');
   template.style.cssText = `
     width: 210mm;
@@ -146,10 +151,10 @@ async downloadPDF(): Promise<void> {
           AI Medical Intelligence
         </h1>
         <p style="margin:6px 0 0; opacity:0.95; font-size:13px;">
-          Rapport d'analyse médicale — Super Admin
+          Rapport d'analyse m�dicale — Super Admin
         </p>
         <p style="margin:4px 0 0; opacity:0.85; font-size:11px;">
-          ${typeInfo.label} • Généré le ${dateStr}
+          ${typeInfo.label} • G�n�r� le ${dateStr}
         </p>
       </div>
     </div>
@@ -195,7 +200,7 @@ async downloadPDF(): Promise<void> {
         <div style="font-size:26px; font-weight:700; color:#e17055; line-height:1.2;">
           ${d?.responseRate ?? 0}%
         </div>
-        <div style="font-size:11px; color:#6c757d; margin-top:4px; font-weight:500;">Réponses</div>
+        <div style="font-size:11px; color:#6c757d; margin-top:4px; font-weight:500;">R�ponses</div>
       </div>
       <div style="
         background: #f8f9fa;
@@ -211,7 +216,7 @@ async downloadPDF(): Promise<void> {
       </div>
     </div>
 
-    <!-- RÉSUMÉ -->
+    <!-- R�SUM� -->
     <div style="margin-bottom:28px">
       <h3 style="
         color:#667eea;
@@ -223,7 +228,7 @@ async downloadPDF(): Promise<void> {
         display:flex;
         align-items:center;
         gap:8px;
-      ">📋 Résumé exécutif</h3>
+      ">📋 R�sum� ex�cutif</h3>
       <p style="
         line-height:1.75;
         background:#f8f9fa;
@@ -233,7 +238,7 @@ async downloadPDF(): Promise<void> {
         margin:0;
         font-size:13px;
         color:#2d3436;
-      ">${r.resume || 'Aucun résumé disponible.'}</p>
+      ">${r.resume || 'Aucun r�sum� disponible.'}</p>
     </div>
 
     <!-- PROBLÈMES -->
@@ -249,7 +254,7 @@ async downloadPDF(): Promise<void> {
         display:flex;
         align-items:center;
         gap:8px;
-      ">⚠️ Problèmes identifiés</h3>
+      ">⚠️ Probl�mes identifi�s</h3>
       <ul style="list-style:none; padding:0; margin:0;">
         ${r.problemes.map(p => `
           <li style="
@@ -337,12 +342,12 @@ async downloadPDF(): Promise<void> {
       line-height:1.8;
     ">
       <strong style="color:#667eea">AI Medical Intelligence</strong><br>
-      Document généré automatiquement • Confidentiel • Usage interne uniquement<br>
+      Document g�n�r� automatiquement • Confidentiel • Usage interne uniquement<br>
       <span style="opacity:0.7">MediFlow © ${new Date().getFullYear()}</span>
     </div>
   `;
 
-  // ── RENDU HORS ÉCRAN ─────────────────────────────────────
+  // ── RENDU HORS �CRAN ─────────────────────────────────────
   template.style.position = 'absolute';
   template.style.left = '-9999px';
   template.style.top = '0';
@@ -353,9 +358,9 @@ async downloadPDF(): Promise<void> {
   await new Promise(resolve => setTimeout(resolve, 250));
 
   try {
-    // ── CAPTURE EN CANVAS HAUTE QUALITÉ ────────────────────
+    // ── CAPTURE EN CANVAS HAUTE QUALIT� ────────────────────
     const canvas = await html2canvas(template, {
-      scale: 3,                    // Haute résolution
+      scale: 3,                    // Haute r�solution
       useCORS: true,               // Autoriser images externes
       backgroundColor: '#ffffff',  // Fond blanc garanti
       logging: false,
@@ -367,7 +372,7 @@ async downloadPDF(): Promise<void> {
 
     const imgData = canvas.toDataURL('image/png');
     
-    // ── CRÉATION PDF ───────────────────────────────────────
+    // ── CR�ATION PDF ───────────────────────────────────────
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -387,8 +392,8 @@ async downloadPDF(): Promise<void> {
     pdf.save(fileName);
 
   } catch (error) {
-    console.error('❌ Erreur génération PDF:', error);
-    alert('Erreur lors de la génération du PDF. Veuillez réessayer.');
+    console.error('❌ Erreur g�n�ration PDF:', error);
+    alert('Erreur lors de la g�n�ration du PDF. Veuillez r�essayer.');
   } finally {
     // Nettoyer le template temporaire
     if (template.parentNode) {
