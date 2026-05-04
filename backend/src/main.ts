@@ -21,10 +21,16 @@ async function bootstrap() {
     prefix: '/uploads/',
   });
 
-  // ✅ ACTIVER CORS POUR ANGULAR + PRODUCTION
+// ✅ ACTIVER CORS POUR ANGULAR + PRODUCTION
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:4200',
+    origin: [
+      'http://localhost:4200',
+      'https://esprit-pi-fullstack-js-4-twin-8-202.vercel.app',
+      'https://esprit-pi-fullstack-js-4-twin-8-202-ten.vercel.app',
+    ],
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   });
 
   // Swagger
