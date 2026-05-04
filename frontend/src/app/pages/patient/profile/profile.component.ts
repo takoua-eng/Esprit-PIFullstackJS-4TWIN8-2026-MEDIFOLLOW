@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 import { MatDialog } from '@angular/material/dialog';
 import { EditProfileDialogComponent } from './edit-profile-dialog.component';
@@ -10,7 +10,7 @@ import { EditProfileDialogComponent } from './edit-profile-dialog.component';
 @Component({
   selector: 'app-admin-profile',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconsModule],
+  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconComponent],
   templateUrl: './profile.component.html',
   styleUrls: ['./profile.component.scss'],
 })
@@ -54,7 +54,7 @@ export class ProfilComponent implements OnInit {
           email: user.email,
           role: user.role?.name || user.role,
           phone: user.phone,
-          service: user.service?.name || '—',
+          service: user.service?.name || 'â€”',
           hospital: 'MediFollow Demo Hospital',
           avatar: avatarUrl
         };

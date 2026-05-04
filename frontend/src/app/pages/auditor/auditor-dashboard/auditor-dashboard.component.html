@@ -1,264 +1,280 @@
-<div class="aud-page p-24">
+<div class="aud-page">
 
-  <!-- HEADER -->
-  <div class="aud-header m-b-24">
+  <!-- ══ HEADER ══════════════════════════════════════════════ -->
+  <div class="aud-header">
     <div class="aud-header-left">
       <div class="aud-header-icon">
-        <i-tabler name="shield-check" class="icon-24"></i-tabler>
+        <i-tabler name="shield-check" class="icon-26"></i-tabler>
       </div>
       <div>
         <h1 class="aud-header-title">Auditor Dashboard</h1>
-        <p class="aud-header-sub">Vue d'ensemble de la surveillance</p>
+        <p class="aud-header-sub">Vue d'ensemble de la surveillance — {{ lastRefresh | date:'HH:mm' }}</p>
+      </div>
+    </div>
+    <div class="aud-header-actions">
+      <a routerLink="/auditor/patients"      class="ql-btn" style="--c:#0984e3"><i-tabler name="users" class="icon-16"></i-tabler> Patients</a>
+      <a routerLink="/auditor/coordinators"  class="ql-btn" style="--c:#6c5ce7"><i-tabler name="users-group" class="icon-16"></i-tabler> Coordinateurs</a>
+      <a routerLink="/auditor/reminders"     class="ql-btn" style="--c:#e17055"><i-tabler name="bell" class="icon-16"></i-tabler> Reminders</a>
+      <a routerLink="/auditor/anomalies"     class="ql-btn" style="--c:#d63031"><i-tabler name="alert-triangle" class="icon-16"></i-tabler> Anomalies</a>
+    </div>
+  </div>
+
+  <!-- ══ KPI STRIP ═══════════════════════════════════════════ -->
+  <div class="kpi-strip">
+    <div class="kpi-card kpi-blue">
+      <div class="kpi-icon"><i-tabler name="users" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ totalPatients }}</div>
+        <div class="kpi-lbl">Total Patients</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-green">
+      <div class="kpi-icon"><i-tabler name="circle-check" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ okPatients }}</div>
+        <div class="kpi-lbl">Conformes</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-orange">
+      <div class="kpi-icon"><i-tabler name="alert-circle" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ incompletePatients }}</div>
+        <div class="kpi-lbl">Incomplets</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-red">
+      <div class="kpi-icon"><i-tabler name="circle-x" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ noDataPatients }}</div>
+        <div class="kpi-lbl">Sans données</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-purple">
+      <div class="kpi-icon"><i-tabler name="users-group" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ totalCoordinators }}</div>
+        <div class="kpi-lbl">Coordinateurs</div>
+      </div>
+    </div>
+    <div class="kpi-card kpi-teal">
+      <div class="kpi-icon"><i-tabler name="bell" class="icon-22"></i-tabler></div>
+      <div class="kpi-body">
+        <div class="kpi-val">{{ sentReminders }}</div>
+        <div class="kpi-lbl">Reminders envoyés</div>
       </div>
     </div>
   </div>
 
-  <!-- ── AI AUDIT INSIGHTS ──────────────────────────────────── -->
-  <mat-card class="cardWithShadow m-b-28">
-    <mat-card-content class="p-20">
+  <!-- ══ MAIN GRID ════════════════════════════════════════════ -->
+  <div class="main-grid">
 
-      <!-- Header -->
-      <div class="d-flex align-items-center justify-content-between m-b-16">
-        <div class="d-flex align-items-center gap-8">
-          <div style="background:#6c5ce718;border-radius:10px;padding:8px;display:flex">
-            <i-tabler name="brain" class="icon-22" style="color:#6c5ce7"></i-tabler>
+    <!-- LEFT COL -->
+    <div class="left-col">
+
+      <!-- Compliance Card -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon" style="background:#0984e318;color:#0984e3">
+            <i-tabler name="chart-bar" class="icon-18"></i-tabler>
+          </div>
+          <span class="panel-title">Taux de conformité journalier</span>
+          <span class="compliance-badge"
+            [style.background]="complianceRate >= 70 ? '#00b89418' : complianceRate >= 40 ? '#fdcb6e18' : '#d6303118'"
+            [style.color]="complianceRate >= 70 ? '#00b894' : complianceRate >= 40 ? '#e17055' : '#d63031'">
+            {{ complianceRate }}%
+          </span>
+        </div>
+        <div class="compliance-bar">
+          <div class="bar-ok"         [style.width.%]="okPct"         [matTooltip]="'OK: ' + okPatients"></div>
+          <div class="bar-incomplete" [style.width.%]="incompletePct" [matTooltip]="'Incomplet: ' + incompletePatients"></div>
+          <div class="bar-nodata"     [style.width.%]="noDataPct"     [matTooltip]="'Sans données: ' + noDataPatients"></div>
+        </div>
+        <div class="bar-legend">
+          <span><span class="dot dot-green"></span> Conformes {{ okPct }}%</span>
+          <span><span class="dot dot-yellow"></span> Incomplets {{ incompletePct }}%</span>
+          <span><span class="dot dot-red"></span> Sans données {{ noDataPct }}%</span>
+        </div>
+      </div>
+
+      <!-- Coordinateurs Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon" style="background:#6c5ce718;color:#6c5ce7">
+            <i-tabler name="users-group" class="icon-18"></i-tabler>
+          </div>
+          <span class="panel-title">Coordinateurs</span>
+          <a routerLink="/auditor/coordinators" class="panel-link">Voir tout →</a>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="mini-val" style="color:#6c5ce7">{{ totalCoordinators }}</div>
+            <div class="mini-lbl">Total</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">{{ avgPatientsPerCoord }}</div>
+            <div class="mini-lbl">Moy. patients</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val" [style.color]="avgCompleteness >= 70 ? '#00b894' : '#fdcb6e'">{{ avgCompleteness }}%</div>
+            <div class="mini-lbl">Complétude</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val" style="color:#e17055">{{ remindersToday }}</div>
+            <div class="mini-lbl">Rappels auj.</div>
+          </div>
+        </div>
+
+        <div class="top-list" *ngIf="topCoordinators.length">
+          <div class="top-list-label">Top coordinateurs</div>
+          <div *ngFor="let c of topCoordinators; let i = index" class="top-row">
+            <span class="rank">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' }}</span>
+            <span class="top-name">{{ c.name }}</span>
+            <span class="top-meta">{{ c.patientCount }} pts</span>
+            <span class="top-badge" style="color:#6c5ce7">{{ c.remindersSent }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Reminders Panel -->
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-icon" style="background:#e1705518;color:#e17055">
+            <i-tabler name="bell" class="icon-18"></i-tabler>
+          </div>
+          <span class="panel-title">Reminders</span>
+          <a routerLink="/auditor/reminders" class="panel-link">Voir tout →</a>
+        </div>
+        <div class="mini-stats">
+          <div class="mini-stat">
+            <div class="mini-val" style="color:#0984e3">{{ totalReminders }}</div>
+            <div class="mini-lbl">Total</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val" style="color:#00b894">{{ sentReminders }}</div>
+            <div class="mini-lbl">Envoyés</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val" [style.color]="successRate >= 70 ? '#00b894' : '#fdcb6e'">{{ successRate }}%</div>
+            <div class="mini-lbl">Taux succès</div>
+          </div>
+          <div class="mini-stat">
+            <div class="mini-val">{{ delayLabel(avgDelayMin) }}</div>
+            <div class="mini-lbl">Délai moyen</div>
+          </div>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-label">
+            <span>Taux de succès global</span>
+            <span class="f-w-600">{{ successRate }}%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill"
+              [style.width.%]="successRate"
+              [style.background]="successRate >= 70 ? '#00b894' : successRate >= 40 ? '#fdcb6e' : '#d63031'">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COL — AI Audit -->
+    <div class="right-col">
+      <div class="panel ai-panel">
+        <div class="panel-header">
+          <div class="panel-icon" style="background:#6c5ce718;color:#6c5ce7">
+            <i-tabler name="brain" class="icon-18"></i-tabler>
           </div>
           <div>
-            <div class="f-s-15 f-w-700">🧠 Analyse Audit IA</div>
+            <span class="panel-title">Analyse Audit IA</span>
             <div class="f-s-11 text-muted" *ngIf="aiAuditGeneratedAt">{{ aiAuditGeneratedAt | date:'HH:mm:ss' }}</div>
           </div>
-        </div>
-        <button mat-stroked-button color="primary" (click)="loadAuditAI()" [disabled]="aiAuditLoading">
-          <i-tabler name="refresh" class="icon-16 m-r-4"></i-tabler>
-          {{ aiAuditLoading ? 'Analyse...' : 'Actualiser' }}
-        </button>
-      </div>
-
-      <!-- Loading -->
-      <div *ngIf="aiAuditLoading" class="text-center p-24">
-        <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
-        <p class="text-muted f-s-12 m-t-8">Analyse des logs en cours...</p>
-      </div>
-
-      <!-- Report -->
-      <div *ngIf="!aiAuditLoading && aiAuditReport">
-
-        <!-- Risk Score -->
-        <div class="d-flex align-items-center gap-16 m-b-20 p-16"
-          style="background:#f8f9fa;border-radius:12px">
-          <div class="risk-score-circle"
-            [style.background]="aiAuditReport.riskLevel === 'HIGH' ? '#d63031' : aiAuditReport.riskLevel === 'MEDIUM' ? '#fdcb6e' : '#00b894'">
-            <span class="f-s-20 f-w-700">{{ aiAuditReport.riskScore }}</span>
-            <span class="f-s-10">/100</span>
-          </div>
-          <div>
-            <div class="f-s-14 f-w-700">Risk Level:
-              <span [style.color]="aiAuditReport.riskLevel === 'HIGH' ? '#d63031' : aiAuditReport.riskLevel === 'MEDIUM' ? '#fdcb6e' : '#00b894'">
-                {{ aiAuditReport.riskLevel }}
-              </span>
-            </div>
-            <p class="f-s-13 text-muted m-0 m-t-4">{{ aiAuditReport.resume }}</p>
-          </div>
+          <button class="refresh-btn" (click)="loadAuditAI()" [disabled]="aiAuditLoading">
+            <i-tabler name="refresh" class="icon-15"></i-tabler>
+            {{ aiAuditLoading ? 'Analyse...' : 'Actualiser' }}
+          </button>
         </div>
 
-        <div class="row">
-          <!-- Alertes -->
-          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.alertes?.length">
-            <div class="f-s-12 f-w-700 m-b-6" style="color:#d63031">🚨 Alertes critiques</div>
-            <ul class="ai-audit-list" style="color:#d63031">
-              <li *ngFor="let a of aiAuditReport.alertes">{{ a }}</li>
-            </ul>
-          </div>
-          <!-- Risques -->
-          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.risques?.length">
-            <div class="f-s-12 f-w-700 m-b-6" style="color:#e17055">⚠️ Risques identifiés</div>
-            <ul class="ai-audit-list" style="color:#e17055">
-              <li *ngFor="let r of aiAuditReport.risques">{{ r }}</li>
-            </ul>
-          </div>
-          <!-- Actions -->
-          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.actions?.length">
-            <div class="f-s-12 f-w-700 m-b-6" style="color:#00b894">⚡ Recommandations</div>
-            <ul class="ai-audit-list" style="color:#00b894">
-              <li *ngFor="let a of aiAuditReport.actions">{{ a }}</li>
-            </ul>
-          </div>
-          <!-- Top Users -->
-          <div class="col-md-3 m-b-12" *ngIf="aiAuditReport.topUsers?.length">
-            <div class="f-s-12 f-w-700 m-b-6" style="color:#6c5ce7">👤 Utilisateurs à surveiller</div>
-            <ul class="ai-audit-list" style="color:#6c5ce7">
-              <li *ngFor="let u of aiAuditReport.topUsers">{{ u }}</li>
-            </ul>
-          </div>
+        <!-- Loading -->
+        <div *ngIf="aiAuditLoading" class="ai-loading">
+          <mat-spinner diameter="36"></mat-spinner>
+          <p>Analyse des logs en cours...</p>
         </div>
 
-        <!-- Interprétation -->
-        <div *ngIf="aiAuditReport.interpretation" class="m-t-12 p-12"
-          style="background:#f0f4ff;border-radius:10px;border-left:3px solid #6c5ce7">
-          <div class="f-s-12 f-w-700 m-b-4" style="color:#6c5ce7">📌 Interprétation IA</div>
-          <p class="f-s-13 m-0" style="line-height:1.7">{{ aiAuditReport.interpretation }}</p>
-        </div>
+        <!-- Report -->
+        <ng-container *ngIf="!aiAuditLoading && aiAuditReport">
 
-      </div>
-
-      <!-- Empty -->
-      <div *ngIf="!aiAuditLoading && !aiAuditReport" class="text-center p-20 text-muted">
-        <i-tabler name="brain" class="icon-40" style="opacity:.3"></i-tabler>
-        <p class="f-s-12 m-t-8">Cliquez sur Actualiser pour lancer l'analyse</p>
-      </div>
-
-    </mat-card-content>
-  </mat-card>
-
-  <!-- ── ROW 1: Patient KPIs ─────────────────────────────── -->
-  <p class="section-title">Patients</p>
-  <div class="row m-b-8">
-    <div class="col-md-3 col-6 m-b-16">
-      <mat-card class="kpi-card kpi-blue">
-        <mat-card-content>
-          <i-tabler name="users" class="kpi-ico"></i-tabler>
-          <div class="kpi-val">{{ totalPatients }}</div>
-          <div class="kpi-lbl">Total Patients</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-    <div class="col-md-3 col-6 m-b-16">
-      <mat-card class="kpi-card kpi-green">
-        <mat-card-content>
-          <i-tabler name="circle-check" class="kpi-ico"></i-tabler>
-          <div class="kpi-val">{{ okPatients }}</div>
-          <div class="kpi-lbl">Compliant Today</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-    <div class="col-md-3 col-6 m-b-16">
-      <mat-card class="kpi-card kpi-orange">
-        <mat-card-content>
-          <i-tabler name="alert-circle" class="kpi-ico"></i-tabler>
-          <div class="kpi-val">{{ incompletePatients }}</div>
-          <div class="kpi-lbl">Incomplete</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-    <div class="col-md-3 col-6 m-b-16">
-      <mat-card class="kpi-card kpi-red">
-        <mat-card-content>
-          <i-tabler name="circle-x" class="kpi-ico"></i-tabler>
-          <div class="kpi-val">{{ noDataPatients }}</div>
-          <div class="kpi-lbl">No Data Today</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
-
-  <!-- Compliance bar -->
-  <mat-card class="cardWithShadow m-b-28">
-    <mat-card-content class="p-20">
-      <div class="d-flex justify-content-between align-items-center m-b-10">
-        <span class="f-s-14 f-w-600">Daily Compliance Rate</span>
-        <span class="f-s-20 f-w-700" [style.color]="complianceRate >= 70 ? '#00b894' : complianceRate >= 40 ? '#fdcb6e' : '#d63031'">
-          {{ complianceRate }}%
-        </span>
-      </div>
-      <div class="compliance-bar">
-        <div class="bar-ok"         [style.width.%]="okPct"         title="OK: {{okPatients}}"></div>
-        <div class="bar-incomplete" [style.width.%]="incompletePct" title="Incomplete: {{incompletePatients}}"></div>
-        <div class="bar-nodata"     [style.width.%]="noDataPct"     title="No Data: {{noDataPatients}}"></div>
-      </div>
-      <div class="d-flex gap-16 m-t-10 f-s-12">
-        <span><span class="dot dot-green"></span> OK ({{ okPct }}%)</span>
-        <span><span class="dot dot-yellow"></span> Incomplete ({{ incompletePct }}%)</span>
-        <span><span class="dot dot-red"></span> No Data ({{ noDataPct }}%)</span>
-      </div>
-    </mat-card-content>
-  </mat-card>
-
-  <!-- ── ROW 2: Coordinator + Reminder stats ─────────────── -->
-  <div class="row m-b-28">
-
-    <!-- Coordinator stats -->
-    <div class="col-md-6 m-b-16">
-      <mat-card class="cardWithShadow h-100">
-        <mat-card-content class="p-20">
-          <div class="d-flex align-items-center gap-8 m-b-16">
-            <i-tabler name="users-group" class="icon-20" style="color:#6c5ce7"></i-tabler>
-            <span class="f-s-15 f-w-600">Coordinateurs</span>
-          </div>
-          <div class="stat-grid">
-            <div class="stat-item">
-              <div class="stat-val" style="color:#6c5ce7">{{ totalCoordinators }}</div>
-              <div class="stat-lbl">Total</div>
+          <!-- Risk Score -->
+          <div class="risk-row">
+            <div class="risk-circle"
+              [style.background]="aiAuditReport.riskLevel === 'HIGH' ? 'linear-gradient(135deg,#d63031,#ff7675)' : aiAuditReport.riskLevel === 'MEDIUM' ? 'linear-gradient(135deg,#e17055,#fdcb6e)' : 'linear-gradient(135deg,#00b894,#55efc4)'">
+              <span class="risk-score">{{ aiAuditReport.riskScore }}</span>
+              <span class="risk-unit">/100</span>
             </div>
-            <div class="stat-item">
-              <div class="stat-val">{{ avgPatientsPerCoord }}</div>
-              <div class="stat-lbl">Avg Patients</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val" [style.color]="avgCompleteness >= 70 ? '#00b894' : '#fdcb6e'">{{ avgCompleteness }}%</div>
-              <div class="stat-lbl">Avg Completeness</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val" style="color:#e17055">{{ remindersToday }}</div>
-              <div class="stat-lbl">Reminders Today</div>
-            </div>
-          </div>
-
-          <!-- Top 3 coordinators -->
-          <div class="m-t-16" *ngIf="topCoordinators.length">
-            <div class="f-s-12 text-muted m-b-8">Top coordinateurs (reminders envoyés)</div>
-            <div *ngFor="let c of topCoordinators; let i = index" class="top-coord-row">
-              <span class="rank-badge">{{ i === 0 ? '🥇' : i === 1 ? '🥈' : '🥉' }}</span>
-              <span class="f-s-13 f-w-600 flex-1">{{ c.name }}</span>
-              <span class="f-s-12 text-muted">{{ c.patientCount }} pts</span>
-              <span class="f-s-13 f-w-700" style="color:#6c5ce7">{{ c.remindersSent }}</span>
-            </div>
-          </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <!-- Reminder stats -->
-    <div class="col-md-6 m-b-16">
-      <mat-card class="cardWithShadow h-100">
-        <mat-card-content class="p-20">
-          <div class="d-flex align-items-center gap-8 m-b-16">
-            <i-tabler name="bell" class="icon-20" style="color:#e17055"></i-tabler>
-            <span class="f-s-15 f-w-600">Reminders</span>
-          </div>
-          <div class="stat-grid">
-            <div class="stat-item">
-              <div class="stat-val" style="color:#0984e3">{{ totalReminders }}</div>
-              <div class="stat-lbl">Total</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val" style="color:#00b894">{{ sentReminders }}</div>
-              <div class="stat-lbl">Envoyés</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val" [style.color]="successRate >= 70 ? '#00b894' : '#fdcb6e'">{{ successRate }}%</div>
-              <div class="stat-lbl">Taux succès</div>
-            </div>
-            <div class="stat-item">
-              <div class="stat-val">{{ delayLabel(avgDelayMin) }}</div>
-              <div class="stat-lbl">Délai moyen</div>
-            </div>
-          </div>
-
-          <!-- Success rate bar -->
-          <div class="m-t-20">
-            <div class="d-flex justify-content-between f-s-12 m-b-6">
-              <span class="text-muted">Taux de succès global</span>
-              <span class="f-w-600">{{ successRate }}%</span>
-            </div>
-            <div class="progress-track">
-              <div class="progress-fill" [style.width.%]="successRate"
-                [style.background]="successRate >= 70 ? '#00b894' : successRate >= 40 ? '#fdcb6e' : '#d63031'">
+            <div class="risk-info">
+              <div class="risk-level-badge"
+                [style.background]="aiAuditReport.riskLevel === 'HIGH' ? '#d6303118' : aiAuditReport.riskLevel === 'MEDIUM' ? '#fdcb6e18' : '#00b89418'"
+                [style.color]="aiAuditReport.riskLevel === 'HIGH' ? '#d63031' : aiAuditReport.riskLevel === 'MEDIUM' ? '#e17055' : '#00b894'">
+                Risk Level: {{ aiAuditReport.riskLevel }}
               </div>
+              <p class="risk-resume">{{ aiAuditReport.resume }}</p>
             </div>
           </div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-  </div>
 
+          <!-- 4 columns -->
+          <div class="ai-grid">
+            <div class="ai-col" *ngIf="aiAuditReport.alertes?.length">
+              <div class="ai-col-title" style="color:#d63031">
+                <i-tabler name="alert-triangle" class="icon-14"></i-tabler> Alertes critiques
+              </div>
+              <ul class="ai-list" style="color:#d63031">
+                <li *ngFor="let a of aiAuditReport.alertes">{{ a }}</li>
+              </ul>
+            </div>
+            <div class="ai-col" *ngIf="aiAuditReport.risques?.length">
+              <div class="ai-col-title" style="color:#e17055">
+                <i-tabler name="alert-circle" class="icon-14"></i-tabler> Risques identifiés
+              </div>
+              <ul class="ai-list" style="color:#e17055">
+                <li *ngFor="let r of aiAuditReport.risques">{{ r }}</li>
+              </ul>
+            </div>
+            <div class="ai-col" *ngIf="aiAuditReport.actions?.length">
+              <div class="ai-col-title" style="color:#00b894">
+                <i-tabler name="circle-check" class="icon-14"></i-tabler> Recommandations
+              </div>
+              <ul class="ai-list" style="color:#00b894">
+                <li *ngFor="let a of aiAuditReport.actions">{{ a }}</li>
+              </ul>
+            </div>
+            <div class="ai-col" *ngIf="aiAuditReport.topUsers?.length">
+              <div class="ai-col-title" style="color:#6c5ce7">
+                <i-tabler name="user" class="icon-14"></i-tabler> À surveiller
+              </div>
+              <ul class="ai-list" style="color:#6c5ce7">
+                <li *ngFor="let u of aiAuditReport.topUsers">{{ u }}</li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- Interprétation -->
+          <div *ngIf="aiAuditReport.interpretation" class="ai-interpretation">
+            <div class="ai-interp-label">
+              <i-tabler name="bulb" class="icon-14"></i-tabler> Interprétation IA
+            </div>
+            <p>{{ aiAuditReport.interpretation }}</p>
+          </div>
+
+        </ng-container>
+
+        <!-- Empty -->
+        <div *ngIf="!aiAuditLoading && !aiAuditReport" class="ai-empty">
+          <i-tabler name="brain" class="icon-44"></i-tabler>
+          <p>Cliquez sur Actualiser pour lancer l'analyse</p>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
 </div>

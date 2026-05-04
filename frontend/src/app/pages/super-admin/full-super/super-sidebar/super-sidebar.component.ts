@@ -1,10 +1,10 @@
-// src/app/pages/super-admin/full-super/super-sidebar/super-sidebar.component.ts
+﻿// src/app/pages/super-admin/full-super/super-sidebar/super-sidebar.component.ts
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { NgScrollbarModule } from 'ngx-scrollbar';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { BrandingComponent } from '../../../../layouts/full/sidebar/branding.component';
 import { AppNavItemComponent } from '../../../../layouts/full/sidebar/nav-item/nav-item.component';
@@ -16,7 +16,7 @@ import { NavItem } from '../../../../layouts/full/sidebar/nav-item/nav-item';
   standalone: true,
   imports: [
     CommonModule, RouterModule, TranslateModule,
-    TablerIconsModule, MaterialModule, NgScrollbarModule,
+    TablerIconComponent, MaterialModule, NgScrollbarModule,
     BrandingComponent, AppNavItemComponent,
   ],
   templateUrl: './super-sidebar.component.html',

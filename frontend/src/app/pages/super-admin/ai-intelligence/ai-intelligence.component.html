@@ -1,144 +1,236 @@
-<div class="ai-page p-24">
+<div class="ai-page">
 
-  <!-- Header -->
-  <div class="d-flex align-items-center gap-16 m-b-24">
-    <div class="ai-logo">
-      <i-tabler name="brain" class="icon-26"></i-tabler>
+  <!-- ── HEADER ─────────────────────────────────────────── -->
+  <div class="ai-header">
+    <div class="ai-header-left">
+      <div class="ai-logo">
+        <i-tabler name="brain" class="icon-28"></i-tabler>
+      </div>
+      <div>
+        <h1 class="ai-title">AI Medical Intelligence</h1>
+        <p class="ai-sub">Analyse intelligente des données — Super Admin</p>
+      </div>
     </div>
-    <div>
-      <h1 class="m-0 f-w-700 f-s-22" style="color:#1a1a2e">AI Medical Intelligence</h1>
-      <p class="m-0 m-t-6 f-s-13" style="color:#999">Analyse intelligente — Super Admin uniquement</p>
+    <div class="ai-header-badge">
+      <i-tabler name="shield-check" class="icon-14"></i-tabler>
+      Super Admin only
     </div>
   </div>
 
-  <!-- Tabs -->
-  <div class="d-flex gap-8 m-b-24">
-    <button mat-raised-button color="primary">
-      <i-tabler name="chart-bar" class="icon-16 m-r-4"></i-tabler> Rapports AI
-    </button>
+  <!-- ── REPORT TYPE CARDS ──────────────────────────────── -->
+  <div class="ai-date-bar">
+    <i-tabler name="calendar" class="icon-16"></i-tabler>
+    <span>Date d'analyse :</span>
+    <input type="date" class="ai-date-input"
+      [(ngModel)]="selectedDate"
+      [max]="today">
+    <span class="ai-date-hint" *ngIf="selectedDate !== today">
+      <i-tabler name="info-circle" class="icon-13"></i-tabler>
+      Données du {{ selectedDate | date:'dd/MM/yyyy' }}
+    </span>
+    <span class="ai-date-hint ai-date-today" *ngIf="selectedDate === today">
+      <i-tabler name="check" class="icon-13"></i-tabler>
+      Aujourd'hui
+    </span>
   </div>
 
-  <!-- ══ AI Reports ══════════════════════════════════════ -->
+  <div class="ai-type-grid">
+    <div *ngFor="let t of reportTypes"
+         class="ai-type-card"
+         [class.active]="activeType === t.key"
+         [style.--accent]="t.color"
+         (click)="generate(t.key)">
+      <div class="ai-type-icon" [style.background]="t.color + '18'">
+        <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-26"></i-tabler>
+      </div>
+      <div class="ai-type-label">{{ t.label }}</div>
+      <div class="ai-type-desc">{{ t.desc }}</div>
+      <mat-progress-bar *ngIf="loading && activeType === t.key"
+        mode="indeterminate" class="ai-type-progress"></mat-progress-bar>
+      <div class="ai-type-arrow" *ngIf="activeType === t.key && !loading">
+        <i-tabler name="arrow-right" class="icon-16"></i-tabler>
+      </div>
+    </div>
+  </div>
 
-    <!-- Type cards -->
-    <div class="row m-b-32" style="align-items: stretch">
-      <div class="col-md-3 col-6 m-b-16" *ngFor="let t of reportTypes" style="display:flex">
-        <mat-card class="type-card" [class.active]="activeType === t.key"
-          [style.border-color]="activeType === t.key ? t.color : 'transparent'"
-          (click)="generate(t.key)" style="cursor:pointer;width:100%">
-          <mat-card-content class="p-20">
-            <div class="type-icon m-b-12" [style.background]="t.color + '18'">
-              <i-tabler [name]="t.icon" [style.color]="t.color" class="icon-24"></i-tabler>
+  <!-- ── MAIN CONTENT ───────────────────────────────────── -->
+  <div class="ai-content">
+
+    <!-- Result panel -->
+    <div class="ai-result-panel">
+
+      <!-- Loading -->
+      <div *ngIf="loading" class="ai-loading">
+        <div class="ai-loading-brain">
+          <i-tabler name="brain" class="icon-52 ai-thinking"></i-tabler>
+        </div>
+        <p class="ai-loading-text">Analyse en cours...</p>
+        <mat-progress-spinner diameter="36" mode="indeterminate"></mat-progress-spinner>
+      </div>
+
+      <!-- Empty state -->
+      <div *ngIf="!loading && !result" class="ai-empty">
+        <i-tabler name="brain" class="icon-60 ai-empty-icon"></i-tabler>
+        <p class="ai-empty-title">Sélectionnez un type d'analyse</p>
+        <p class="ai-empty-sub">Cliquez sur l'une des cartes ci-dessus pour générer un rapport</p>
+      </div>
+
+      <!-- Result -->
+      <div *ngIf="!loading && result">
+
+        <!-- Result header -->
+        <div class="ai-result-header" [style.--accent]="getTypeInfo(result.type).color">
+          <div class="ai-result-icon" [style.background]="getTypeInfo(result.type).color + '18'">
+            <i-tabler [name]="getTypeInfo(result.type).icon"
+              [style.color]="getTypeInfo(result.type).color" class="icon-22"></i-tabler>
+          </div>
+          <div class="ai-result-meta">
+            <div class="ai-result-title">{{ getTypeInfo(result.type).label }}</div>
+            <div class="ai-result-date">
+              <i-tabler name="clock" class="icon-12"></i-tabler>
+              {{ result.generatedAt | date:'dd/MM/yyyy à HH:mm' }}
             </div>
-            <div class="f-w-700 f-s-14 m-b-4">{{ t.label }}</div>
-            <div class="text-muted f-s-12">{{ t.desc }}</div>
-            <mat-progress-bar *ngIf="loading && activeType === t.key"
-              mode="indeterminate" class="m-t-8"></mat-progress-bar>
-          </mat-card-content>
-        </mat-card>
+          </div>
+          <button mat-flat-button class="ai-pdf-btn" (click)="downloadPDF()" [disabled]="loading">
+            <i-tabler name="file-export" class="icon-16 m-r-6"></i-tabler>
+            PDF
+          </button>
+        </div>
+
+        <!-- Stats row -->
+        <div class="ai-stats-row" *ngIf="result.data">
+          <div class="ai-stat">
+            <span class="ai-stat-val" style="color:#6c5ce7">{{ result.data.totalPatients ?? 0 }}</span>
+            <span class="ai-stat-lbl">Patients</span>
+          </div>
+          <div class="ai-stat">
+            <span class="ai-stat-val" style="color:#00b894">{{ result.data.complianceToday ?? 0 }}%</span>
+            <span class="ai-stat-lbl">Compliance</span>
+          </div>
+          <div class="ai-stat">
+            <span class="ai-stat-val" style="color:#0984e3">{{ result.data.responseRate ?? 0 }}%</span>
+            <span class="ai-stat-lbl">Taux réponse</span>
+          </div>
+          <div class="ai-stat">
+            <span class="ai-stat-val" style="color:#e17055">{{ result.data.sentReminders ?? 0 }}</span>
+            <span class="ai-stat-lbl">Rappels envoyés</span>
+          </div>
+        </div>
+
+        <!-- Reminder Analytics -->
+        <div class="ai-reminder-analytics" *ngIf="result.data?.reminderAnalytics">
+          <div class="ai-ra-title">
+            <i-tabler name="bell-ringing" class="icon-14"></i-tabler>
+            Analyse des rappels — aujourd'hui
+          </div>
+          <div class="ai-ra-grid">
+            <div class="ai-ra-item ai-ra-sent">
+              <i-tabler name="send" class="icon-18"></i-tabler>
+              <span class="ai-ra-val">{{ result.data.reminderAnalytics.sent }}</span>
+              <span class="ai-ra-lbl">Envoyés</span>
+            </div>
+            <div class="ai-ra-item ai-ra-answered">
+              <i-tabler name="circle-check" class="icon-18"></i-tabler>
+              <span class="ai-ra-val">{{ result.data.reminderAnalytics.answered }}</span>
+              <span class="ai-ra-lbl">Répondus</span>
+            </div>
+            <div class="ai-ra-item ai-ra-missed">
+              <i-tabler name="circle-x" class="icon-18"></i-tabler>
+              <span class="ai-ra-val">{{ result.data.reminderAnalytics.missed }}</span>
+              <span class="ai-ra-lbl">Ignorés</span>
+            </div>
+            <div class="ai-ra-item ai-ra-pending">
+              <i-tabler name="clock" class="icon-18"></i-tabler>
+              <span class="ai-ra-val">{{ result.data.reminderAnalytics.pending }}</span>
+              <span class="ai-ra-lbl">En attente</span>
+            </div>
+            <div class="ai-ra-item ai-ra-rate">
+              <i-tabler name="chart-pie" class="icon-18"></i-tabler>
+              <span class="ai-ra-val">{{ result.data.reminderAnalytics.responseRate }}%</span>
+              <span class="ai-ra-lbl">Taux réponse</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="ai-block ai-block-resume">
+          <div class="ai-block-title">
+            <i-tabler name="sparkles" class="icon-15"></i-tabler>
+            Résumé exécutif
+          </div>
+          <p class="ai-block-text">{{ result?.report?.resume }}</p>
+        </div>
+
+        <!-- Problèmes -->
+        <div class="ai-block ai-block-problems" *ngIf="result?.report?.problemes?.length">
+          <div class="ai-block-title">
+            <i-tabler name="alert-triangle" class="icon-15"></i-tabler>
+            Problèmes identifiés
+          </div>
+          <div class="ai-item-list">
+            <div *ngFor="let p of result?.report?.problemes" class="ai-item ai-item-red">
+              <i-tabler name="point" class="icon-12"></i-tabler>
+              {{ p }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Causes -->
+        <div class="ai-block ai-block-causes" *ngIf="result?.report?.causes?.length">
+          <div class="ai-block-title">
+            <i-tabler name="search" class="icon-15"></i-tabler>
+            Causes racines
+          </div>
+          <div class="ai-item-list">
+            <div *ngFor="let c of result?.report?.causes" class="ai-item ai-item-orange">
+              <i-tabler name="point" class="icon-12"></i-tabler>
+              {{ c }}
+            </div>
+          </div>
+        </div>
+
+        <!-- Recommandations -->
+        <div class="ai-block ai-block-reco" *ngIf="result?.report?.recommandations?.length">
+          <div class="ai-block-title">
+            <i-tabler name="bulb" class="icon-15"></i-tabler>
+            Recommandations
+          </div>
+          <div class="ai-item-list">
+            <div *ngFor="let r of result?.report?.recommandations; let i = index"
+                 class="ai-item ai-item-green">
+              <span class="ai-item-num">{{ i + 1 }}</span>
+              {{ r }}
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
 
-    <!-- Result + History -->
-    <div class="row">
-      <div class="col-lg-8 m-b-16">
-        <mat-card class="cardWithShadow h-100">
-          <mat-card-content class="p-24">
-            
-            <!-- Loading -->
-            <div *ngIf="loading" class="text-center p-40">
-              <i-tabler name="brain" class="icon-48 ai-thinking" style="color:#6c5ce7;opacity:.6"></i-tabler>
-              <p class="f-s-14 text-muted m-t-12">Analyse en cours...</p>
-              <mat-progress-spinner diameter="32" mode="indeterminate" style="margin:0 auto"></mat-progress-spinner>
-            </div>
-
-            <!-- Result -->
-            <div *ngIf="!loading && result">
-              <div class="d-flex align-items-center gap-12 m-b-20">
-                <div class="type-icon" [style.background]="getTypeInfo(result.type).color + '18'">
-                  <i-tabler [name]="getTypeInfo(result.type).icon" [style.color]="getTypeInfo(result.type).color" class="icon-20"></i-tabler>
-                </div>
-                <div>
-                  <div class="f-w-700 f-s-16">{{ getTypeInfo(result.type).label }}</div>
-                  <div class="text-muted f-s-12">{{ result.generatedAt | date:'dd/MM/yyyy HH:mm:ss' }}</div>
-                </div>
-              </div>
-
-              <!-- Résumé -->
-              <div class="ai-result-box m-b-16">
-                <div class="d-flex align-items-center gap-8 m-b-8">
-                  <i-tabler name="sparkles" class="icon-14" style="color:#6c5ce7"></i-tabler>
-                  <span class="f-s-12 f-w-600" style="color:#6c5ce7">Résumé exécutif</span>
-                </div>
-                <p class="f-s-14 m-0" style="line-height:1.8">{{ result?.report?.resume }}</p>
-              </div>
-
-              <!-- Problèmes -->
-              <div class="ai-section m-b-12" *ngIf="result?.report?.problemes?.length">
-                <div class="ai-section-title" style="color:#d63031">
-                  <i-tabler name="alert-triangle" class="icon-14"></i-tabler> Problèmes
-                </div>
-                <ul class="ai-list"><li *ngFor="let p of result?.report?.problemes">{{ p }}</li></ul>
-              </div>
-
-              <!-- Causes -->
-              <div class="ai-section m-b-12" *ngIf="result?.report?.causes?.length">
-                <div class="ai-section-title" style="color:#e17055">
-                  <i-tabler name="search" class="icon-14"></i-tabler> Causes
-                </div>
-                <ul class="ai-list"><li *ngFor="let c of result?.report?.causes">{{ c }}</li></ul>
-              </div>
-
-              <!-- Recommandations -->
-              <div class="ai-section" *ngIf="result?.report?.recommandations?.length">
-                <div class="ai-section-title" style="color:#00b894">
-                  <i-tabler name="bulb" class="icon-14"></i-tabler> Recommandations
-                </div>
-                <ul class="ai-list"><li *ngFor="let r of result?.report?.recommandations">{{ r }}</li></ul>
-              </div>
-
-              <!-- ✅ BOUTON PDF UNIQUE -->
-              <div class="m-t-24 p-16" style="background:#f8f9fa; border-radius:10px; border-left:4px solid #667eea;">
-                <button mat-raised-button color="primary" (click)="downloadPDF()" [disabled]="loading">
-                  <i-tabler name="file-export" class="icon-18 m-r-6"></i-tabler>
-                  Télécharger le rapport PDF
-                </button>
-                <span class="text-muted f-s-12 m-l-12">Format A4 • Logo inclus • Prêt à imprimer</span>
-              </div>
-            </div>
-
-            <!-- Empty state -->
-            <div *ngIf="!loading && !result" class="text-center p-40">
-              <i-tabler name="brain" class="icon-56" style="color:#dfe6e9"></i-tabler>
-              <p class="text-muted f-s-14 m-t-12">Sélectionnez un type d'analyse</p>
-            </div>
-
-          </mat-card-content>
-        </mat-card>
+    <!-- History sidebar -->
+    <div class="ai-history">
+      <div class="ai-history-title">
+        <i-tabler name="history" class="icon-16"></i-tabler>
+        Historique
       </div>
 
-      <!-- History sidebar -->
-      <div class="col-lg-4 m-b-16">
-        <mat-card class="cardWithShadow h-100">
-          <mat-card-content class="p-20">
-            <div class="f-s-14 f-w-700 m-b-16 d-flex align-items-center gap-8">
-              <i-tabler name="history" class="icon-18 text-muted"></i-tabler> Historique
-            </div>
-            <div *ngIf="history.length === 0" class="text-center p-20 text-muted">
-              <i-tabler name="clock" class="icon-32" style="opacity:.3"></i-tabler>
-              <p class="f-s-12 m-t-8">Aucune analyse générée</p>
-            </div>
-            <div *ngFor="let h of history" class="history-item" (click)="result = h; activeType = h.type">
-              <div class="d-flex align-items-center gap-8">
-                <i-tabler [name]="getTypeInfo(h.type).icon" [style.color]="getTypeInfo(h.type).color" class="icon-16"></i-tabler>
-                <span class="f-s-13 f-w-600">{{ getTypeInfo(h.type).label }}</span>
-              </div>
-              <div class="text-muted f-s-11 m-t-2">{{ h.generatedAt | date:'HH:mm:ss' }}</div>
-              <div class="f-s-12 text-muted m-t-4 text-truncate">{{ h.report?.resume | slice:0:60 }}...</div>
-            </div>
-          </mat-card-content>
-        </mat-card>
+      <div *ngIf="history.length === 0" class="ai-history-empty">
+        <i-tabler name="clock" class="icon-36"></i-tabler>
+        <p>Aucune analyse</p>
+      </div>
+
+      <div *ngFor="let h of history"
+           class="ai-history-item"
+           [class.active]="result?.generatedAt === h.generatedAt"
+           (click)="result = h; activeType = h.type">
+        <div class="ai-history-item-top">
+          <div class="ai-history-dot" [style.background]="getTypeInfo(h.type).color"></div>
+          <span class="ai-history-label">{{ getTypeInfo(h.type).label }}</span>
+          <span class="ai-history-time">{{ h.generatedAt | date:'HH:mm' }}</span>
+        </div>
+        <div class="ai-history-preview">{{ h.report?.resume | slice:0:65 }}...</div>
       </div>
     </div>
+
+  </div>
 
 </div>

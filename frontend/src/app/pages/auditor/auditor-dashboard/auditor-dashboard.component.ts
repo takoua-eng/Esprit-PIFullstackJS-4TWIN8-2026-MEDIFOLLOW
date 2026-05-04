@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
@@ -12,7 +12,7 @@ import { API_BASE_URL } from 'src/app/core/api.config';
 @Component({
   selector: 'app-auditor-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-dashboard.component.html',
   styleUrls: ['./auditor-dashboard.component.scss'],
 })
@@ -20,7 +20,7 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   lastRefresh = new Date();
   private sub?: Subscription;
 
-  // ── AI Audit Insights ──────────────────────────────────────
+  // â”€â”€ AI Audit Insights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   aiAuditReport: {
     riskScore: number; riskLevel: string; resume: string;
     alertes: string[]; risques: string[]; interpretation: string;
@@ -29,29 +29,29 @@ export class AuditorDashboardComponent implements OnInit, OnDestroy {
   aiAuditLoading = false;
   aiAuditGeneratedAt: string | null = null;
 
-  // ── KPIs patients ──────────────────────────────────────────
+  // â”€â”€ KPIs patients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   totalPatients    = 0;
   okPatients       = 0;
   incompletePatients = 0;
   noDataPatients   = 0;
   complianceRate   = 0;
 
-  // ── KPIs coordinators ──────────────────────────────────────
+  // â”€â”€ KPIs coordinators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   totalCoordinators   = 0;
   avgPatientsPerCoord = 0;
   avgCompleteness     = 0;
   remindersToday      = 0;
 
-  // ── KPIs reminders ─────────────────────────────────────────
+  // â”€â”€ KPIs reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   totalReminders   = 0;
   sentReminders    = 0;
   successRate      = 0;
   avgDelayMin: number | null = null;
 
-  // ── Top coordinators (top 3 by reminders sent) ─────────────
+  // â”€â”€ Top coordinators (top 3 by reminders sent) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   topCoordinators: { name: string; remindersSent: number; patientCount: number }[] = [];
 
-  // ── Status breakdown for mini bar ──────────────────────────
+  // â”€â”€ Status breakdown for mini bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   get okPct():         number { return this.totalPatients ? Math.round(this.okPatients / this.totalPatients * 100) : 0; }
   get incompletePct(): number { return this.totalPatients ? Math.round(this.incompletePatients / this.totalPatients * 100) : 0; }
   get noDataPct():     number { return this.totalPatients ? Math.round(this.noDataPatients / this.totalPatients * 100) : 0; }

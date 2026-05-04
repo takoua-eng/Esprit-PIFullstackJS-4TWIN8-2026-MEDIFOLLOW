@@ -1,10 +1,9 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { EditProfileDialogComponent } from './edit-profile-dialog.component';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
 import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
-import { TablerIconsModule } from 'angular-tabler-icons';
-import * as TablerIcons from 'angular-tabler-icons/icons';
 import { UserService } from 'src/app/services/users.service';
 import { of, throwError } from 'rxjs';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
@@ -39,10 +38,10 @@ describe('EditProfileDialogComponent', () => {
         EditProfileDialogComponent,
         ReactiveFormsModule,
         BrowserAnimationsModule,
-        MatDialogModule,
-        TablerIconsModule.pick(TablerIcons)
+        MatDialogModule
       ],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: mockDialogData },
         { provide: UserService, useValue: userServiceSpy }
@@ -70,10 +69,10 @@ describe('EditProfileDialogComponent', () => {
         EditProfileDialogComponent, 
         ReactiveFormsModule, 
         BrowserAnimationsModule, 
-        MatDialogModule,
-        TablerIconsModule.pick(TablerIcons)
+        MatDialogModule
       ],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: MatDialogRef, useValue: dialogRefSpy },
         { provide: MAT_DIALOG_DATA, useValue: { user: null, currentAvatarUrl: null, computedInitials: 'U' } },
         { provide: UserService, useValue: userServiceSpy }

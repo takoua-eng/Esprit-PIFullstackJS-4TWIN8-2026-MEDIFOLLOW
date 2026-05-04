@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { HttpClient } from '@angular/common/http';
 import { catchError, of } from 'rxjs';
 import { API_BASE_URL } from 'src/app/core/api.config';
@@ -23,7 +23,7 @@ interface AnomalyRow {
 @Component({
   selector: 'app-auditor-anomalies',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule],
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent],
   templateUrl: './auditor-anomalies.component.html',
   styleUrls: ['./auditor-anomalies.component.scss'],
 })
@@ -67,9 +67,9 @@ export class AuditorAnomaliesComponent implements OnInit {
             patientId:       p._id,
             name:            p.name,
             email:           p.email,
-            mrn:             p.mrn || '—',
-            service:         p.service || p.department || '—',
-            coordinatorName: p.coordinatorName || '—',
+            mrn:             p.mrn || 'â€”',
+            service:         p.service || p.department || 'â€”',
+            coordinatorName: p.coordinatorName || 'â€”',
             vitalsToday:     p.vitalsToday,
             symptomsToday:   p.symptomsToday,
             issue,

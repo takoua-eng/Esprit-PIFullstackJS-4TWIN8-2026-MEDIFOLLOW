@@ -1,14 +1,14 @@
-import { Component, Inject } from '@angular/core';
+﻿import { Component, Inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { AuditLog } from '../../../services/audit.service';
 
 @Component({
   selector: 'app-audit-detail-dialog',
   standalone: true,
-  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconsModule],
+  imports: [CommonModule, MatDialogModule, MatButtonModule, TablerIconComponent],
   template: `
     <div class="ad-wrap">
 
@@ -19,7 +19,7 @@ import { AuditLog } from '../../../services/audit.service';
         </div>
         <div>
           <div class="ad-header-title">Détail de l'événement</div>
-          <div class="ad-header-sub">{{ log.createdAt | date:'dd/MM/yyyy à HH:mm:ss' }}</div>
+          <div class="ad-header-sub">{{ log.createdAt | date:'dd/MM/yyyy Ã  HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
           <i-tabler name="x" class="icon-18"></i-tabler>
@@ -73,12 +73,12 @@ import { AuditLog } from '../../../services/audit.service';
         <!-- WHERE -->
         <div class="ad-section m-t-12">
           <div class="ad-section-title">
-            <i-tabler name="map-pin" class="icon-14"></i-tabler> OÙ & CONTEXTE
+            <i-tabler name="map-pin" class="icon-14"></i-tabler> OÃ™ & CONTEXTE
           </div>
           <div class="ad-row-2">
             <div class="ad-field">
               <span class="ad-lbl">IP Address</span>
-              <span class="ad-mono ip-chip">{{ log.ipAddress || '—' }}</span>
+              <span class="ad-mono ip-chip">{{ log.ipAddress || 'â€”' }}</span>
             </div>
             <div class="ad-field">
               <span class="ad-lbl">Navigateur</span>
@@ -308,7 +308,6 @@ export class AuditDetailDialog {
 
   parseUA(ua: string): string {
     if (!ua || ua === 'unknown') return '—';
-    // Extract browser name
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

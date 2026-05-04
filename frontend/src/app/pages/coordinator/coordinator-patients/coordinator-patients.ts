@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+﻿﻿import { Component, OnInit, inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { CoordinatorService, CoordinatorPatientRow } from 'src/app/services/coordinator.service';
 import { TranslateModule } from '@ngx-translate/core';
 import { CoreService } from 'src/app/services/core.service';
@@ -9,7 +9,7 @@ import { CoreService } from 'src/app/services/core.service';
 @Component({
   selector: 'app-coordinator-patients',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, TranslateModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent, TranslateModule],
   templateUrl: './coordinator-patients.html',
   styleUrls: ['./coordinator-patients.scss'],
 })

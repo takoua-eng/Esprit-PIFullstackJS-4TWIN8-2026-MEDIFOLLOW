@@ -1,8 +1,8 @@
-import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+﻿﻿import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { Router, RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { interval, Subscription, forkJoin, of } from 'rxjs';
 import { startWith, switchMap, catchError } from 'rxjs/operators';
@@ -21,7 +21,7 @@ import { TranslateService, TranslateModule } from '@ngx-translate/core';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterModule, MaterialModule, TablerIconsModule, NgApexchartsModule, TranslateModule],
+  imports: [CommonModule, RouterModule, MaterialModule, TablerIconComponent, NgApexchartsModule, TranslateModule],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss'],
 })
@@ -98,7 +98,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     private router: Router,
   ) {}
 
-  // ── Keyboard Shortcuts ──────────────────────────────────────────
+  // â”€â”€ Keyboard Shortcuts â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   @HostListener('document:keydown', ['$event'])
   handleKeyboard(e: KeyboardEvent): void {
     if (!e.altKey) return;
@@ -143,7 +143,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
         this.recentLogs = (logs as AuditLog[]).slice(0, 6);
         this.generateAiInsights(alerts as AlertDto[], patients as any[]);
 
-        // Reminders — from auditor overview endpoint
+        // Reminders â€” from auditor overview endpoint
         const remStats = (reminders as any).stats ?? {};
         const remRows  = (reminders as any).reminders ?? [];
         this.totalReminders   = remStats.total ?? 0;
@@ -184,7 +184,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  // ── Data processors ──────────────────────────────────────────────
+  // â”€â”€ Data processors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private applyUsers(users: any[]): void {
     this.totalUsers = users.length;
@@ -239,7 +239,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     const critical = alerts.filter(a => a.severity === 'critical' && a.status === 'open');
     if (critical.length > 0) {
       insights.push({ icon: 'alert-triangle', color: '#d63031',
-        text: `${critical.length} critical alert(s) unresolved — immediate action required` });
+        text: `${critical.length} critical alert(s) unresolved â€” immediate action required` });
     }
     const inactive = patients.filter((p: any) => p.isActive === false).length;
     if (inactive > 0) {
@@ -252,19 +252,19 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     }
     if (this.totalNurses < 3) {
       insights.push({ icon: 'nurse', color: '#fdcb6e',
-        text: `Low nursing staff (${this.totalNurses}) — risk of overload` });
+        text: `Low nursing staff (${this.totalNurses}) â€” risk of overload` });
     }
     if (insights.length === 0) {
       insights.push({ icon: 'circle-check', color: '#00b894',
-        text: 'System stable — no anomalies detected' });
+        text: 'System stable â€” no anomalies detected' });
     }
     this.aiInsights = insights;
   }
 
-  // ── Chart builders ────────────────────────────────────────────────
+  // â”€â”€ Chart builders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private buildServiceStaffChart(staffData: any[], services: any[]): void {
-    // Map serviceId → service name (use all services including those without isArchived)
+    // Map serviceId â†’ service name (use all services including those without isArchived)
     const nameMap = new Map(services.map((s: any) => [s._id?.toString(), s.name]));
 
     const items = staffData
@@ -379,7 +379,7 @@ export class AdminDashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  // ── Helpers ───────────────────────────────────────────────────────
+  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
   private last7DayLabels(): string[] {
     return Array.from({ length: 7 }, (_, i) => {

@@ -1,10 +1,12 @@
 // ══════════════════════════════════════════════════════════════
 //  coordinator-patients.spec.ts
 // ══════════════════════════════════════════════════════════════
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { CoordinatorPatientsComponent } from './coordinator-patients';
 import { CoordinatorService } from 'src/app/services/coordinator.service';
@@ -49,8 +51,9 @@ describe('CoordinatorPatientsComponent', () => {
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CoordinatorPatientsComponent, HttpClientTestingModule, NoopAnimationsModule],
+      imports: [CoordinatorPatientsComponent, HttpClientTestingModule, NoopAnimationsModule, TranslateModule.forRoot()],
       providers: [
+        ...TABLER_TEST_PROVIDERS,
         { provide: CoordinatorService, useValue: mockCoordinatorService },
         { provide: CoreService, useValue: mockCoreService },
       ],

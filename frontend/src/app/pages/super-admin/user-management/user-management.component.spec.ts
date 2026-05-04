@@ -1,30 +1,20 @@
+import { TABLER_TEST_PROVIDERS } from 'src/app/testing/tabler-test-providers';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { HttpClientTestingModule } from '@angular/common/http/testing';
+import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { of } from 'rxjs';
-import { MatDialog } from '@angular/material/dialog';
-
 import { UserManagementComponent } from './user-management.component';
 
-fdescribe('UserManagementComponent', () => {
+describe('UserManagementComponent', () => {
   let component: UserManagementComponent;
   let fixture: ComponentFixture<UserManagementComponent>;
 
-  const mockUserService = {
-    getAllUsers: () => of([]),
-    getByRole: () => of([]),
-  };
-
-  const mockDialog = {
-    open: jasmine.createSpy('open').and.returnValue({
-      afterClosed: () => of(true),
-    }),
-  };
-
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UserManagementComponent],
-      providers: [
-        { provide: 'UserManagementService', useValue: mockUserService },
-        { provide: MatDialog, useValue: mockDialog },
+      imports: [
+        UserManagementComponent,
+        HttpClientTestingModule,
+        NoopAnimationsModule
       ],
     }).compileComponents();
 
@@ -38,8 +28,11 @@ fdescribe('UserManagementComponent', () => {
   });
 
   it('should open add dialog', () => {
+    const dialogSpy = spyOn((component as any).dialog, 'open').and.returnValue({
+      afterClosed: () => of(true),
+    } as any);
     component.openAdd();
-    expect(mockDialog.open).toHaveBeenCalled();
+    expect(dialogSpy).toHaveBeenCalled();
   });
 
   it('should change role and reload', () => {

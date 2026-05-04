@@ -1,5 +1,5 @@
-import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
+﻿﻿import { Component, Input, OnChanges, SimpleChanges } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { MaterialModule } from 'src/app/material.module';
 import { MatButtonModule } from '@angular/material/button';
 
@@ -43,7 +43,7 @@ export interface ProfitExpanceChart {
 
 @Component({
   selector: 'app-profit-expenses',
-  imports: [MaterialModule, TablerIconsModule, MatButtonModule, NgApexchartsModule],
+  imports: [MaterialModule, TablerIconComponent, MatButtonModule, NgApexchartsModule],
   templateUrl: './profit-expenses.component.html',
 })
 export class AppProfitExpensesComponent implements OnChanges {

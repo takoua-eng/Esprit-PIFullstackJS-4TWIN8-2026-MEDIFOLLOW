@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit } from '@angular/core';
+﻿import { Component, Inject, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MatDialogRef, MAT_DIALOG_DATA, MatDialogModule } from '@angular/material/dialog';
@@ -6,7 +7,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 
 @Component({
@@ -20,7 +20,7 @@ import { UserService } from 'src/app/services/users.service';
     MatInputModule,
     MatButtonModule,
     MatIconModule,
-    TablerIconsModule
+    TablerIconComponent
   ],
   templateUrl: './edit-profile-dialog.component.html',
   styleUrls: ['./edit-profile-dialog.component.scss']

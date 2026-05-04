@@ -1,8 +1,8 @@
-import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
+﻿import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { MatTableDataSource } from '@angular/material/table';
 import { MatSort } from '@angular/material/sort';
 import { MatPaginator } from '@angular/material/paginator';
@@ -21,7 +21,7 @@ type AuditRow = AuditLog & { verified?: boolean };
 @Component({
   selector: 'app-auditor-verify',
   standalone: true,
-  imports: [CommonModule, FormsModule, MaterialModule, TablerIconsModule,
+  imports: [CommonModule, FormsModule, MaterialModule, TablerIconComponent,
             MatNativeDateModule, MatDatepickerModule],
   templateUrl: './auditor-verify.component.html',
   styleUrls: ['./auditor-verify.component.scss'],

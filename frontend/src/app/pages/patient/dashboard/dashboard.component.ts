@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+﻿﻿import { Component, OnInit, OnDestroy } from '@angular/core';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
 import { PatientService, VitalEntry, SymptomEntry, AlertEntry } from 'src/app/services/patient.service';
@@ -101,7 +101,7 @@ export class DashboardComponent implements OnInit, OnDestroy {
   private decodeMessage(msg?: string): string {
     if (!msg) return '';
     try {
-      // Try to fix common UTF-8/Latin1 mojibake (e.g. "TempÃ©rature" -> "Température")
+      // Try to fix common UTF-8/Latin1 mojibake (e.g. "Température" -> "Température")
       // This pattern is a pragmatic browser-side fix for double-encoded strings.
       // Using `escape`/`decodeURIComponent` is a common workaround.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any

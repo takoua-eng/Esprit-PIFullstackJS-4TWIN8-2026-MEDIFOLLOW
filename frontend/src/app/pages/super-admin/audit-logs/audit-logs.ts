@@ -1,4 +1,5 @@
 import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { MatTableModule, MatTableDataSource } from '@angular/material/table';
@@ -16,7 +17,6 @@ import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatChipsModule } from '@angular/material/chips';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { interval, Subscription, forkJoin } from 'rxjs';
 import { switchMap, startWith } from 'rxjs/operators';
 import { AuditApiService, AuditLog, AuditStats } from '../../../services/audit.service';
@@ -32,7 +32,7 @@ import { AuditDetailDialog } from './audit-detail-dialog';
     MatDatepickerModule, MatNativeDateModule,
     MatIconModule, MatButtonModule, MatCardModule,
     MatTooltipModule, MatDialogModule, MatTabsModule, MatChipsModule,
-    TablerIconsModule,
+    TablerIconComponent,
   ],
   templateUrl: './audit-logs.html',
   styleUrls: ['./audit-logs.scss'],

@@ -1,14 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 
 @Component({
   selector: 'app-admin-profile',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconsModule],
+  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconComponent],
   templateUrl: './admin-profile.component.html',
   styleUrls: ['./admin-profile.component.scss'],
 })
@@ -41,7 +41,7 @@ export class AdminProfileComponent implements OnInit {
           email: user.email,
           role: user.role?.name || user.role,
           phone: user.phone,
-          service: user.service?.name || '—',
+          service: user.service?.name || 'â€”',
           hospital: 'MediFollow Demo Hospital',
           avatar: (user.photo && typeof user.photo === 'string' && user.photo !== 'null' && user.photo !== 'undefined' && user.photo !== '')
             ? (user.photo.startsWith('uploads/') || user.photo.startsWith('http') 

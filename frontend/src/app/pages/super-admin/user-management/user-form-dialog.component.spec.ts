@@ -40,7 +40,11 @@ describe('UserFormDialog', () => {
   };
 
   const mockRoleService = {
-    getRoles: jasmine.createSpy().and.returnValue(of([])),
+    getRoles: jasmine.createSpy().and.returnValue(of([
+      { _id: 'doctor', name: 'doctor', isArchived: false },
+      { _id: 'patient', name: 'patient', isArchived: false },
+      { _id: 'nurse', name: 'nurse', isArchived: false },
+    ])),
   };
 
   const mockDoctorService = {

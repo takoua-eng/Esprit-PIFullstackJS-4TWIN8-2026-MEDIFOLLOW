@@ -43,6 +43,7 @@ describe('AiService', () => {
         { provide: getModelToken('AiVital'), useValue: mockModel },
         { provide: getModelToken('AiSymptom'), useValue: mockModel },
         { provide: getModelToken('AiAuditLog'), useValue: mockModel },
+        { provide: getModelToken('AiService'), useValue: mockModel },
       ],
     }).compile();
 

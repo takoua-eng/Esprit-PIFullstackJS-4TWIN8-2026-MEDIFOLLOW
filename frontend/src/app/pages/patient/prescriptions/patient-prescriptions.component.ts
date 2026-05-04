@@ -1,7 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { PrescriptionsApiService, PrescriptionDto } from 'src/app/services/prescriptions-api.service';
 import { CoreService } from 'src/app/services/core.service';
@@ -13,7 +13,7 @@ import jsPDF from 'jspdf';
   imports: [
     CommonModule,
     MaterialModule,
-    TablerIconsModule,
+    TablerIconComponent,
     TranslateModule,
   ],
   templateUrl: './patient-prescriptions.component.html',
@@ -86,7 +86,7 @@ export class PatientPrescriptionsComponent implements OnInit {
     let y = 95;
     
     p.medications.forEach((m, i) => {
-      doc.text(`${i + 1}. ${m.name} — ${m.dosage}`, 20, y);
+      doc.text(`${i + 1}. ${m.name} â€” ${m.dosage}`, 20, y);
       doc.setFontSize(9);
       doc.setTextColor(100, 100, 100);
       doc.text(`Frequency: ${m.frequency} | Duration: ${m.duration}`, 25, y + 5);

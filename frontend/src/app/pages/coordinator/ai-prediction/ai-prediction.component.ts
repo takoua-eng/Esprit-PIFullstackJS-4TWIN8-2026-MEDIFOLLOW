@@ -1,7 +1,7 @@
-import { Component, OnInit, inject } from '@angular/core';
+﻿﻿import { Component, OnInit, inject } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { TranslateModule } from '@ngx-translate/core';
 import { HttpClient } from '@angular/common/http';
 import { CoordinatorService } from 'src/app/services/coordinator.service';
@@ -30,7 +30,7 @@ export interface BriefingData {
 @Component({
   selector: 'app-ai-prediction',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TablerIconsModule, TranslateModule],
+  imports: [CommonModule, MaterialModule, TablerIconComponent, TranslateModule],
   templateUrl: './ai-prediction.component.html',
   styleUrls: ['./ai-prediction.component.scss'],
 })
@@ -150,9 +150,9 @@ Rules: CRITICAL if avg compliance < 30%, WARNING if < 70%, STABLE otherwise. Max
   }
 
   getStatusLabel(status: string): string {
-    if (status === 'CRITICAL') return 'CRITICAL — Immediate action required';
-    if (status === 'WARNING') return 'WARNING — Monitor closely';
-    return 'STABLE — Situation under control';
+    if (status === 'CRITICAL') return 'CRITICAL â€” Immediate action required';
+    if (status === 'WARNING') return 'WARNING â€” Monitor closely';
+    return 'STABLE â€” Situation under control';
   }
 
   selectPatient(patient: PatientPrediction): void {

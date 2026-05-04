@@ -74,3 +74,63 @@
   mat-icon { font-size: 56px; width: 56px; height: 56px; }
   p { margin: 8px 0 16px; font-size: .9rem; }
 }
+
+// Custom toggle button (active = blue/check, inactive = grey/X)
+.custom-toggle {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  outline: none;
+
+  .toggle-track {
+    display: flex;
+    align-items: center;
+    width: 52px;
+    height: 28px;
+    border-radius: 14px;
+    background: #ccc;
+    position: relative;
+    transition: background .25s ease;
+    padding: 3px;
+    box-sizing: border-box;
+  }
+
+  .toggle-thumb {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute;
+    left: 3px;
+    transition: left .25s ease;
+    box-shadow: 0 1px 4px rgba(0,0,0,.25);
+
+    mat-icon {
+      font-size: 14px;
+      width: 14px;
+      height: 14px;
+      color: #999;
+    }
+  }
+
+  &.is-active {
+    .toggle-track {
+      background: #1976d2;
+    }
+    .toggle-thumb {
+      left: calc(100% - 25px);
+      mat-icon { color: #1976d2; }
+    }
+  }
+
+  &:hover .toggle-track {
+    filter: brightness(0.92);
+  }
+}
+
+// Remove old status-toggle-btn if present
+.status-toggle-btn { display: none; }

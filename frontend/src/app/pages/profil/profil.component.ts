@@ -1,8 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+﻿﻿import { Component, OnInit } from '@angular/core';
+import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
 import { TranslateModule } from '@ngx-translate/core';
-import { TablerIconsModule } from 'angular-tabler-icons';
 import { UserService } from 'src/app/services/users.service';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
 import { ChangePasswordDialogComponent } from './change-password-dialog/change-password-dialog.component';
@@ -11,7 +11,7 @@ import { EditProfileDialogComponent } from './edit-profile-dialog/edit-profile-d
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconsModule, MatDialogModule],
+  imports: [CommonModule, MaterialModule, TranslateModule, TablerIconComponent, MatDialogModule],
   templateUrl: './profil.component.html',
   styleUrls: ['./profil.component.scss'],
 })
@@ -75,12 +75,12 @@ export class ProfilComponent implements OnInit {
       }
     }
 
-    // 2. Mettre à jour avec les données fraîches de l'API
+    // 2. Mettre Ã  jour avec les données fraîches de l'API
     this.userService.getProfile().subscribe({
       next: (user) => {
         if (user) {
           this.updateProfileState(user);
-          // Mettre à jour le cache local si nécessaire
+          // Mettre Ã  jour le cache local si nécessaire
           localStorage.setItem('medi_follow_user_data', JSON.stringify(user));
         }
       },

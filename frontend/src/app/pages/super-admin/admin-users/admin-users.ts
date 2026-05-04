@@ -21,9 +21,9 @@ import { MatInputModule } from '@angular/material/input';
 
 import { AdminService } from '../../../services/superadmin/admin.service';
 import {
-  AddMedecinDialog,
+  AddDoctorDialog as AddMedecinDialog,
   DoctorData,
-} from '../add-medecin-dialog/add-medecin-dialog';
+} from '../../admin/add-medecin-dialog/add-medecin-dialog';
 
 // ✅ Interface complète
 interface AdminRow {
