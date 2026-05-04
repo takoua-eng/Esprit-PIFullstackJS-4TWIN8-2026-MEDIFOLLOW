@@ -1,4 +1,4 @@
-?import { Component, Inject } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -14,7 +14,7 @@ import { AuditLog } from 'src/app/services/audit.service';
       <div class="ad-header">
         <div class="ad-header-icon"><i-tabler name="shield-check" class="icon-20"></i-tabler></div>
         <div>
-          <div class="ad-title">Détail de l'événement</div>
+          <div class="ad-title">Dï¿½tail de l'ï¿½vï¿½nement</div>
           <div class="ad-sub">{{ log.createdAt | date:'dd/MM/yyyy Ã  HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
@@ -89,7 +89,7 @@ import { AuditLog } from 'src/app/services/audit.service';
             </div>
             <div class="diff-arrow"><i-tabler name="arrow-right" class="icon-16" style="color:#ccc"></i-tabler></div>
             <div class="diff-col after">
-              <div class="diff-label"><i-tabler name="circle-plus" class="icon-12"></i-tabler> Après</div>
+              <div class="diff-label"><i-tabler name="circle-plus" class="icon-12"></i-tabler> Aprï¿½s</div>
               <div *ngFor="let key of diffKeys()" class="diff-row">
                 <span class="diff-key">{{ key }}</span>
                 <span class="diff-val after-val" [class.changed]="hasChanged(key)">{{ getVal(log.after, key) }}</span>
@@ -99,20 +99,20 @@ import { AuditLog } from 'src/app/services/audit.service';
 
           <!-- Seulement after (CREATE) -->
           <div *ngIf="!log.before && log.after">
-            <div class="json-label"><i-tabler name="circle-plus" class="icon-12" style="color:#00b894"></i-tabler> Données créées</div>
+            <div class="json-label"><i-tabler name="circle-plus" class="icon-12" style="color:#00b894"></i-tabler> Donnï¿½es crï¿½ï¿½es</div>
             <pre class="json-block">{{ log.after | json }}</pre>
           </div>
 
           <!-- Seulement before (DELETE) -->
           <div *ngIf="log.before && !log.after">
-            <div class="json-label"><i-tabler name="circle-minus" class="icon-12" style="color:#d63031"></i-tabler> Données supprimées</div>
+            <div class="json-label"><i-tabler name="circle-minus" class="icon-12" style="color:#d63031"></i-tabler> Donnï¿½es supprimï¿½es</div>
             <pre class="json-block">{{ log.before | json }}</pre>
           </div>
         </div>
 
         <div *ngIf="!log.after && !log.before" class="no-changes">
           <i-tabler name="info-circle" class="icon-15" style="color:#ccc"></i-tabler>
-          Aucune donnée before/after pour cet événement
+          Aucune donnï¿½e before/after pour cet ï¿½vï¿½nement
         </div>
 
       </mat-dialog-content>
