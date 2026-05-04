@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 // src/app/services/superadmin/auditor.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
@@ -31,7 +32,7 @@ export interface Auditor {
 
 @Injectable({ providedIn: 'root' })
 export class AuditorService {
-  private baseUrl = 'http://localhost:3000/users';
+  private baseUrl = '${environment.apiUrl}/users';
 
   constructor(private http: HttpClient) {}
 

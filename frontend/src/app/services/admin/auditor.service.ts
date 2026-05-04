@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -16,7 +17,7 @@ export interface Auditor {
 
 @Injectable({ providedIn: 'root' })
 export class AuditorService {
-  private apiUrl = 'http://localhost:3000/users/auditors';
+  private apiUrl = '${environment.apiUrl}/users/auditors';
 
   constructor(private http: HttpClient) {}
 

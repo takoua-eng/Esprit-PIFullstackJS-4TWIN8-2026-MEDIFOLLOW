@@ -1,4 +1,4 @@
-﻿// src/app/pages/super-admin/full-super/super-sidebar/super-sidebar.component.ts
+// src/app/pages/super-admin/full-super/super-sidebar/super-sidebar.component.ts
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { Component, EventEmitter, Input, Output, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';

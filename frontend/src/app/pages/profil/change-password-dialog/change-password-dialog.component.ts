@@ -1,4 +1,4 @@
-ï»¿import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
@@ -37,7 +37,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   hideNew = true;
   hideConfirm = true;
 
-  private backendUrl = 'http://localhost:3000/auth';
+  private backendUrl = '${environment.apiUrl}/auth';
 
   constructor(
     private fb: FormBuilder,
@@ -54,7 +54,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // DÃ¨s l'ouverture, on envoie le code de vÃ©rification
+    // Dès l'ouverture, on envoie le code de vérification
     this.sendVerificationCode();
   }
 
@@ -77,7 +77,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSendingEmail = false;
-          this.message = 'Un code de vÃ©rification a Ã©tÃ© envoyÃ© Ã  votre email.';
+          this.message = 'Un code de vérification a été envoyé à votre email.';
           this.isError = false;
         },
         error: (err) => {
@@ -104,7 +104,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       }).subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.message = 'Mot de passe modifiÃ© avec succÃ¨s !';
+          this.message = 'Mot de passe modifié avec succès !';
           this.isError = false;
           setTimeout(() => this.dialogRef.close(true), 1500);
         },

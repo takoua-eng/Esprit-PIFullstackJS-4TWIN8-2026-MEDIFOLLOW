@@ -5,7 +5,7 @@ import { CoordinatorService, buildReminderMessages } from './coordinator.service
 describe('CoordinatorService', () => {
   let service: CoordinatorService;
   let httpMock: HttpTestingController;
-  const apiUrl = 'http://localhost:3000/coordinator';
+  const apiUrl = '${environment.apiUrl}/coordinator';
   const coordId = 'coord123';
 
   beforeEach(() => {

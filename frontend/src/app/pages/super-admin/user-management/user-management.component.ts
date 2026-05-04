@@ -1,4 +1,5 @@
-﻿import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
+import { environment } from '../../environments/environment';
+import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -211,7 +212,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     });
   }
 
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helpers ──────────────────────────────────────────────────────
 
   canCreate(): boolean {
     if (this.selectedRole === 'all') return this.core.hasPermission('users:create');
@@ -244,7 +245,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   }
 
   getPhoto(user: UserRow): string {
-    return user.photo ? `http://localhost:3000/uploads/${user.photo}` : '';
+    return user.photo ? `${environment.apiUrl}/uploads/${user.photo}` : '';
   }
 
   getInitials(user: UserRow): string {
@@ -255,11 +256,11 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
     const role = this.getRoleName(user);
     const svcName = user.serviceId?.name ?? '';
 
-    if (role === 'doctor')      return [user.specialization, svcName].filter(Boolean).join(' Â· ');
+    if (role === 'doctor')      return [user.specialization, svcName].filter(Boolean).join(' · ');
     if (role === 'nurse')       return svcName;
     if (role === 'coordinator') return svcName;
     if (role === 'admin')       return svcName;
-    if (role === 'patient')     return [user.medicalRecordNumber, svcName].filter(Boolean).join(' Â· ');
+    if (role === 'patient')     return [user.medicalRecordNumber, svcName].filter(Boolean).join(' · ');
     if (role === 'auditor')     return '';
     return svcName;
   }

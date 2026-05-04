@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import { Component, inject, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';
@@ -100,7 +101,7 @@ export class CoordinateursComponent implements OnInit, AfterViewInit {
           .filter(c => !c.isArchived)
           .map(c => ({
             ...c,
-            photo: c.photo ? `http://localhost:3000/uploads/${c.photo}` : '',
+            photo: c.photo ? `${environment.apiUrl}/uploads/${c.photo}` : '',
             isActive: c.isActive ?? true,
             isArchived: c.isArchived ?? false,
           }));

@@ -1,4 +1,4 @@
-ï»¿ï»¿import { Component, OnInit } from '@angular/core';
+?import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MatButtonModule } from '@angular/material/button';
@@ -74,15 +74,15 @@ import { TranslateModule } from '@ngx-translate/core';
           (click)="zoom.zoomOut()"
           [disabled]="!zoom.canZoomOut()"
           class="action-simple"
-          aria-label="RÃ©duire la taille"
+          aria-label="Réduire la taille"
         >
           <mat-icon>remove_circle</mat-icon>
-          <span>RÃ©duire</span>
+          <span>Réduire</span>
         </button>
         <button
           (click)="zoom.resetZoom()"
           class="action-simple reset-simple"
-          aria-label="RÃ©initialiser"
+          aria-label="Réinitialiser"
         >
           <mat-icon>restart_alt</mat-icon>
           <span>Normal</span>

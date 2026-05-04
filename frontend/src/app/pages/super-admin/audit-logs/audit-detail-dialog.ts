@@ -1,4 +1,4 @@
-Ôªøimport { Component, Inject } from '@angular/core';
+import { Component, Inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -18,8 +18,8 @@ import { AuditLog } from '../../../services/audit.service';
           <i-tabler name="shield-check" class="icon-22"></i-tabler>
         </div>
         <div>
-          <div class="ad-header-title">D√©tail de l'√©v√©nement</div>
-          <div class="ad-header-sub">{{ log.createdAt | date:'dd/MM/yyyy √É¬† HH:mm:ss' }}</div>
+          <div class="ad-header-title">DÈtail de l'ÈvÈnement</div>
+          <div class="ad-header-sub">{{ log.createdAt | date:'dd/MM/yyyy √† HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
           <i-tabler name="x" class="icon-18"></i-tabler>
@@ -73,12 +73,12 @@ import { AuditLog } from '../../../services/audit.service';
         <!-- WHERE -->
         <div class="ad-section m-t-12">
           <div class="ad-section-title">
-            <i-tabler name="map-pin" class="icon-14"></i-tabler> O√É‚Ñ¢ & CONTEXTE
+            <i-tabler name="map-pin" class="icon-14"></i-tabler> O√ô & CONTEXTE
           </div>
           <div class="ad-row-2">
             <div class="ad-field">
               <span class="ad-lbl">IP Address</span>
-              <span class="ad-mono ip-chip">{{ log.ipAddress || '√¢‚Ç¨‚Äù' }}</span>
+              <span class="ad-mono ip-chip">{{ log.ipAddress || '‚Äî' }}</span>
             </div>
             <div class="ad-field">
               <span class="ad-lbl">Navigateur</span>
@@ -121,7 +121,7 @@ import { AuditLog } from '../../../services/audit.service';
             </div>
             <div class="diff-col after">
               <div class="diff-label">
-                <i-tabler name="circle-plus" class="icon-13"></i-tabler> Apr√®s
+                <i-tabler name="circle-plus" class="icon-13"></i-tabler> AprËs
               </div>
               <div *ngFor="let key of diffKeys()" class="diff-row">
                 <span class="diff-key">{{ key }}</span>
@@ -133,7 +133,7 @@ import { AuditLog } from '../../../services/audit.service';
           <!-- JSON brut si seulement after -->
           <div *ngIf="!log.before && log.after">
             <div class="json-label">
-              <i-tabler name="circle-plus" class="icon-13" style="color:#00b894"></i-tabler> Donn√©es cr√©√©es
+              <i-tabler name="circle-plus" class="icon-13" style="color:#00b894"></i-tabler> DonnÈes crÈÈes
             </div>
             <pre class="json-block">{{ log.after | json }}</pre>
           </div>
@@ -141,7 +141,7 @@ import { AuditLog } from '../../../services/audit.service';
           <!-- JSON brut si seulement before -->
           <div *ngIf="log.before && !log.after">
             <div class="json-label">
-              <i-tabler name="circle-minus" class="icon-13" style="color:#d63031"></i-tabler> Donn√©es supprim√©es
+              <i-tabler name="circle-minus" class="icon-13" style="color:#d63031"></i-tabler> DonnÈes supprimÈes
             </div>
             <pre class="json-block">{{ log.before | json }}</pre>
           </div>
@@ -150,7 +150,7 @@ import { AuditLog } from '../../../services/audit.service';
         <!-- No changes -->
         <div *ngIf="!log.after && !log.before" class="no-changes">
           <i-tabler name="info-circle" class="icon-16" style="color:#aaa"></i-tabler>
-          Aucune donn√©e before/after enregistr√©e pour cet √©v√©nement
+          Aucune donnÈe before/after enregistrÈe pour cet ÈvÈnement
         </div>
 
       </mat-dialog-content>
@@ -295,9 +295,9 @@ export class AuditDetailDialog {
   }
 
   getVal(obj: any, key: string): string {
-    if (!obj) return '‚Äî';
+    if (!obj) return 'ó';
     const v = obj[key];
-    if (v === undefined || v === null) return '‚Äî';
+    if (v === undefined || v === null) return 'ó';
     if (typeof v === 'object') return JSON.stringify(v).slice(0, 60);
     return String(v);
   }
@@ -307,7 +307,7 @@ export class AuditDetailDialog {
   }
 
   parseUA(ua: string): string {
-    if (!ua || ua === 'unknown') return '‚Äî';
+    if (!ua || ua === 'unknown') return 'ó';
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

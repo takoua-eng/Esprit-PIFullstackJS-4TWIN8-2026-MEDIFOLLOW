@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit, inject } from '@angular/core';
+?import { Component, OnInit, inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -24,7 +24,7 @@ export class CoordinatorPatientsComponent implements OnInit {
   displayedColumns = ['name', 'email', 'department', 'medicalRecordNumber', 'vitals', 'symptoms', 'status'];
 
   ngOnInit(): void {
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {

@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit, inject } from '@angular/core';
+?import { Component, OnInit, inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -53,7 +53,7 @@ export class AiPredictionComponent implements OnInit {
   });
 
   ngOnInit(): void {
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {
@@ -74,7 +74,7 @@ if (!this.coordinatorId) {
 
   loadPrediction(): void {
     this.loading = true;
-    this.http.get<PredictionResponse>(`http://localhost:3000/coordinator/${this.coordinatorId}/prediction`).subscribe({
+    this.http.get<PredictionResponse>(`${environment.apiUrl}/coordinator/${this.coordinatorId}/prediction`).subscribe({
       next: (data) => { this.prediction = data; this.loading = false; this.runAiAnalysis(); },
       error: (err) => { console.error('Prediction error', err); this.loading = false; },
     });
@@ -150,9 +150,9 @@ Rules: CRITICAL if avg compliance < 30%, WARNING if < 70%, STABLE otherwise. Max
   }
 
   getStatusLabel(status: string): string {
-    if (status === 'CRITICAL') return 'CRITICAL â€” Immediate action required';
-    if (status === 'WARNING') return 'WARNING â€” Monitor closely';
-    return 'STABLE â€” Situation under control';
+    if (status === 'CRITICAL') return 'CRITICAL — Immediate action required';
+    if (status === 'WARNING') return 'WARNING — Monitor closely';
+    return 'STABLE — Situation under control';
   }
 
   selectPatient(patient: PatientPrediction): void {

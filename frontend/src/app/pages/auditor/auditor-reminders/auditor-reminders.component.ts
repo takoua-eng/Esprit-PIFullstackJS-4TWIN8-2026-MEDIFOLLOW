@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -118,7 +118,7 @@ export class AuditorRemindersComponent implements OnInit, AfterViewInit {
   }
 
   delayLabel(min: number | null): string {
-    if (min === null) return '—';
+    if (min === null) return '�';
     if (min < 60) return `${min}m`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
   }

@@ -1,4 +1,4 @@
-﻿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -82,7 +82,7 @@ export class DoctorNotificationsComponent implements OnInit {
     const mins  = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days  = Math.floor(diff / 86400000);
-    if (mins  < 1)  return 'Ã€ l\'instant';
+    if (mins  < 1)  return 'À l\'instant';
     if (mins  < 60) return `Il y a ${mins}min`;
     if (hours < 24) return `Il y a ${hours}h`;
     return `Il y a ${days}j`;

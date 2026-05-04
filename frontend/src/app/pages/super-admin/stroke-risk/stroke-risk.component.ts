@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit } from '@angular/core';
+?import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -51,7 +51,7 @@ export class StrokeRiskComponent implements OnInit {
     });
   }
 
-  // ðŸ”¥ IMPORTANT FIX NORMALIZATION
+  // 🔥 IMPORTANT FIX NORMALIZATION
   getLevel(r: any): string {
     const level = r?.prediction?.riskLevel;
     if (!level) return 'LOW';
@@ -60,8 +60,8 @@ export class StrokeRiskComponent implements OnInit {
 
   getLabel(level: string): string {
     switch (level) {
-      case 'HIGH': return 'Profil Ã  risque élevé';
-      case 'MEDIUM': return 'Risque modéré';
+      case 'HIGH': return 'Profil à risque �lev�';
+      case 'MEDIUM': return 'Risque mod�r�';
       default: return 'Faible risque';
     }
   }

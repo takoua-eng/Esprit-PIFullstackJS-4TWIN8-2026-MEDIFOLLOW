@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+?import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -122,7 +122,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
         this.recentLogs = (logs as AuditLog[]).slice(0, 6);
         this.generateAiInsights(alerts as AlertDto[], patients as any[]);
 
-        // Reminders â€” from auditor overview endpoint
+        // Reminders — from auditor overview endpoint
         const remStats = (reminders as any).stats ?? {};
         const remRows  = (reminders as any).reminders ?? [];
         this.totalReminders   = remStats.total ?? 0;
@@ -163,7 +163,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
       });
   }
 
-  // â”€â”€ Data processors â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Data processors ──────────────────────────────────────────────
 
   private applyUsers(users: any[]): void {
     this.totalUsers = users.length;
@@ -218,7 +218,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     const critical = alerts.filter(a => a.severity === 'critical' && a.status === 'open');
     if (critical.length > 0) {
       insights.push({ icon: 'alert-triangle', color: '#d63031',
-        text: `${critical.length} critical alert(s) unresolved â€” immediate action required` });
+        text: `${critical.length} critical alert(s) unresolved — immediate action required` });
     }
     const inactive = patients.filter((p: any) => p.isActive === false).length;
     if (inactive > 0) {
@@ -231,19 +231,19 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     }
     if (this.totalNurses < 3) {
       insights.push({ icon: 'nurse', color: '#fdcb6e',
-        text: `Low nursing staff (${this.totalNurses}) â€” risk of overload` });
+        text: `Low nursing staff (${this.totalNurses}) — risk of overload` });
     }
     if (insights.length === 0) {
       insights.push({ icon: 'circle-check', color: '#00b894',
-        text: 'System stable â€” no anomalies detected' });
+        text: 'System stable — no anomalies detected' });
     }
     this.aiInsights = insights;
   }
 
-  // â”€â”€ Chart builders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Chart builders ────────────────────────────────────────────────
 
   private buildServiceStaffChart(staffData: any[], services: any[]): void {
-    // Map serviceId â†’ service name (use all services including those without isArchived)
+    // Map serviceId → service name (use all services including those without isArchived)
     const nameMap = new Map(services.map((s: any) => [s._id?.toString(), s.name]));
 
     const items = staffData
@@ -358,7 +358,7 @@ export class SuperAdminDashboardComponent implements OnInit, OnDestroy {
     };
   }
 
-  // â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── Helpers ───────────────────────────────────────────────────────
 
   private last7DayLabels(): string[] {
     return Array.from({ length: 7 }, (_, i) => {

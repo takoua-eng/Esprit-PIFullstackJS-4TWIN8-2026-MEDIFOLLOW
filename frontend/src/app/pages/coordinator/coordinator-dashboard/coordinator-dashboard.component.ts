@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
+?import { Component, OnInit, inject, ElementRef, ViewChild } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
@@ -69,7 +69,7 @@ export class CoordinatorDashboardComponent implements OnInit {
   chatOpen = false;
   chatInput = '';
   chatMessages: ChatMessage[] = [
-    { role: 'assistant', content: "Hello! I'm your AI assistant. Ask me anything about your patients â€” compliance, reminders, missing fields, or anything else." },
+    { role: 'assistant', content: "Hello! I'm your AI assistant. Ask me anything about your patients — compliance, reminders, missing fields, or anything else." },
   ];
   chatLoading = false;
 
@@ -79,8 +79,8 @@ export class CoordinatorDashboardComponent implements OnInit {
   };
 
   ngOnInit(): void {
-    // â”€â”€ Récupérer l'ID du coordinator connecté â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    // Lire l'ID depuis le JWT stocké dans localStorage
+    // ── R�cup�rer l'ID du coordinator connect� ──────────────
+    // Lire l'ID depuis le JWT stock� dans localStorage
 const token = localStorage.getItem('accessToken');
 if (token) {
   try {
@@ -96,7 +96,7 @@ if (!this.coordinatorId) {
 }
 
     if (!this.coordinatorId) {
-      console.error('No coordinator ID found â€” user not logged in?');
+      console.error('No coordinator ID found — user not logged in?');
       return;
     }
 
@@ -168,10 +168,10 @@ if (!this.coordinatorId) {
       chart: { type: 'bar', height: 270, toolbar: { show: false }, fontFamily: 'inherit', foreColor: '#6b7280' },
       colors: ['#2563eb', '#10b981'],
       plotOptions: { bar: { borderRadius: 6, columnWidth: '35%', grouped: true } },
-      dataLabels: { enabled: true, formatter: (val: number) => { if (val === 0) return 'âœ—'; if (val === 1) return '~'; return 'âœ“'; }, style: { fontSize: '14px', fontWeight: 700, colors: ['#fff'] } },
+      dataLabels: { enabled: true, formatter: (val: number) => { if (val === 0) return '✗'; if (val === 1) return '~'; return '✓'; }, style: { fontSize: '14px', fontWeight: 700, colors: ['#fff'] } },
       xaxis: { categories: names, axisBorder: { show: false }, axisTicks: { show: false }, labels: { style: { fontSize: '13px', fontWeight: 600 } } },
       yaxis: { min: 0, max: 2, tickAmount: 2, labels: { formatter: (val: number) => { if (val === 0) return 'Missing'; if (val === 1) return 'Partial'; return 'Complete'; } } },
-      tooltip: { theme: 'light', y: { formatter: (val: number) => { if (val === 0) return 'âœ— Not submitted'; if (val === 1) return '~ Submitted but incomplete'; return 'âœ“ Fully complete'; } } },
+      tooltip: { theme: 'light', y: { formatter: (val: number) => { if (val === 0) return '✗ Not submitted'; if (val === 1) return '~ Submitted but incomplete'; return '✓ Fully complete'; } } },
       legend: { show: true, position: 'top', fontSize: '13px', fontWeight: 600 },
       grid: { borderColor: 'rgba(0,0,0,0.06)', strokeDashArray: 4 },
     };
@@ -245,7 +245,7 @@ if (!this.coordinatorId) {
     });
   }
 
-  // â”€â”€ DAILY SUMMARY â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── DAILY SUMMARY ─────────────────────────────────────────
 
   toggleSummary(): void {
     this.showSummaryPanel = !this.showSummaryPanel;
@@ -283,15 +283,15 @@ DATA:
 Patient details:
 ${patientDetails}
 
-Write 3-5 professional sentences suitable for sharing with a physician. Include compliance rate, patients needing attention, and a brief recommendation. No bullet points â€” flowing paragraphs only.`;
+Write 3-5 professional sentences suitable for sharing with a physician. Include compliance rate, patients needing attention, and a brief recommendation. No bullet points — flowing paragraphs only.`;
 
     this.coordinatorService.generateSummaryAI(this.coordinatorId, prompt).subscribe({
       next: (res) => {
-        this.summaryText = res.response || `Daily Compliance Report â€” ${today}. Out of ${total} patients, ${compliant} (${rate}%) fully compliant.`;
+        this.summaryText = res.response || `Daily Compliance Report — ${today}. Out of ${total} patients, ${compliant} (${rate}%) fully compliant.`;
         this.summaryLoading = false;
       },
       error: () => {
-        this.summaryText = `Daily Compliance Report â€” ${today}. Out of ${total} assigned patients, ${compliant} (${rate}%) have fully completed their daily submissions.`;
+        this.summaryText = `Daily Compliance Report — ${today}. Out of ${total} assigned patients, ${compliant} (${rate}%) have fully completed their daily submissions.`;
         this.summaryLoading = false;
       }
     });
@@ -306,7 +306,7 @@ Write 3-5 professional sentences suitable for sharing with a physician. Include 
 
   regenerateSummary(): void { this.generateSummary(); }
 
-  // â”€â”€ CHATBOT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // ── CHATBOT ───────────────────────────────────────────────
 
   toggleChat(): void { this.chatOpen = !this.chatOpen; }
 

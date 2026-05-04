@@ -1,4 +1,4 @@
-ï»¿import { Component, Inject, OnInit } from '@angular/core';
+import { Component, Inject, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
@@ -92,13 +92,13 @@ export class EditProfileDialogComponent implements OnInit {
       this.userService.updateUser(userId, formData).subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.message = 'Profil mis Ã  jour avec succÃ¨s !';
+          this.message = 'Profil mis à jour avec succès !';
           this.isError = false;
           setTimeout(() => this.dialogRef.close(res), 1000);
         },
         error: (err) => {
           this.isLoading = false;
-          this.message = err.error?.message || 'Erreur lors de la mise Ã  jour.';
+          this.message = err.error?.message || 'Erreur lors de la mise à jour.';
           this.isError = true;
         }
       });

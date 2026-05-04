@@ -1,4 +1,5 @@
-ï»¿ï»¿import { Component, OnInit } from '@angular/core';
+import { environment } from '../../environments/environment';
+?import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -64,7 +65,7 @@ export class ProfilComponent implements OnInit {
   }
 
   loadProfile() {
-    // 1. Charger immÃ©diatement depuis le localStorage pour Ã©viter l'effet "vide"
+    // 1. Charger immédiatement depuis le localStorage pour éviter l'effet "vide"
     const localData = localStorage.getItem('medi_follow_user_data');
     if (localData) {
       try {
@@ -75,17 +76,17 @@ export class ProfilComponent implements OnInit {
       }
     }
 
-    // 2. Mettre ÃƒÂ  jour avec les donnÃ©es fraÃ®ches de l'API
+    // 2. Mettre Ã  jour avec les données fraîches de l'API
     this.userService.getProfile().subscribe({
       next: (user) => {
         if (user) {
           this.updateProfileState(user);
-          // Mettre ÃƒÂ  jour le cache local si nÃ©cessaire
+          // Mettre Ã  jour le cache local si nécessaire
           localStorage.setItem('medi_follow_user_data', JSON.stringify(user));
         }
       },
       error: (err) => {
-        console.error('Erreur chargement profil API, utilisation des donnÃ©es locales', err);
+        console.error('Erreur chargement profil API, utilisation des données locales', err);
       }
     });
   }
@@ -94,16 +95,16 @@ export class ProfilComponent implements OnInit {
     this.rawUserData = user;
     let avatarUrl: string | null = null;
     
-    // GÃ©rer l'URL de la photo
+    // Gérer l'URL de la photo
     const photoSource = user.photo || user.image || user.avatar;
     if (photoSource && typeof photoSource === 'string' && photoSource !== 'null' && photoSource !== 'undefined' && photoSource !== '') {
       const photoPath = photoSource.replace(/\\/g, '/');
       if (photoPath.startsWith('http')) {
         avatarUrl = photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        avatarUrl = `http://localhost:3000/${photoPath}`;
+        avatarUrl = `${environment.apiUrl}/${photoPath}`;
       } else {
-        avatarUrl = `http://localhost:3000/uploads/${photoPath}`;
+        avatarUrl = `${environment.apiUrl}/uploads/${photoPath}`;
       }
     }
 
@@ -111,10 +112,10 @@ export class ProfilComponent implements OnInit {
     const fName = user.firstName || user.name || '';
     const lName = user.lastName || '';
 
-    // Construire le rÃ´le
+    // Construire le rôle
     const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
 
-    // Ajouter Dr. pour les mÃ©decins
+    // Ajouter Dr. pour les médecins
     const isDoctor = userRole.toLowerCase() === 'doctor';
     const prefix = isDoctor ? 'Dr. ' : '';
     const fullName = `${prefix}${lName} ${fName}`.trim() || 'Utilisateur';
@@ -131,10 +132,10 @@ export class ProfilComponent implements OnInit {
 
     this.profile = {
       name: fullName,
-      email: user.email || 'Non renseignÃ©',
+      email: user.email || 'Non renseigné',
       role: userRole,
-      phone: user.phone || user.telephone || 'Non renseignÃ©',
-      service: user.service?.name || user.service || 'Non spÃ©cifiÃ©',
+      phone: user.phone || user.telephone || 'Non renseigné',
+      service: user.service?.name || user.service || 'Non spécifié',
       hospital: 'MediFollow Demo Hospital',
       avatar: avatarUrl,
       initials: computedInitials

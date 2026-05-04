@@ -1,4 +1,4 @@
-﻿﻿import { Component, Inject } from '@angular/core';
+?import { Component, Inject } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
@@ -14,8 +14,8 @@ import { AuditLog } from 'src/app/services/audit.service';
       <div class="ad-header">
         <div class="ad-header-icon"><i-tabler name="shield-check" class="icon-20"></i-tabler></div>
         <div>
-          <div class="ad-title">Détail de l'événement</div>
-          <div class="ad-sub">{{ log.createdAt | date:'dd/MM/yyyy Ã  HH:mm:ss' }}</div>
+          <div class="ad-title">D�tail de l'�v�nement</div>
+          <div class="ad-sub">{{ log.createdAt | date:'dd/MM/yyyy à HH:mm:ss' }}</div>
         </div>
         <button mat-icon-button (click)="close()" class="ad-close">
           <i-tabler name="x" class="icon-16"></i-tabler>
@@ -61,11 +61,11 @@ import { AuditLog } from 'src/app/services/audit.service';
 
         <!-- WHERE -->
         <div class="ad-section m-t-12">
-          <div class="ad-section-title"><i-tabler name="map-pin" class="icon-13"></i-tabler> OÃ™</div>
+          <div class="ad-section-title"><i-tabler name="map-pin" class="icon-13"></i-tabler> OÙ</div>
           <div class="ad-row-2">
             <div class="ad-field">
               <span class="ad-lbl">IP Address</span>
-              <span class="ad-mono ip-chip">{{ log.ipAddress || 'â€”' }}</span>
+              <span class="ad-mono ip-chip">{{ log.ipAddress || '—' }}</span>
             </div>
             <div class="ad-field">
               <span class="ad-lbl">Navigateur</span>
@@ -76,7 +76,7 @@ import { AuditLog } from 'src/app/services/audit.service';
 
         <!-- DIFF BEFORE / AFTER -->
         <div class="ad-section m-t-12" *ngIf="log.after || log.before">
-          <div class="ad-section-title"><i-tabler name="git-diff" class="icon-13"></i-tabler> CHANGEMENTS AVANT / APRÃˆS</div>
+          <div class="ad-section-title"><i-tabler name="git-diff" class="icon-13"></i-tabler> CHANGEMENTS AVANT / APRÈS</div>
 
           <!-- Diff visuel -->
           <div *ngIf="log.before && log.after" class="diff-grid">
@@ -89,7 +89,7 @@ import { AuditLog } from 'src/app/services/audit.service';
             </div>
             <div class="diff-arrow"><i-tabler name="arrow-right" class="icon-16" style="color:#ccc"></i-tabler></div>
             <div class="diff-col after">
-              <div class="diff-label"><i-tabler name="circle-plus" class="icon-12"></i-tabler> Après</div>
+              <div class="diff-label"><i-tabler name="circle-plus" class="icon-12"></i-tabler> Apr�s</div>
               <div *ngFor="let key of diffKeys()" class="diff-row">
                 <span class="diff-key">{{ key }}</span>
                 <span class="diff-val after-val" [class.changed]="hasChanged(key)">{{ getVal(log.after, key) }}</span>
@@ -99,20 +99,20 @@ import { AuditLog } from 'src/app/services/audit.service';
 
           <!-- Seulement after (CREATE) -->
           <div *ngIf="!log.before && log.after">
-            <div class="json-label"><i-tabler name="circle-plus" class="icon-12" style="color:#00b894"></i-tabler> Données créées</div>
+            <div class="json-label"><i-tabler name="circle-plus" class="icon-12" style="color:#00b894"></i-tabler> Donn�es cr��es</div>
             <pre class="json-block">{{ log.after | json }}</pre>
           </div>
 
           <!-- Seulement before (DELETE) -->
           <div *ngIf="log.before && !log.after">
-            <div class="json-label"><i-tabler name="circle-minus" class="icon-12" style="color:#d63031"></i-tabler> Données supprimées</div>
+            <div class="json-label"><i-tabler name="circle-minus" class="icon-12" style="color:#d63031"></i-tabler> Donn�es supprim�es</div>
             <pre class="json-block">{{ log.before | json }}</pre>
           </div>
         </div>
 
         <div *ngIf="!log.after && !log.before" class="no-changes">
           <i-tabler name="info-circle" class="icon-15" style="color:#ccc"></i-tabler>
-          Aucune donnée before/after pour cet événement
+          Aucune donn�e before/after pour cet �v�nement
         </div>
 
       </mat-dialog-content>
@@ -209,15 +209,15 @@ export class AuditorLogDetailDialog {
     return Array.from(keys);
   }
   getVal(obj: any, key: string): string {
-    if (!obj) return 'â€”';
+    if (!obj) return '—';
     const v = obj[key];
-    if (v === undefined || v === null) return 'â€”';
+    if (v === undefined || v === null) return '—';
     if (typeof v === 'object') return JSON.stringify(v).slice(0, 50);
     return String(v);
   }
   hasChanged(key: string): boolean { return this.getVal(this.log.before, key) !== this.getVal(this.log.after, key); }
   parseUA(ua: string): string {
-    if (!ua || ua === 'unknown') return 'â€”';
+    if (!ua || ua === 'unknown') return '—';
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

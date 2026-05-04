@@ -100,7 +100,7 @@ export class Patients implements OnInit, AfterViewInit {
           phone: p.phone || '-',
           gender: p.gender || 'N/A',
           isActive: p.isActive ?? true,
-          photo: p.photo ? `http://localhost:3000/uploads/${p.photo}` : '',
+          photo: p.photo ? `${environment.apiUrl}/uploads/${p.photo}` : '',
         }));
         this.loading = false;
       },

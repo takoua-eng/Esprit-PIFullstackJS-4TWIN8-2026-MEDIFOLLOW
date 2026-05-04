@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, OnDestroy } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -135,7 +135,7 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   formatIp(ip: string): string {
-    if (!ip || ip === 'unknown') return '—';
+    if (!ip || ip === 'unknown') return '�';
     if (ip === '::1' || ip === '127.0.0.1') return 'localhost';
     if (ip.startsWith('::ffff:')) return ip.replace('::ffff:', '');
     return ip;

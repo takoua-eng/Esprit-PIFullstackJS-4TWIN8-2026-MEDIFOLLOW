@@ -1,4 +1,4 @@
-﻿import { BreakpointObserver } from '@angular/cdk/layout';
+import { BreakpointObserver } from '@angular/cdk/layout';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { Component, OnInit, ViewChild, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
@@ -102,7 +102,7 @@ export class FullComponent implements OnInit {
 
 
   
-  // âœ… LOGIQUE FIX
+  // ✅ LOGIQUE FIX
   private updateSidebar(url: string) {
     const role = normalizeRoleKey(
       typeof localStorage !== 'undefined'

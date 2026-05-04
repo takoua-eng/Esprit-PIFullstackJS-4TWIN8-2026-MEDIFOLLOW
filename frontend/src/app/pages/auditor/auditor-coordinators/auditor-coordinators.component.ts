@@ -1,4 +1,4 @@
-﻿﻿import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
+?import { Component, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -98,7 +98,7 @@ export class AuditorCoordinatorsComponent implements OnInit, AfterViewInit {
   }
 
   rankIcon(rank: number): string {
-    return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+    return rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : `#${rank}`;
   }
 }
 

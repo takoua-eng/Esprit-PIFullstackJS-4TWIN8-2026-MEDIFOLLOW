@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 // src/app/services/superadmin/nurse.service.ts
 
 import { Injectable } from '@angular/core';
@@ -21,7 +22,7 @@ export interface Nurse {
 
 @Injectable({ providedIn: 'root' })
 export class NurseService {
-  private apiUrl = 'http://localhost:3000/users';
+  private apiUrl = '${environment.apiUrl}/users';
 
   constructor(private http: HttpClient) {}
 

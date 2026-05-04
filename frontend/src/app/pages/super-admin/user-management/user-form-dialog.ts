@@ -270,7 +270,7 @@ export class UserFormDialog implements OnInit {
       specialization:   u.specialization ?? '',
       isActive:         u.isActive ?? true,
     });
-    if (u.photo) this.photoPreview = `http://localhost:3000/uploads/${u.photo}`;
+    if (u.photo) this.photoPreview = `${environment.apiUrl}/uploads/${u.photo}`;
     if (u.dateOfBirth) this.calculatedAge = this.calcAge(new Date(u.dateOfBirth));
   }
 

@@ -1,4 +1,5 @@
-﻿﻿import { Component, OnInit } from '@angular/core';
+import { environment } from '../../environments/environment';
+?import { Component, OnInit } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { MaterialModule } from 'src/app/material.module';
@@ -41,12 +42,12 @@ export class AdminProfileComponent implements OnInit {
           email: user.email,
           role: user.role?.name || user.role,
           phone: user.phone,
-          service: user.service?.name || 'â€”',
+          service: user.service?.name || '—',
           hospital: 'MediFollow Demo Hospital',
           avatar: (user.photo && typeof user.photo === 'string' && user.photo !== 'null' && user.photo !== 'undefined' && user.photo !== '')
             ? (user.photo.startsWith('uploads/') || user.photo.startsWith('http') 
-               ? `http://localhost:3000/${user.photo.replace(/\\/g, '/')}` 
-               : `http://localhost:3000/uploads/${user.photo.replace(/\\/g, '/')}`)
+               ? `${environment.apiUrl}/${user.photo.replace(/\\/g, '/')}` 
+               : `${environment.apiUrl}/uploads/${user.photo.replace(/\\/g, '/')}`)
             : '/assets/images/profile/user-1.jpg'
         };
 

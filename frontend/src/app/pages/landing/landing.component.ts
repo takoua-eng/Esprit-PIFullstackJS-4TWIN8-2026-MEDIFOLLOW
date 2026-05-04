@@ -1,4 +1,4 @@
-﻿import { Component } from '@angular/core';
+import { Component } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';

@@ -1,3 +1,4 @@
+import { environment } from '../environments/environment';
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -29,7 +30,7 @@ export interface UserRow {
   assignedService?: string;
 }
 
-const BASE = 'http://localhost:3000/users';
+const BASE = '${environment.apiUrl}/users';
 
 // Map role name → create endpoint
 const CREATE_ENDPOINTS: Record<string, string> = {

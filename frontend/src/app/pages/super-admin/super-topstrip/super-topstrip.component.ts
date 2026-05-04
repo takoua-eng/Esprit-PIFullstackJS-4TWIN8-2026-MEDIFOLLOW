@@ -1,4 +1,4 @@
-﻿import { Component, OnInit, OnDestroy } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -30,8 +30,8 @@ export class SuperTopstripComponent implements OnInit, OnDestroy {
 
   availableLanguages = [
     { code: 'en', label: 'English' },
-    { code: 'fr', label: 'FranÃ§ais' },
-    { code: 'ar', label: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' },
+    { code: 'fr', label: 'Français' },
+    { code: 'ar', label: 'العربية' },
   ];
 
   // Notifications

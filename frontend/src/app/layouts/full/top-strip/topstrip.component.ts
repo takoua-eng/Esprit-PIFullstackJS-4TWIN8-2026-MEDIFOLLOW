@@ -1,4 +1,4 @@
-﻿import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnDestroy, Output } from '@angular/core';
 import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule, UpperCasePipe } from '@angular/common';
 import { Router } from '@angular/router';
@@ -33,8 +33,8 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
 
   availableLanguages = [
     { code: 'en', label: 'English' },
-    { code: 'fr', label: 'FranÃ§ais' },
-    { code: 'ar', label: 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©' },
+    { code: 'fr', label: 'Français' },
+    { code: 'ar', label: 'العربية' },
   ];
 
   notifications: AppNotification[] = [];
@@ -82,9 +82,9 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
       if (photoPath.startsWith('http')) {
         return photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        return `http://localhost:3000/${photoPath}`;
+        return `${environment.apiUrl}/${photoPath}`;
       } else {
-        return `http://localhost:3000/uploads/${photoPath}`;
+        return `${environment.apiUrl}/uploads/${photoPath}`;
       }
     }
     return null;

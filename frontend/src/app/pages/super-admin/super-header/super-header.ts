@@ -1,4 +1,4 @@
-﻿// src/app/pages/super-admin/super-header/super-header.component.ts
+// src/app/pages/super-admin/super-header/super-header.component.ts
 import { TablerIconComponent } from 'angular-tabler-icons';
 import {
   Component, Output, EventEmitter, Input, ViewEncapsulation, OnInit, OnDestroy,
@@ -41,9 +41,9 @@ export class SuperHeaderComponent implements OnInit, OnDestroy {
   private notifSub?: Subscription;
 
   readonly langs = [
-    { code: 'en', label: 'EN', flag: 'ðŸ‡¬ðŸ‡§' },
-    { code: 'fr', label: 'FR', flag: 'ðŸ‡«ðŸ‡·' },
-    { code: 'ar', label: 'AR', flag: 'ðŸ‡©ðŸ‡¿' },
+    { code: 'en', label: 'EN', flag: '🇬🇧' },
+    { code: 'fr', label: 'FR', flag: '🇫🇷' },
+    { code: 'ar', label: 'AR', flag: '🇩🇿' },
   ];
   currentLang = localStorage.getItem('app-lang') || 'en';
 

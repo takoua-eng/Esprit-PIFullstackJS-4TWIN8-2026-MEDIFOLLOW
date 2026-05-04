@@ -1,4 +1,4 @@
-ï»¿import { Component, OnInit } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { MaterialModule } from 'src/app/material.module';
 import { CommonModule } from '@angular/common';
@@ -91,10 +91,10 @@ export class HistoryComponent implements OnInit {
     const baseYaxis = (title: string) => ({ title: { text: title } });
 
     this.temperatureChartOptions = {
-      series: [{ name: 'Temperature (Â°C)', data: temperatures }],
+      series: [{ name: 'Temperature (°C)', data: temperatures }],
       chart: baseChart(),
       xaxis: baseXaxis(dates),
-      yaxis: baseYaxis('Â°C'),
+      yaxis: baseYaxis('°C'),
       title: { text: 'Temperature Trend' },
       colors: ['#e53935'],
       markers: { size: 5 },

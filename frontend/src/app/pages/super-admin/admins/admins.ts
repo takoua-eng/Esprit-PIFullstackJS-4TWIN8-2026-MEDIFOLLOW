@@ -1,3 +1,4 @@
+import { environment } from '../../environments/environment';
 import {
   Component,
   inject,
@@ -212,7 +213,7 @@ export class AdminsComponent implements OnInit, AfterViewInit {
       email: a.email,
       phone: a.phone || '-',
       gender: a.gender || 'N/A',
-      photo: a.photo ? `http://localhost:3000/uploads/${a.photo}` : '',
+      photo: a.photo ? `${environment.apiUrl}/uploads/${a.photo}` : '',
       isArchived: Boolean(a.isArchived),
       isActive: Boolean(a.isActive ?? true),
     };
@@ -329,7 +330,7 @@ export class AdminsComponent implements OnInit, AfterViewInit {
   }
 
   getPhoto(photo?: string): string {
-    return photo ? `http://localhost:3000/uploads/${photo}` : '';
+    return photo ? `${environment.apiUrl}/uploads/${photo}` : '';
   }
 
   getInitials(name: string): string {
