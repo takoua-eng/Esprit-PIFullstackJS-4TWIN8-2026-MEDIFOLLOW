@@ -1,4 +1,4 @@
-import { environment } from '../environments/environment';
+import { environment } from "src/environments/environment";
 import { Injectable, signal, computed } from '@angular/core';
 import { AppSettings, defaults } from '../config';
 

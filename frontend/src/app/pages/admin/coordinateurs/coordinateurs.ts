@@ -1,4 +1,4 @@
-import { environment } from '../../environments/environment';
+import { environment } from 'src/environments/environment';
 import { Component, inject, OnInit, AfterViewInit, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { MatDialog, MatDialogModule } from '@angular/material/dialog';

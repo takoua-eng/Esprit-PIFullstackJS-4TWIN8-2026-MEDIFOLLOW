@@ -1,4 +1,4 @@
-import { environment } from '../environments/environment';
+import { environment } from "src/environments/environment";
 import { Injectable, HostListener } from '@angular/core';
 import { Router } from '@angular/router';
 import { BehaviorSubject } from 'rxjs';

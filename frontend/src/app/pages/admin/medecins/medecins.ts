@@ -1,4 +1,4 @@
-import { environment } from '../../environments/environment';
+import { environment } from 'src/environments/environment';
 import {
   Component,
   inject,

@@ -1,4 +1,4 @@
-import { environment } from '../environments/environment';
+import { environment } from 'src/environments/environment';
 // src/app/services/superadmin/auditor.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';

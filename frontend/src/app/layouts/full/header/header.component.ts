@@ -1,4 +1,4 @@
-import { environment } from '../../environments/environment';
+import { environment } from 'src/environments/environment';
 import {
   Component, Output, EventEmitter, Input, ViewEncapsulation, OnInit, OnDestroy,
 } from '@angular/core';
