@@ -22,14 +22,16 @@ async function bootstrap() {
   });
 
   // ✅ ACTIVER CORS POUR ANGULAR
-app.enableCors({
-  origin: process.env.FRONTEND_URL 
-    ? [process.env.FRONTEND_URL, 'http://localhost:4200'] 
-    : '*', // Fallback pour dev
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-});
+  app.enableCors({
+    origin: [
+      process.env.FRONTEND_URL,
+      'http://localhost:4200',
+      new RegExp('https://esprit-pi-fullstack-js-4-twin-8-2026-medifollow.*\\.vercel\\.app'),
+    ].filter(Boolean) as (string | RegExp)[],
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+  });
 
   // Swagger
   const config = new DocumentBuilder()
