@@ -22,17 +22,27 @@ async function bootstrap() {
   });
 
   // ✅ ACTIVER CORS POUR ANGULAR
+// ✅ ACTIVER CORS POUR ANGULAR
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL,
-      'http://localhost:4200',
-      new RegExp('https://esprit-pi-fullstack-js-4-twin-8-2026-medifollow.*\\.vercel\\.app'),
-    ].filter(Boolean) as (string | RegExp)[],
+    origin: (origin, callback) => {
+      const allowed = [
+        'http://localhost:4200',
+        process.env.FRONTEND_URL,
+      ];
+      if (
+        !origin ||
+        allowed.includes(origin) ||
+        /https:\/\/esprit-pi-fullstack-js-4-twin-8-2026-medifollow.*\.vercel\.app/.test(origin)
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error(`CORS blocked: ${origin}`));
+      }
+    },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
   });
-
   // Swagger
   const config = new DocumentBuilder()
     .setTitle('Mediflow API')
