@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { getModelToken } from '@nestjs/mongoose';
 import { User } from '../users/users.schema';
 import { UnauthorizedException, BadRequestException, NotFoundException } from '@nestjs/common';
-
+import { JwtAuthGuard } from './guards/jwt-auth.guard';
 describe('AuthController', () => {
   let controller: AuthController;
   let authService: any;
@@ -60,7 +60,10 @@ describe('AuthController', () => {
         { provide: getModelToken(User.name), useValue: userModel },
         { provide: JwtService, useValue: jwtService },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<AuthController>(AuthController);
   });

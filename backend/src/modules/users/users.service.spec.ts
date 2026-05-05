@@ -7,11 +7,7 @@ import { Role } from '../roles/role.schema';
 import { Service } from '../service/services/service.schema';
 import { PatientDiagnosis } from './patient-diagnosis.schema';
 import { NotificationsService } from '../notifications-super-admin/notifications.service';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
-import * as nodemailer from 'nodemailer';
-import { Types } from 'mongoose';
-import { afterEach, beforeEach, describe } from 'node:test';
+
 
 jest.mock('bcrypt', () => ({ hash: jest.fn(), compare: jest.fn() }));
 jest.mock('nodemailer', () => ({ createTransport: jest.fn() }));
