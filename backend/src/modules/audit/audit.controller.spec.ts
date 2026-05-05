@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AuditController } from './audit.controller';
 import { AuditService } from './audit.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { ConfigService } from '@nestjs/config';
 
 describe('AuditController - Unit Tests', () => {
   let controller: AuditController;
@@ -21,6 +22,10 @@ describe('AuditController - Unit Tests', () => {
         {
           provide: AuditService,
           useValue: mockAuditService,
+        },
+        {
+          provide: ConfigService,
+          useValue: { get: jest.fn().mockReturnValue('test') },
         },
       ],
     })

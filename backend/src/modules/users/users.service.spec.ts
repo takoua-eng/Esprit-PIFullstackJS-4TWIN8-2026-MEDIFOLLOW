@@ -1,16 +1,20 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
+import { BadRequestException, NotFoundException } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { User } from './users.schema';
 import { Role } from '../roles/role.schema';
 import { Service } from '../service/services/service.schema';
 import { PatientDiagnosis } from './patient-diagnosis.schema';
 import { NotificationsService } from '../notifications-super-admin/notifications.service';
-
+import { Types } from 'mongoose';
 
 jest.mock('bcrypt', () => ({ hash: jest.fn(), compare: jest.fn() }));
 jest.mock('nodemailer', () => ({ createTransport: jest.fn() }));
+
+import * as bcrypt from 'bcrypt';
+import * as nodemailer from 'nodemailer';
 
 describe('UsersService', () => {
   let service: UsersService;
@@ -44,6 +48,8 @@ describe('UsersService', () => {
       lean: jest.fn().mockReturnThis(),
       sort: jest.fn().mockReturnThis(),
       populate: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
       exec: jest.fn().mockResolvedValue(result),
       then: (onFulfilled: any, onRejected?: any) => resolved.then(onFulfilled, onRejected),
       catch: (onRejected: any) => resolved.catch(onRejected),
