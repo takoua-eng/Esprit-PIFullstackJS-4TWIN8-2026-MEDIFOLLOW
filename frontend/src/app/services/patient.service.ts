@@ -61,7 +61,7 @@ export interface QuestionnaireSubmit {
 
 @Injectable({ providedIn: 'root' })
 export class PatientService {
-  private readonly API = '${environment.apiUrl}';
+  private readonly API = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 
@@ -70,11 +70,11 @@ export class PatientService {
   
   /** Retourne le patientId depuis localStorage ou JWT */
 getCurrentPatientId(): string {
-  // 1?? Vérifie userId direct
+  // 1?? Vï¿½rifie userId direct
   const direct = localStorage.getItem('userId');
   if (direct) return direct;
 
-  // 2?? Vérifie medi_follow_user_data
+  // 2?? Vï¿½rifie medi_follow_user_data
   const raw = localStorage.getItem('medi_follow_user_data');
   if (raw) {
     try {
@@ -83,7 +83,7 @@ getCurrentPatientId(): string {
     } catch {}
   }
 
-  // 3?? Vérifie JWT accessToken
+  // 3?? Vï¿½rifie JWT accessToken
   const token = localStorage.getItem('accessToken');
   if (token) {
     try {
@@ -92,7 +92,7 @@ getCurrentPatientId(): string {
     } catch {}
   }
 
-  return ''; // Aucun ID trouvé
+  return ''; // Aucun ID trouvï¿½
 }
 
 

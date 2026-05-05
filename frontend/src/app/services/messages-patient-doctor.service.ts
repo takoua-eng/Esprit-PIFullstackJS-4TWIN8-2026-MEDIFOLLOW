@@ -8,7 +8,7 @@ import { Observable, throwError } from 'rxjs';
 })
 export class MessagesPatientDoctorService {
 
-  private API = '${environment.apiUrl}';
+  private API =`${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

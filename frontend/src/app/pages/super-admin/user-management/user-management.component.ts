@@ -1,6 +1,5 @@
 import { environment } from 'src/environments/environment';
 import { Component, OnInit, ViewChild, AfterViewInit } from '@angular/core';
-import { TablerIconComponent } from 'angular-tabler-icons';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { MaterialModule } from 'src/app/material.module';
@@ -51,7 +50,7 @@ const CREATE_PERMISSION: Record<string, string> = {
   standalone: true,
   imports: [
     CommonModule, RouterModule, MaterialModule,
-    TablerIconComponent, MatSortModule, MatPaginatorModule,
+    MatSortModule, MatPaginatorModule,
     MatProgressSpinnerModule, MatSnackBarModule,
   ],
   templateUrl: './user-management.component.html',
