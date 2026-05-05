@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ServicesController } from './services.controller';
 import { ServicesService } from './services.service';
 import { getModelToken } from '@nestjs/mongoose';
-
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 const mockModel = {};
 
 describe('ServicesController', () => {
@@ -15,7 +15,10 @@ describe('ServicesController', () => {
         ServicesService,
         { provide: getModelToken('Service'), useValue: mockModel },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<ServicesController>(ServicesController);
   });

@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CoordinatorController } from './coordinator.controller';
 import { CoordinatorService } from './coordinator.service';
 import { NotificationService } from '../notifications/notification.service';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 
 // ── Mock CoordinatorService ───────────────────────────────
@@ -38,7 +39,10 @@ describe('CoordinatorController', () => {
         { provide: CoordinatorService, useValue: mockCoordinatorService },
         { provide: NotificationService, useValue: mockNotificationService },
       ],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<CoordinatorController>(CoordinatorController);
   });

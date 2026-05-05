@@ -1,7 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AutoAlertsController } from './auto-alerts.controller';
 import { AutoAlertsService } from './auto-alerts.service';
-
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 describe('AutoAlertsController', () => {
   let controller: AutoAlertsController;
 
@@ -10,7 +10,10 @@ describe('AutoAlertsController', () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AutoAlertsController],
       providers: [{ provide: AutoAlertsService, useValue: mockService }],
-    }).compile();
+    })
+      .overrideGuard(JwtAuthGuard)
+      .useValue({ canActivate: () => true })
+      .compile();
 
     controller = module.get<AutoAlertsController>(AutoAlertsController);
   });
