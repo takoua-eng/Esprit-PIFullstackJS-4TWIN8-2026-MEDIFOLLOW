@@ -23,7 +23,7 @@ export interface Nurse {
 
 @Injectable({ providedIn: 'root' })
 export class NurseService {
-  private baseUrl = `${environment.apiUrl}/users`;
+  private baseUrl = `http://localhost:3000/users`;
 
   constructor(private http: HttpClient) {}
 

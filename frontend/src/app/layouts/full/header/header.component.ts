@@ -73,8 +73,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
         if (this.currentUser.photo && typeof this.currentUser.photo === 'string' && this.currentUser.photo !== 'null' && this.currentUser.photo !== 'undefined' && this.currentUser.photo !== '') {
           const photoPath = this.currentUser.photo.replace(/\\/g, '/');
           this.currentUser.photoUrl = photoPath.startsWith('uploads/') || photoPath.startsWith('http')
-            ? `${environment.apiUrl}/${photoPath}`
-            : `${environment.apiUrl}/uploads/${photoPath}`;
+            ? `<http://localhost:3000>/${photoPath}`
+            : `http://localhost:3000/uploads/${photoPath}`;
         } else {
           this.currentUser.photoUrl = '/assets/images/profile/user-1.jpg';
         }

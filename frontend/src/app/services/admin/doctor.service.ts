@@ -29,7 +29,7 @@ export interface Doctor {
 })
 export class DoctorService {
 
-  private apiUrl = `${environment.apiUrl}/users`;
+  private apiUrl = `http://localhost:3000/users`;
 
   constructor(private http: HttpClient) {}
 

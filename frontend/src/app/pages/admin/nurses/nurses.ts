@@ -157,7 +157,7 @@ export class NursesComponent implements OnInit, AfterViewInit {
             service: this.services.find(s => s._id === n.serviceId) || { _id: '', name: '-' },
             isActive: n.isActive ?? true,
             isArchived: n.isArchived ?? false,
-            photo: n.photo ? `${environment.apiUrl}/uploads/${n.photo}` : '',
+            photo: n.photo ? `http://localhost:3000/uploads/${n.photo}` : '',
           }));
       },
       error: (err) => console.error('Erreur chargement nurses:', err),

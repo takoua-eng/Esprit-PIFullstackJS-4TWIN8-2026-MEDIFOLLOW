@@ -17,13 +17,13 @@ export interface Coordinator {
   providedIn: 'root'
 })
 export class CoordinateurService {
-  private apiUrl = `${environment.apiUrl}/users/coordinators`;
+  private apiUrl = `http://localhost:3000/users/coordinators`;
 
   constructor(private http: HttpClient) {}
 
   // 🔹 GET all coordinators
 getCoordinators(): Observable<Coordinator[]> {
-  return this.http.get<Coordinator[]>(`${environment.apiUrl}/users/coordinators`);
+  return this.http.get<Coordinator[]>(`http://localhost:3000/users/coordinators`);
 }
 
   // 🔹 GET one coordinator by ID

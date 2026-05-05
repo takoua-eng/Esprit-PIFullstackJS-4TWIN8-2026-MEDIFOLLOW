@@ -82,9 +82,9 @@ export class AppTopstripComponent implements OnInit, OnDestroy {
       if (photoPath.startsWith('http')) {
         return photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        return `${environment.apiUrl}/${photoPath}`;
+        return `http://localhost:3000/${photoPath}`;
       } else {
-        return `${environment.apiUrl}/uploads/${photoPath}`;
+        return `http://localhost:3000/uploads/${photoPath}`;
       }
     }
     return null;

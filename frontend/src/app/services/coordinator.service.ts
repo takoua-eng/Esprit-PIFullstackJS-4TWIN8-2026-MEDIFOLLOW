@@ -77,7 +77,7 @@ export function buildReminderMessages(
 @Injectable({ providedIn: 'root' })
 export class CoordinatorService {
   private http = inject(HttpClient);
-  private apiUrl = `${environment.apiUrl}/coordinator`;
+  private apiUrl = `http://localhost:3000/coordinator`;
 
   getDashboard(coordinatorId: string): Observable<CoordinatorDashboardResponse> {
     return this.http.get<CoordinatorDashboardResponse>(`${this.apiUrl}/${coordinatorId}/dashboard`);

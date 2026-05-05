@@ -38,7 +38,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   hideNew = true;
   hideConfirm = true;
 
-  private backendUrl = `${environment.apiUrl}/auth`;
+  private backendUrl = `http://localhost:3000/auth`;
 
   constructor(
     private fb: FormBuilder,

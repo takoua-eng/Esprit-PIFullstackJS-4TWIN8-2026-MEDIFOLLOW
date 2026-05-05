@@ -102,9 +102,9 @@ export class ProfilComponent implements OnInit {
       if (photoPath.startsWith('http')) {
         avatarUrl = photoPath;
       } else if (photoPath.startsWith('uploads/')) {
-        avatarUrl = `${environment.apiUrl}/${photoPath}`;
+        avatarUrl = `http://localhost:3000/${photoPath}`;
       } else {
-        avatarUrl = `${environment.apiUrl}/uploads/${photoPath}`;
+        avatarUrl = `http://localhost:3000/uploads/${photoPath}`;
       }
     }
 

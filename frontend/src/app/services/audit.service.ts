@@ -48,7 +48,7 @@ export interface AuditStats {
 
 @Injectable({ providedIn: 'root' })
 export class AuditApiService {
-  private base = `${environment.apiUrl}/audit`;
+  private base = `http://localhost:3000/audit`;
 
   constructor(private http: HttpClient) {}
 

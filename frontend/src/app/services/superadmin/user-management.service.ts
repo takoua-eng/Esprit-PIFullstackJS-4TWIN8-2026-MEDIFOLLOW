@@ -30,7 +30,7 @@ export interface UserRow {
   assignedService?: string;
 }
 
-const BASE = `${environment.apiUrl}/users`;
+const BASE = `http://localhost:3000/users`;
 
 // Map role name → create endpoint
 const CREATE_ENDPOINTS: Record<string, string> = {

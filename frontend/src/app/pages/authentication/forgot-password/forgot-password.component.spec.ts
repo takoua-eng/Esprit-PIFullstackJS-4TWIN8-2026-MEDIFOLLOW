@@ -12,7 +12,7 @@ describe('ForgotPasswordComponent', () => {
   let httpMock: HttpTestingController;
   let routerSpy: jasmine.SpyObj<Router>;
 
-  const backendUrl = `${environment.apiUrl}/auth`;
+  const backendUrl = `http://localhost:3000/auth`;
 
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);

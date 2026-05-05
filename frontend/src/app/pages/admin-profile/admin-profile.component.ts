@@ -46,8 +46,8 @@ export class AdminProfileComponent implements OnInit {
           hospital: 'MediFollow Demo Hospital',
           avatar: (user.photo && typeof user.photo === 'string' && user.photo !== 'null' && user.photo !== 'undefined' && user.photo !== '')
             ? (user.photo.startsWith('uploads/') || user.photo.startsWith('http') 
-               ? `${environment.apiUrl}/${user.photo.replace(/\\/g, '/')}` 
-               : `${environment.apiUrl}/uploads/${user.photo.replace(/\\/g, '/')}`)
+               ? `http://localhost:3000/${user.photo.replace(/\\/g, '/')}` 
+               : `http://localhost:3000/uploads/${user.photo.replace(/\\/g, '/')}`)
             : '/assets/images/profile/user-1.jpg'
         };
 

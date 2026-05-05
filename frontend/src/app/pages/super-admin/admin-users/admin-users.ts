@@ -111,7 +111,7 @@ export class AdminUsersComponent implements OnInit, AfterViewInit {
           service: admin.service || admin.specialty || '-',
           status: admin.status || 'Active',
           photo: admin.photo
-            ? `${environment.apiUrl}/uploads/${admin.photo}`
+            ? `http://localhost:3000/uploads/${admin.photo}`
             : '',
         }));
       },

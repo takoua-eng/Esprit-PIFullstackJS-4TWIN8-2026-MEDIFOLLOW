@@ -32,7 +32,7 @@ export class ForgotPasswordComponent {
   step = 1; // 1 = enter email, 2 = enter code + new password
   userEmail = ''; // To remember for visual or logic
 
-  private backendUrl = `${environment.apiUrl}/auth`;
+  private backendUrl = `http://localhost:3000/auth`;
 
   constructor(private fb: FormBuilder, private http: HttpClient, private router: Router) {
     this.forgotForm = this.fb.group({

@@ -18,7 +18,7 @@ interface UserStatsResponse  { active: number; total: number; pending: number; }
 @Injectable({ providedIn: 'root' })
 export class AdminStatsService {
   private http = inject(HttpClient);
-  private base = `${environment.apiUrl}/users`;
+  private base = `http://localhost:3000/users`;
 
   getAdminStats(): Observable<AdminStats> {
     return combineLatest([

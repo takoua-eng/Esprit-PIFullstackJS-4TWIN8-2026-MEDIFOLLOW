@@ -88,7 +88,7 @@ export class AuditorsAComponent implements OnInit, AfterViewInit {
           lastName: a.lastName,
           email: a.email,
           phone: a.phone,
-          photo: a.photo ? `${environment.apiUrl}/uploads/${a.photo}` : '',
+          photo: a.photo ? `http://localhost:3000/uploads/${a.photo}` : '',
           isActive: a.isActive ?? true,
           isArchived: a.isArchived ?? false,
         }));
@@ -133,7 +133,7 @@ export class AuditorsAComponent implements OnInit, AfterViewInit {
   getFullName(row: AuditorRow): string { return `${row.firstName} ${row.lastName}`; }
   getFirstName(row: AuditorRow): string { return row.firstName; }
   getLastName(row: AuditorRow): string { return row.lastName; }
-  getPhoto(photo: string): string { return `${environment.apiUrl}/uploads/${photo}`; }
+  getPhoto(photo: string): string { return `http://localhost:3000/uploads/${photo}`; }
   getInitials(firstName?: string, lastName?: string): string {
     const first = firstName?.charAt(0) ?? '';
     const last = lastName?.charAt(0) ?? '';

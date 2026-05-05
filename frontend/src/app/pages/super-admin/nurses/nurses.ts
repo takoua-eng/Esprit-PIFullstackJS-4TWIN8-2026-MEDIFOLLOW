@@ -131,7 +131,7 @@ export class NursesComponent implements OnInit, AfterViewInit {
                 : n.serviceId || n.service || 'N/A',
             status: n.isArchived ? 'Inactive' : 'Active',
             isActive: n.isActive ?? true,
-            photo: n.photo ? `${environment.apiUrl}/uploads/${n.photo}` : '',
+            photo: n.photo ? `http://localhost:3000/uploads/${n.photo}` : '',
           };
         });
       },
