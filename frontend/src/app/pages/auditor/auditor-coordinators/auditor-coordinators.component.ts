@@ -98,7 +98,7 @@ export class AuditorCoordinatorsComponent implements OnInit, AfterViewInit {
   }
 
   rankIcon(rank: number): string {
-    return rank === 1 ? '??' : rank === 2 ? '??' : rank === 3 ? '??' : `#${rank}`;
+    return rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
   }
 }
 

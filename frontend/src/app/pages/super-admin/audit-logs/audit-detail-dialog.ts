@@ -295,9 +295,9 @@ export class AuditDetailDialog {
   }
 
   getVal(obj: any, key: string): string {
-    if (!obj) return '—';
+    if (!obj) return 'â€”';
     const v = obj[key];
-    if (v === undefined || v === null) return '—';
+    if (v === undefined || v === null) return 'â€”';
     if (typeof v === 'object') return JSON.stringify(v).slice(0, 60);
     return String(v);
   }
@@ -307,7 +307,7 @@ export class AuditDetailDialog {
   }
 
   parseUA(ua: string): string {
-    if (!ua || ua === 'unknown') return '—';
+    if (!ua || ua === 'unknown') return 'â€”';
     if (ua.includes('Chrome'))  return 'Chrome';
     if (ua.includes('Firefox')) return 'Firefox';
     if (ua.includes('Safari'))  return 'Safari';

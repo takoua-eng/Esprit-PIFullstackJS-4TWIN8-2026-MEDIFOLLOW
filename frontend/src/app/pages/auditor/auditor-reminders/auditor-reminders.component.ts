@@ -118,7 +118,7 @@ export class AuditorRemindersComponent implements OnInit, AfterViewInit {
   }
 
   delayLabel(min: number | null): string {
-    if (min === null) return '—';
+    if (min === null) return 'â€”';
     if (min < 60) return `${min}m`;
     return `${Math.floor(min / 60)}h ${min % 60}m`;
   }
