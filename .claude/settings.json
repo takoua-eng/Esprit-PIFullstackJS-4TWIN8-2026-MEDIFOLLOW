@@ -2,7 +2,12 @@
   "permissions": {
     "allow": [
       "Bash(npx tsc *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npx ng *)",
+      "Bash(cp \"frontend/src/app/pages/doctor/dashboard/doctor-dashboard.component.ts.LOCAL.ts\" /tmp/doctor_local.ts)",
+      "Bash(cp \"frontend/src/app/pages/nurse/dashboard/nurse-dashboard.component.ts.LOCAL.ts\" /tmp/nurse_local.ts)",
+      "Read(//tmp/**)",
+      "Bash(git add *)"
     ]
   }
 }

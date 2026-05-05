@@ -79,14 +79,14 @@ export class AlertsApiService {
   getAlerts(opts?: {
     doctorId?: string;
     patientId?: string;
+    limit?: number;
+    skip?: number;
   }): Observable<AlertDto[]> {
     let params = new HttpParams();
-    if (opts?.doctorId) {
-      params = params.set('doctorId', opts.doctorId);
-    }
-    if (opts?.patientId) {
-      params = params.set('patientId', opts.patientId);
-    }
+    if (opts?.doctorId) params = params.set('doctorId', opts.doctorId);
+    if (opts?.patientId) params = params.set('patientId', opts.patientId);
+    if (opts?.limit != null) params = params.set('limit', String(opts.limit));
+    if (opts?.skip != null) params = params.set('skip', String(opts.skip));
     return this.http.get<AlertDto[]>(this.base, { params });
   }
 

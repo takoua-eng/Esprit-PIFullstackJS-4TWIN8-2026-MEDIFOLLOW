@@ -122,7 +122,7 @@ describe('ProfilComponent', () => {
         photo: 'uploads/avatar.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe('${environment.apiUrl}/uploads/avatar.jpg');
+      expect(component.profile.avatar).toBe(`${environment.apiUrl}/uploads/avatar.jpg`);
     });
 
     it('should format avatar URL correctly (raw filename)', () => {
@@ -130,7 +130,7 @@ describe('ProfilComponent', () => {
         photo: 'image.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe('${environment.apiUrl}/uploads/image.jpg');
+      expect(component.profile.avatar).toBe(`${environment.apiUrl}/uploads/image.jpg`);
     });
 
     it('should handle http avatar URL correctly', () => {

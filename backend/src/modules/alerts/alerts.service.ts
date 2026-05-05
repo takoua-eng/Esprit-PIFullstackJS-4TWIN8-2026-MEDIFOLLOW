@@ -358,6 +358,8 @@ export class AlertsService implements OnModuleInit {
   async findAll(opts?: {
     doctorId?: string;
     patientId?: string;
+    limit?: number;
+    skip?: number;
   }): Promise<AlertListItem[]> {
     const doctorOid =
       opts?.doctorId && Types.ObjectId.isValid(opts.doctorId)
@@ -366,20 +368,11 @@ export class AlertsService implements OnModuleInit {
 
     if (opts?.patientId && Types.ObjectId.isValid(opts.patientId)) {
       const pid = new Types.ObjectId(opts.patientId);
-      const allowed = await this.getPatientIdsForDoctor(opts?.doctorId);
-      const isPatientManagedByPhysician = allowed.some((id) => id.equals(pid));
-
-      // 🩺 Security: If a doctor is specified, verify they can manage this patient OR they sent an alert to them.
-      // In a clinical team environment, doctors can typically see instructions sent to a patient by any team member.
-      if (doctorOid && !isPatientManagedByPhysician) {
-        // Fallback: only show alerts they were involved in if the patient isn't in their "official" pool.
-        // However, given the user request for persistence, we'll allow seeing the patient's alert history
-        // if they are currently viewing that patient's dossier.
-      }
-
       const docs = await this.alertModel
-        .find({ patientId: pid }) // Fetch all alerts for this patient
+        .find({ patientId: pid })
         .sort({ createdAt: -1 })
+        .skip(opts?.skip ?? 0)
+        .limit(opts?.limit ?? 0)
         .populate('patientId', 'firstName lastName')
         .exec();
       return docs.map((d) => this.toListItem(d as AlertDocument));
@@ -401,6 +394,8 @@ export class AlertsService implements OnModuleInit {
     const docs = await this.alertModel
       .find(filter as unknown as Record<string, unknown>)
       .sort({ createdAt: -1 })
+      .skip(opts?.skip ?? 0)
+      .limit(opts?.limit ?? 0)
       .populate('patientId', 'firstName lastName')
       .exec();
     return docs.map((d) => this.toListItem(d as AlertDocument));

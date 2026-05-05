@@ -86,7 +86,7 @@ export class VitalsService {
     };
   }
 
-  async findAll(patientId?: string): Promise<VitalListItem[]> {
+  async findAll(patientId?: string, opts?: { limit?: number; skip?: number }): Promise<VitalListItem[]> {
     const patientIds = await this.getPatientUserObjectIds();
     if (patientIds.length === 0) return [];
 
@@ -101,6 +101,8 @@ export class VitalsService {
     const docs = await this.vitalModel
       .find(filter)
       .sort({ recordedAt: -1 })
+      .skip(opts?.skip ?? 0)
+      .limit(opts?.limit ?? 0)
       .populate('patientId', 'firstName lastName')
       .populate('recordedBy', 'firstName lastName')
       .populate('verifiedBy', 'firstName lastName')

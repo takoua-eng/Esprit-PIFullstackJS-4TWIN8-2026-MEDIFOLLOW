@@ -32,7 +32,7 @@ export interface Auditor {
 
 @Injectable({ providedIn: 'root' })
 export class AuditorService {
-  private baseUrl = '${environment.apiUrl}/users';
+  private baseUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) {}
 

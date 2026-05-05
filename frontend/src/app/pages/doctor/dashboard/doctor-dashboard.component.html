@@ -31,12 +31,11 @@
   </mat-card>
 }
 
-@if (loading) {
-  <div class="d-flex align-items-center gap-3 m-b-24">
-    <mat-spinner diameter="36"></mat-spinner>
-    <span class="text-muted">{{ 'DOCTOR_DASH_LOADING' | translate }}</span>
-  </div>
-}
+<mat-progress-bar
+  class="dash-progress-bar"
+  mode="indeterminate"
+  [style.visibility]="loading ? 'visible' : 'hidden'"
+></mat-progress-bar>
 
 @if (!loading && !loadError && !noDoctorSession) {
   <p class="f-s-13 text-muted m-b-16">{{ 'DOCTOR_DASH_VALIDATION_NOTE' | translate }}</p>
@@ -66,12 +65,8 @@
       >
         <mat-card-content class="p-20">
           <i-tabler name="bell-ringing" class="icon-24 d-block m-b-8"></i-tabler>
-          <div class="f-w-700 f-s-28 m-b-4">
-            @if (activeAlerts === null) {
-              <span class="f-s-16">—</span>
-            } @else {
-              {{ activeAlerts }}
-            }
+          <div class="f-w-700 f-s-28 m-b-4 kpi-value">
+            {{ activeAlerts === null ? '—' : activeAlerts }}
           </div>
           <div class="f-s-14 f-w-600">{{ 'DOCTOR_KPI_ACTIVE_ALERTS' | translate }}</div>
         </mat-card-content>
@@ -82,12 +77,8 @@
       <mat-card class="cardWithShadow doctor-kpi doctor-kpi--followups">
         <mat-card-content class="p-20">
           <i-tabler name="clipboard-check" class="icon-24 d-block m-b-8"></i-tabler>
-          <div class="f-w-700 f-s-28 m-b-4">
-            @if (questionnaireCompliancePct === null) {
-              <span class="f-s-16">—</span>
-            } @else {
-              {{ questionnaireCompliancePct }}%
-            }
+          <div class="f-w-700 f-s-28 m-b-4 kpi-value">
+            {{ questionnaireCompliancePct === null ? '—' : (questionnaireCompliancePct + '%') }}
           </div>
           <div class="f-s-14 f-w-600">{{ 'DOCTOR_KPI_QUESTIONNAIRE_TODAY' | translate }}</div>
         </mat-card-content>
@@ -140,24 +131,26 @@
             </mat-form-field>
           </div>
 
-          @if (!selectedPatientId) {
-            <p class="text-muted m-b-0">{{ 'DOCTOR_CHART_SELECT_PATIENT' | translate }}</p>
-          } @else if (!vitalChartOptions) {
-            <p class="text-muted m-b-0">{{ 'DOCTOR_CHART_NO_DATA' | translate }}</p>
-          } @else {
-            <apx-chart
-              [series]="vitalChartOptions.series"
-              [chart]="vitalChartOptions.chart"
-              [xaxis]="vitalChartOptions.xaxis"
-              [yaxis]="vitalChartOptions.yaxis"
-              [colors]="vitalChartOptions.colors"
-              [stroke]="vitalChartOptions.stroke"
-              [dataLabels]="vitalChartOptions.dataLabels"
-              [markers]="vitalChartOptions.markers"
-              [legend]="vitalChartOptions.legend"
-              [grid]="vitalChartOptions.grid"
-            ></apx-chart>
-          }
+          <div class="chart-container">
+            @if (!selectedPatientId) {
+              <p class="text-muted m-b-0 chart-placeholder">{{ 'DOCTOR_CHART_SELECT_PATIENT' | translate }}</p>
+            } @else if (!vitalChartOptions) {
+              <p class="text-muted m-b-0 chart-placeholder">{{ 'DOCTOR_CHART_NO_DATA' | translate }}</p>
+            } @else {
+              <apx-chart
+                [series]="vitalChartOptions.series"
+                [chart]="vitalChartOptions.chart"
+                [xaxis]="vitalChartOptions.xaxis"
+                [yaxis]="vitalChartOptions.yaxis"
+                [colors]="vitalChartOptions.colors"
+                [stroke]="vitalChartOptions.stroke"
+                [dataLabels]="vitalChartOptions.dataLabels"
+                [markers]="vitalChartOptions.markers"
+                [legend]="vitalChartOptions.legend"
+                [grid]="vitalChartOptions.grid"
+              ></apx-chart>
+            }
+          </div>
 
           @if (trendInsight) {
             <div class="m-t-16 p-16 trend-box">
@@ -201,7 +194,7 @@
           </mat-card-subtitle>
 
           <div class="table-responsive">
-            <table mat-table [dataSource]="patients" class="w-100">
+            <table mat-table [dataSource]="dataSource" class="w-100">
               <ng-container matColumnDef="name">
                 <th mat-header-cell *matHeaderCellDef>{{ 'NAME' | translate }}</th>
                 <td mat-cell *matCellDef="let row">{{ row.name }}</td>
@@ -246,12 +239,12 @@
                 <th mat-header-cell *matHeaderCellDef>{{ 'ACTIONS' | translate }}</th>
                 <td mat-cell *matCellDef="let row">
                   <div class="d-flex gap-2">
-                    <button mat-icon-button color="primary" 
+                    <button mat-icon-button color="primary"
                             [matTooltip]="'SEND_QUESTIONNAIRE' | translate"
                             (click)="openSendQuestionnaireDialog(row)">
                       <i-tabler name="send" class="icon-18"></i-tabler>
                     </button>
-                    <button mat-icon-button color="accent" 
+                    <button mat-icon-button color="accent"
                             [matTooltip]="'VIEW_RESPONSES' | translate"
                             (click)="viewResponses(row)">
                       <i-tabler name="history" class="icon-18"></i-tabler>
@@ -265,6 +258,11 @@
               <tr mat-row *matRowDef="let row; columns: displayedColumns"></tr>
             </table>
           </div>
+          <mat-paginator
+            [pageSizeOptions]="[10, 25, 50]"
+            pageSize="10"
+            showFirstLastButtons
+          ></mat-paginator>
         </mat-card-content>
       </mat-card>
     </div>

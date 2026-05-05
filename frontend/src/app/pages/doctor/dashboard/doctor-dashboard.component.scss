@@ -1,3 +1,33 @@
+// Fixed-position progress bar — stays outside document flow so page content never shifts
+.dash-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  transition: opacity 0.2s;
+}
+
+// Reserve fixed height for KPI numbers so loading → data transition causes no layout shift
+.kpi-value {
+  min-height: 40px;
+  line-height: 1.1;
+}
+
+// Reserve space for chart so it doesn't shift content below when it renders
+.chart-container {
+  min-height: 340px;
+  position: relative;
+}
+
+.chart-placeholder {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: nowrap;
+}
+
 .doctor-kpi {
   border-radius: 18px;
   color: #fff;

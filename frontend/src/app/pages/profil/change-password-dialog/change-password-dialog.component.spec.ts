@@ -16,7 +16,7 @@ describe('ChangePasswordDialogComponent', () => {
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<ChangePasswordDialogComponent>>;
 
   const mockDialogData = { email: 'test@example.com' };
-  const backendUrl = '${environment.apiUrl}/auth';
+  const backendUrl = `${environment.apiUrl}/auth`;
 
   beforeEach(async () => {
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);

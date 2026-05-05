@@ -8,6 +8,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 @Component({
   selector: 'app-change-password-dialog',
   standalone: true,
@@ -37,7 +38,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   hideNew = true;
   hideConfirm = true;
 
-  private backendUrl = '${environment.apiUrl}/auth';
+  private backendUrl = `${environment.apiUrl}/auth`;
 
   constructor(
     private fb: FormBuilder,
@@ -54,7 +55,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // Dès l'ouverture, on envoie le code de vérification
+    // Dï¿½s l'ouverture, on envoie le code de vï¿½rification
     this.sendVerificationCode();
   }
 
@@ -77,7 +78,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSendingEmail = false;
-          this.message = 'Un code de vérification a été envoyé à votre email.';
+          this.message = 'Un code de vï¿½rification a ï¿½tï¿½ envoyï¿½ ï¿½ votre email.';
           this.isError = false;
         },
         error: (err) => {
@@ -104,7 +105,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       }).subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.message = 'Mot de passe modifié avec succès !';
+          this.message = 'Mot de passe modifiï¿½ avec succï¿½s !';
           this.isError = false;
           setTimeout(() => this.dialogRef.close(true), 1500);
         },

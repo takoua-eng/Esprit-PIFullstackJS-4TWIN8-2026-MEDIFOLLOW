@@ -550,8 +550,9 @@ export class UsersService {
 
   async findPatientsByDoctor(
   doctorId?: string,
+  opts?: { limit?: number; skip?: number },
 ): Promise<
-  { _id: string; firstName: string; lastName: string; email: string }[]
+  { _id: string; firstName: string; lastName: string; email: string; phone?: string }[]
 > {
   let query: Record<string, unknown>;
 
@@ -581,13 +582,20 @@ export class UsersService {
     };
   }
 
-  const patients = await this.userModel.find(query).lean().exec();
+  const patients = await this.userModel
+    .find(query)
+    .select('firstName lastName email phone')
+    .lean()
+    .skip(opts?.skip ?? 0)
+    .limit(opts?.limit ?? 0)
+    .exec();
 
   return patients.map((u) => ({
     _id: (u._id as Types.ObjectId).toString(),
     firstName: u.firstName,
     lastName: u.lastName,
     email: u.email,
+    phone: typeof (u as any).phone === 'string' ? (u as any).phone : undefined,
   }));
 }
 
