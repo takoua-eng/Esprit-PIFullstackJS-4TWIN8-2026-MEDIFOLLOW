@@ -8,7 +8,10 @@ import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 export class JwtAuthGuard implements CanActivate {
   private jwtService: JwtService;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private reflector: Reflector, // ✅ AJOUT IMPORTANT
+  ) {
     this.jwtService = new JwtService({
       secret: configService.get<string>('JWT_SECRET'),
     });
@@ -19,11 +22,14 @@ export class JwtAuthGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+
     if (isPublic) return true;
 
     const request = context.switchToHttp().getRequest();
     const token = request.headers.authorization?.split(' ')[1];
+
     if (!token) throw new UnauthorizedException('Token manquant');
+
     try {
       const payload = this.jwtService.verify(token);
       request.user = payload;
@@ -32,4 +38,4 @@ export class JwtAuthGuard implements CanActivate {
       throw new UnauthorizedException('Token invalide');
     }
   }
-} 
+}
