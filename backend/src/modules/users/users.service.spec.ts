@@ -1,21 +1,17 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
-import { Types } from 'mongoose';
-import * as bcrypt from 'bcrypt';
-import * as nodemailer from 'nodemailer';
 import { UsersService } from './users.service';
 import { User } from './users.schema';
 import { Role } from '../roles/role.schema';
 import { Service } from '../service/services/service.schema';
 import { PatientDiagnosis } from './patient-diagnosis.schema';
+import { NotificationsService } from '../notifications-super-admin/notifications.service';
 import { BadRequestException, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import * as nodemailer from 'nodemailer';
 import { Types } from 'mongoose';
 import { afterEach, beforeEach, describe } from 'node:test';
-import { NotificationsService } from '../notifications-super-admin/notifications.service';
 
 jest.mock('bcrypt', () => ({ hash: jest.fn(), compare: jest.fn() }));
 jest.mock('nodemailer', () => ({ createTransport: jest.fn() }));
@@ -27,9 +23,9 @@ describe('UsersService', () => {
   let patientDiagnosisModel: any;
   let notificationsService: any;
 
-  const mockRole        = { _id: new Types.ObjectId(), name: 'patient' };
-  const mockDoctorRole  = { _id: new Types.ObjectId(), name: 'doctor' };
-  const mockNurseRole   = { _id: new Types.ObjectId(), name: 'nurse' };
+  const mockRole = { _id: new Types.ObjectId(), name: 'patient' };
+  const mockDoctorRole = { _id: new Types.ObjectId(), name: 'doctor' };
+  const mockNurseRole = { _id: new Types.ObjectId(), name: 'nurse' };
 
   // Reusable mock user returned by findById / findOne
   const mockUser: Record<string, any> = {

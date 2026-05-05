@@ -120,13 +120,13 @@ describe('UsersController', () => {
     it('getPatients() for a doctor should scope by doctorId', async () => {
       const req = { user: { _id: 'doc1', role: 'doctor', permissions: ['patients:read'] } };
       await controller.getPatients(req as any);
-      expect(service.findPatientsByDoctor).toHaveBeenCalledWith('doc1');
+      expect(service.findPatientsByDoctor).toHaveBeenCalledWith('doc1', { limit: undefined, skip: undefined });
     });
 
     it('getPatients() for admin should return all (no doctorId scope)', async () => {
       const req = { user: { _id: 'admin1', role: 'admin', permissions: ['*'] } };
       await controller.getPatients(req as any);
-      expect(service.findPatientsByDoctor).toHaveBeenCalledWith(undefined);
+      expect(service.findPatientsByDoctor).toHaveBeenCalledWith(undefined, { limit: undefined, skip: undefined });
     });
   });
 
