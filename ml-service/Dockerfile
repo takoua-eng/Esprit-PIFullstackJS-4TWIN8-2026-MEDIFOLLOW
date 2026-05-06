@@ -1,31 +1,39 @@
-# Image Python officielle
-FROM python:3.10-slim
+# ── Stage 1: Build / Install dependencies ─────────────────
+FROM python:3.10-slim AS builder
 
-# Evite les erreurs pip / build
-ENV PYTHONDONTWRITEBYTECODE=1
-ENV PYTHONUNBUFFERED=1
-
-# Dossier de travail
 WORKDIR /app
 
-# Installer dépendances système (important pour numpy, sklearn, xgboost)
+# Dépendances système pour numpy / scipy / xgboost
 RUN apt-get update && apt-get install -y \
     build-essential \
     gcc \
     && rm -rf /var/lib/apt/lists/*
 
-# Copier requirements d'abord (cache Docker optimisé)
+# Copier requirements
 COPY requirements.txt .
 
 # Installer dépendances Python
 RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
+RUN pip install --prefix=/install -r requirements.txt
 
-# Copier tout le code ML
+
+# ── Stage 2: Runtime léger ────────────────────────────────
+FROM python:3.10-slim AS production
+
+WORKDIR /app
+
+# Copier seulement les libs installées (image plus légère)
+COPY --from=builder /install /usr/local
+
+# Copier le code ML
 COPY . .
 
-# (optionnel) port si API Flask/FastAPI
+# Variables utiles
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Port si API (optionnel)
 EXPOSE 5000
 
-# Commande par défaut
+# Commande (adapter selon ton projet)
 CMD ["python", "test.py"]
