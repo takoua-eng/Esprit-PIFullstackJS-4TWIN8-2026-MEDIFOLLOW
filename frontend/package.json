@@ -6,8 +6,8 @@
     "start": "ng serve",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
-    "test": "ng test"
-    ,"test:patient": "ng test --include \"src/app/pages/patient/**/*.spec.ts\" --watch=false --browsers ChromeHeadless"
+    "test": "ng test",
+    "test:patient": "ng test --include \"src/app/pages/patient/**/*.spec.ts\" --watch=false --browsers ChromeHeadless"
   },
   "private": true,
   "dependencies": {
@@ -63,6 +63,7 @@
     "karma-coverage": "~2.2.1",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.1.0",
+    "puppeteer": "^22.15.0",
     "typescript": "~5.9.3"
   }
 }

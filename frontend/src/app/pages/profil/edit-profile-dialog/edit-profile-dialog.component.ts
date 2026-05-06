@@ -92,13 +92,13 @@ export class EditProfileDialogComponent implements OnInit {
       this.userService.updateUser(userId, formData).subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.message = 'Profil mis à jour avec succès !';
+          this.message = 'Profil mis Ã  jour avec succÃ¨s !';
           this.isError = false;
           setTimeout(() => this.dialogRef.close(res), 1000);
         },
         error: (err) => {
           this.isLoading = false;
-          this.message = err.error?.message || 'Erreur lors de la mise à jour.';
+          this.message = err.error?.message || 'Erreur lors de la mise Ã  jour.';
           this.isError = true;
         }
       });

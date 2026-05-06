@@ -55,7 +55,7 @@ export class ChangePasswordDialogComponent implements OnInit {
   }
 
   ngOnInit() {
-    // D�s l'ouverture, on envoie le code de v�rification
+    // Dès l'ouverture, on envoie le code de vérification
     this.sendVerificationCode();
   }
 
@@ -78,7 +78,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       .subscribe({
         next: () => {
           this.isSendingEmail = false;
-          this.message = 'Un code de v�rification a �t� envoy� � votre email.';
+          this.message = 'Un code de vérification a été envoyé à votre email.';
           this.isError = false;
         },
         error: (err) => {
@@ -105,7 +105,7 @@ export class ChangePasswordDialogComponent implements OnInit {
       }).subscribe({
         next: (res) => {
           this.isLoading = false;
-          this.message = 'Mot de passe modifi� avec succ�s !';
+          this.message = 'Mot de passe modifié avec succès !';
           this.isError = false;
           setTimeout(() => this.dialogRef.close(true), 1500);
         },

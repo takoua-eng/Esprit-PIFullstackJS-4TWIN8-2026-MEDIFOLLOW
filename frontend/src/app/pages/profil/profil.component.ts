@@ -65,7 +65,7 @@ export class ProfilComponent implements OnInit {
   }
 
   loadProfile() {
-    // 1. Charger imm�diatement depuis le localStorage pour �viter l'effet "vide"
+    // 1. Charger immédiatement depuis le localStorage pour éviter l'effet "vide"
     const localData = localStorage.getItem('medi_follow_user_data');
     if (localData) {
       try {
@@ -76,17 +76,17 @@ export class ProfilComponent implements OnInit {
       }
     }
 
-    // 2. Mettre à jour avec les donn�es fra�ches de l'API
+    // 2. Mettre à jour avec les données fraéches de l'API
     this.userService.getProfile().subscribe({
       next: (user) => {
         if (user) {
           this.updateProfileState(user);
-          // Mettre à jour le cache local si n�cessaire
+          // Mettre à jour le cache local si nécessaire
           localStorage.setItem('medi_follow_user_data', JSON.stringify(user));
         }
       },
       error: (err) => {
-        console.error('Erreur chargement profil API, utilisation des donn�es locales', err);
+        console.error('Erreur chargement profil API, utilisation des données locales', err);
       }
     });
   }
@@ -95,7 +95,7 @@ export class ProfilComponent implements OnInit {
     this.rawUserData = user;
     let avatarUrl: string | null = null;
     
-    // G�rer l'URL de la photo
+    // Gérer l'URL de la photo
     const photoSource = user.photo || user.image || user.avatar;
     if (photoSource && typeof photoSource === 'string' && photoSource !== 'null' && photoSource !== 'undefined' && photoSource !== '') {
       const photoPath = photoSource.replace(/\\/g, '/');
@@ -112,10 +112,10 @@ export class ProfilComponent implements OnInit {
     const fName = user.firstName || user.name || '';
     const lName = user.lastName || '';
 
-    // Construire le r�le
+    // Construire le réle
     const userRole = user.role?.name || user.role || localStorage.getItem('user_role') || 'User';
 
-    // Ajouter Dr. pour les m�decins
+    // Ajouter Dr. pour les médecins
     const isDoctor = userRole.toLowerCase() === 'doctor';
     const prefix = isDoctor ? 'Dr. ' : '';
     const fullName = `${prefix}${lName} ${fName}`.trim() || 'Utilisateur';
@@ -132,10 +132,10 @@ export class ProfilComponent implements OnInit {
 
     this.profile = {
       name: fullName,
-      email: user.email || 'Non renseign�',
+      email: user.email || 'Non renseigné',
       role: userRole,
-      phone: user.phone || user.telephone || 'Non renseign�',
-      service: user.service?.name || user.service || 'Non sp�cifi�',
+      phone: user.phone || user.telephone || 'Non renseigné',
+      service: user.service?.name || user.service || 'Non spécifié',
       hospital: 'MediFollow Demo Hospital',
       avatar: avatarUrl,
       initials: computedInitials

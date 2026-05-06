@@ -135,7 +135,7 @@ export class AuditorVerifyComponent implements OnInit, AfterViewInit, OnDestroy 
   }
 
   formatIp(ip: string): string {
-    if (!ip || ip === 'unknown') return '—';
+    if (!ip || ip === 'unknown') return 'â€”';
     if (ip === '::1' || ip === '127.0.0.1') return 'localhost';
     if (ip.startsWith('::ffff:')) return ip.replace('::ffff:', '');
     return ip;
