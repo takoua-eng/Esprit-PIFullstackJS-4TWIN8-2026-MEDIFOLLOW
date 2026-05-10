@@ -176,8 +176,8 @@ export class NursesComponent implements OnInit, AfterViewInit {
   /** Ajouter infirmière */
   addNurse(): void {
     const dialogRef = this.dialog.open(AddNurse, {
-      width: '800px',
-      maxWidth: '95vw',
+      width: '95vw',
+      maxWidth: '1000px',
       maxHeight: '90vh',
     });
 

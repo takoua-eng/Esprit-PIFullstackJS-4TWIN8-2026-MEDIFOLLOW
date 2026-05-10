@@ -153,7 +153,10 @@ export class Patients implements OnInit, AfterViewInit {
   // =============================
 
   addUser(): void {
-    const dialogRef = this.dialog.open(AddPatientDialog, { width: '600px' });
+    const dialogRef = this.dialog.open(AddPatientDialog, { 
+      width: '95vw',
+      maxWidth: '1000px'
+    });
 
     dialogRef.afterClosed().subscribe((formData) => {
       if (formData) {

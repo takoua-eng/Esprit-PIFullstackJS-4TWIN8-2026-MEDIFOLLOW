@@ -817,7 +817,8 @@ async predictStrokeRisk(patientId: string) {
   this.logger.log(`🔥 ML input for ${patientId}: ${JSON.stringify(mlInput)}`);
 
   try {
-    const res = await fetch('http://localhost:5001/predict', {
+    const mlUrl = this.config.get<string>('ML_SERVICE_URL') || 'https://esprit-pifullstackjs-4twin8-2026.onrender.com/predict';
+    const res = await fetch(mlUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mlInput),

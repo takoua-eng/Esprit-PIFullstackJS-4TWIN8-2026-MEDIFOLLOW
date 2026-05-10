@@ -41,6 +41,16 @@
     .form-section {
       margin-bottom: 40px;
 
+      &.center {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        .section-title {
+          justify-content: center;
+          border-bottom: none;
+        }
+      }
+
       .section-title {
         display: flex;
         align-items: center;
@@ -58,6 +68,47 @@
           width: 24px;
           height: 24px;
         }
+      }
+    }
+
+    .photo-wrapper {
+      position: relative;
+      display: inline-block;
+      margin-top: 10px;
+
+      .photo-preview, .photo-placeholder {
+        width: 120px;
+        height: 120px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #4bacf5;
+        box-shadow: 0 4px 12px rgba(75, 172, 245, 0.25);
+        transition: transform 0.3s;
+
+        &:hover {
+          transform: scale(1.02);
+        }
+      }
+      
+      .photo-placeholder {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8fafc;
+        mat-icon {
+          font-size: 64px;
+          width: 64px;
+          height: 64px;
+          color: #718096;
+        }
+      }
+
+      .upload-btn {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        transform: scale(0.9);
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
       }
     }
 
