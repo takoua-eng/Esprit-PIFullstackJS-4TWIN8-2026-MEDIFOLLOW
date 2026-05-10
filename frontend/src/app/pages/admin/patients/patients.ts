@@ -122,7 +122,7 @@ export class Patients implements OnInit, AfterViewInit {
             gender: p.gender || 'N/A',
             isActive: p.isActive ?? true,
             isArchived: p.isArchived ?? false,
-            photo: p.photo ? `http://localhost:3000/uploads/${p.photo}` : '',
+            photo: p.photo ? `${environment.apiUrl}/uploads/${p.photo}` : '',
           }));
 
         this.dataSource.paginator = this.paginator;

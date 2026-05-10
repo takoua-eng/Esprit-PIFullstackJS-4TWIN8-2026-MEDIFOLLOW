@@ -6,6 +6,7 @@ import { MatDialog, MatDialogModule, MatDialogRef } from '@angular/material/dial
 import { TranslateModule } from '@ngx-translate/core';
 import { NEVER, of, throwError } from 'rxjs';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
+import { environment } from 'src/environments/environment';
 
 describe('ProfilComponent', () => {
   let component: ProfilComponent;
@@ -122,7 +123,7 @@ describe('ProfilComponent', () => {
         photo: 'uploads/avatar.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe(`http://localhost:3000/uploads/avatar.jpg`);
+      expect(component.profile.avatar).toBe(`${environment.apiUrl}/uploads/avatar.jpg`);
     });
 
     it('should format avatar URL correctly (raw filename)', () => {
@@ -130,7 +131,7 @@ describe('ProfilComponent', () => {
         photo: 'image.jpg'
       }));
       fixture.detectChanges();
-      expect(component.profile.avatar).toBe(`http://localhost:3000/uploads/image.jpg`);
+      expect(component.profile.avatar).toBe(`${environment.apiUrl}/uploads/image.jpg`);
     });
 
     it('should handle http avatar URL correctly', () => {

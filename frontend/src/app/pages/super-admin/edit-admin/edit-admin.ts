@@ -78,7 +78,7 @@ export class EditAdminDialog implements OnInit {
     this.loadServices();
 
     if (this.data?.photo) {
-      this.photoPreview = `http://localhost:3000/uploads/${this.data.photo}`;
+      this.photoPreview = `${environment.apiUrl}/uploads/${this.data.photo}`;
     }
   }
 

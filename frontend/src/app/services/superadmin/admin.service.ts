@@ -34,7 +34,7 @@ export interface Admin {
 
 @Injectable({ providedIn: 'root' })
 export class AdminService {
-  private baseUrl = `http://localhost:3000/users`;
+  private baseUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) {}
 

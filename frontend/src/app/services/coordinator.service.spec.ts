@@ -1,11 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { CoordinatorService, buildReminderMessages } from './coordinator.service';
+import { environment } from 'src/environments/environment';
 
 describe('CoordinatorService', () => {
   let service: CoordinatorService;
   let httpMock: HttpTestingController;
-  const apiUrl = 'http://localhost:3000/coordinator';
+  const apiUrl = `${environment.apiUrl}/coordinator`;
   const coordId = 'coord123';
 
   beforeEach(() => {

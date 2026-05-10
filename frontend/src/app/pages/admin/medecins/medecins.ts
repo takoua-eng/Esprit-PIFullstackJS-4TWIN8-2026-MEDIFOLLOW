@@ -124,7 +124,7 @@ ngOnInit(): void {
           .filter(d => !d.isArchived)
           .map(d => ({
             ...d,
-            photo: d.photo ? `http://localhost:3000/uploads/${d.photo}` : '',
+            photo: d.photo ? `${environment.apiUrl}/uploads/${d.photo}` : '',
             isActive: d.isActive ?? true,
             isArchived: d.isArchived ?? false,
           }));

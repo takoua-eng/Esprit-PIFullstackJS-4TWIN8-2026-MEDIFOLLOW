@@ -5,6 +5,7 @@ import { HttpClientTestingModule, HttpTestingController } from '@angular/common/
 import { Router } from '@angular/router';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 describe('ForgotPasswordComponent', () => {
   let component: ForgotPasswordComponent;
@@ -12,7 +13,7 @@ describe('ForgotPasswordComponent', () => {
   let httpMock: HttpTestingController;
   let routerSpy: jasmine.SpyObj<Router>;
 
-  const backendUrl = `http://localhost:3000/auth`;
+  const backendUrl = `${environment.apiUrl}/auth`;
 
   beforeEach(async () => {
     routerSpy = jasmine.createSpyObj('Router', ['navigate']);

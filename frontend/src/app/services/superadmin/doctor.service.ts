@@ -18,7 +18,7 @@ export interface Doctor {
   providedIn: 'root',
 })
 export class DoctorService {
-  private apiUrl = `http://localhost:3000/users`;
+  private apiUrl = `${environment.apiUrl}/users`;
 
   constructor(private http: HttpClient) {}
 

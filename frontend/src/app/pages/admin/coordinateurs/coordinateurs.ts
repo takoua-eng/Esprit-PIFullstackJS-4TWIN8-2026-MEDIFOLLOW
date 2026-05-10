@@ -101,7 +101,7 @@ export class CoordinateursComponent implements OnInit, AfterViewInit {
           .filter(c => !c.isArchived)
           .map(c => ({
             ...c,
-            photo: c.photo ? `http://localhost:3000/uploads/${c.photo}` : '',
+            photo: c.photo ? `${environment.apiUrl}/uploads/${c.photo}` : '',
             isActive: c.isActive ?? true,
             isArchived: c.isArchived ?? false,
           }));

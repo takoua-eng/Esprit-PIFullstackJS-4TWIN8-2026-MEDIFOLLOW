@@ -8,6 +8,7 @@ import { ReactiveFormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { TranslateModule } from '@ngx-translate/core';
 import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 describe('ChangePasswordDialogComponent', () => {
   let component: ChangePasswordDialogComponent;
@@ -16,7 +17,7 @@ describe('ChangePasswordDialogComponent', () => {
   let dialogRefSpy: jasmine.SpyObj<MatDialogRef<ChangePasswordDialogComponent>>;
 
   const mockDialogData = { email: 'test@example.com' };
-  const backendUrl = `http://localhost:3000/auth`;
+  const backendUrl = `${environment.apiUrl}/auth`;
 
   beforeEach(async () => {
     dialogRefSpy = jasmine.createSpyObj('MatDialogRef', ['close']);

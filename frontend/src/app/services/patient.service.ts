@@ -61,7 +61,7 @@ export interface QuestionnaireSubmit {
 
 @Injectable({ providedIn: 'root' })
 export class PatientService {
-  private readonly API = `http://localhost:3000`;
+  private readonly API = `${environment.apiUrl}`;
 
   constructor(private http: HttpClient) {}
 

@@ -6,7 +6,6 @@ import pandas as pd
 import logging
 import sys
 
-# Configuration logging
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
@@ -19,7 +18,6 @@ CORS(app)
 
 MODELS_DIR = "models"
 
-# Charger les modèles
 try:
     xgb_model = joblib.load(f"{MODELS_DIR}/xgboost_stroke.pkl")
     kmeans_model = joblib.load(f"{MODELS_DIR}/kmeans_stroke.pkl")
@@ -30,28 +28,91 @@ except Exception as e:
     logger.error(f"❌ Erreur chargement: {e}")
     raise
 
-# Mappings
 WORK_MAP = {"private": 0, "self employed": 1, "self-employed": 1, "govt job": 2, "govt_job": 2, "children": 3, "never worked": 4}
 SMOKE_MAP = {"never smoked": 0, "formerly smoked": 1, "smokes": 2, "unknown": 3}
-FEATURE_ORDER = ["age", "hypertension", "heart_disease", "gender", "ever_married", 
+FEATURE_ORDER = ["age", "hypertension", "heart_disease", "gender", "ever_married",
                  "work_type", "Residence_type", "avg_glucose_level", "bmi", "smoking_status"]
 
 def normalize(v):
-    if not v: 
+    if not v:
         return "private"
     return str(v).strip().lower().replace("_", " ").replace("-", " ")
+
+# 🔥 NOUVEAU : Score pondéré cliniquement
+def compute_risk_score(prob: float, data: dict) -> float:
+    base = prob * 100
+
+    bonus = 0
+    if data.get("age", 0) >= 70:                    bonus += 15
+    elif data.get("age", 0) >= 60:                  bonus += 8
+    elif data.get("age", 0) >= 50:                  bonus += 4
+
+    if data.get("hypertension", 0) == 1:            bonus += 10
+    if data.get("heart_disease", 0) == 1:           bonus += 10
+
+    if data.get("avg_glucose_level", 0) > 200:      bonus += 10
+    elif data.get("avg_glucose_level", 0) > 140:    bonus += 5
+
+    if data.get("bmi", 0) > 35:                     bonus += 8
+    elif data.get("bmi", 0) > 30:                   bonus += 4
+
+    if data.get("smoking_status") == 2:             bonus += 5
+
+    final = min(round(base + bonus, 1), 100.0)
+    logger.info(f"📊 Score: base={base:.1f} + bonus={bonus} = {final}")
+    return final
+
+# 🔥 NOUVEAU : Seuils corrigés
+def classify_risk(prob: float, critical_count: int) -> str:
+    if prob >= 0.25:
+        level = "HIGH"
+    elif prob >= 0.10:
+        level = "MEDIUM"
+    else:
+        level = "LOW"
+
+    # Upgrade si ≥3 facteurs critiques
+    if critical_count >= 3 and level != "HIGH":
+        logger.warning(f"⚠️ UPGRADE: {level} → HIGH ({critical_count} facteurs)")
+        level = "HIGH"
+
+    return level
 
 def get_recommendations(level: str, data: dict) -> list:
     recs = []
     if level == "HIGH":
-        recs = ["🩺 Consulter un cardiologue en urgence", "📊 Surveillance tensionnelle quotidienne", "🥗 Régime pauvre en sel", "🚭 Arrêt du tabac", "🏃 Activité physique 30min/jour"]
-        if data.get("avg_glucose_level", 0) > 140: recs.append(f"🔬 Glycémie à surveiller ({data['avg_glucose_level']} mg/dL)")
-        if data.get("bmi", 0) > 30: recs.append(f"⚖️ Prise en charge nutritionnelle (IMC: {data['bmi']})")
-        if data.get("heart_disease", 0) == 1: recs.append("❤️ Suivi cardiologique renforcé")
+        recs = [
+            "🩺 Consulter un cardiologue en urgence",
+            "📊 Surveillance tensionnelle quotidienne",
+            "🥗 Régime pauvre en sel",
+            "🚭 Arrêt du tabac",
+            "🏃 Activité physique 30min/jour"
+        ]
+        if data.get("avg_glucose_level", 0) > 140:
+            recs.append(f"🔬 Glycémie à surveiller ({data['avg_glucose_level']} mg/dL)")
+        if data.get("bmi", 0) > 30:
+            recs.append(f"⚖️ Prise en charge nutritionnelle (IMC: {data['bmi']})")
+        if data.get("heart_disease", 0) == 1:
+            recs.append("❤️ Suivi cardiologique renforcé")
+        if data.get("hypertension", 0) == 1:
+            recs.append("💊 Traitement antihypertenseur à surveiller")
     elif level == "MEDIUM":
-        recs = ["🩺 Bilan médical annuel", "🥗 Alimentation équilibrée", "🚶 Marche quotidienne"]
+        recs = [
+            "🩺 Bilan médical annuel",
+            "🥗 Alimentation équilibrée",
+            "🚶 Marche quotidienne 30min",
+            "📋 Contrôle tensionnel mensuel"
+        ]
+        if data.get("avg_glucose_level", 0) > 140:
+            recs.append("🔬 Surveiller la glycémie")
+        if data.get("bmi", 0) > 30:
+            recs.append("⚖️ Réduire l'IMC progressivement")
     else:
-        recs = ["✅ Mode de vie sain", "🔄 Bilan préventif"]
+        recs = [
+            "✅ Mode de vie sain à maintenir",
+            "🔄 Bilan préventif annuel",
+            "🥦 Alimentation équilibrée"
+        ]
     return recs
 
 @app.route("/predict", methods=["POST"])
@@ -59,8 +120,7 @@ def predict():
     logger.info("🚀 [DEBUG] Entrée dans /predict")
     try:
         data = request.get_json()
-        
-        # ✅ CORRECTION: condition COMPLÈTE
+
         if not data:
             logger.error("❌ JSON vide")
             return jsonify({"error": "JSON vide"}), 400
@@ -73,7 +133,7 @@ def predict():
         if isinstance(data.get("smoking_status"), str):
             data["smoking_status"] = SMOKE_MAP.get(normalize(data["smoking_status"]), 3)
 
-        # Créer DataFrame dans le bon ordre
+        # DataFrame dans le bon ordre
         df_input = pd.DataFrame([data])
         for col in FEATURE_ORDER:
             if col not in df_input.columns:
@@ -84,54 +144,42 @@ def predict():
         # Prédiction XGBoost
         proba_array = xgb_model.predict_proba(df_input)
         logger.info(f"🎯 predict_proba: {proba_array}")
-        
+
         prob_stroke = float(proba_array[0][1])
-        score = round(prob_stroke * 100, 1)
-        logger.info(f"📊 Probabilité stroke: {prob_stroke*100:.2f}% → Score: {score}%")
+        logger.info(f"📊 Probabilité stroke brute: {prob_stroke*100:.2f}%")
 
         # 🔥 Comptage facteurs critiques
         critical = []
-        if data.get("age", 0) >= 70: 
+        if data.get("age", 0) >= 70:
             critical.append("age")
             logger.info("  ✓ Age ≥ 70")
-        if data.get("hypertension", 0) == 1: 
+        if data.get("hypertension", 0) == 1:
             critical.append("htn")
             logger.info("  ✓ Hypertension")
-        if data.get("heart_disease", 0) == 1: 
+        if data.get("heart_disease", 0) == 1:
             critical.append("heart")
             logger.info("  ✓ Maladie cardiaque")
-        if data.get("avg_glucose_level", 0) > 200: 
+        if data.get("avg_glucose_level", 0) > 200:
             critical.append("glucose")
             logger.info("  ✓ Glucose > 200")
-        if data.get("bmi", 0) > 30: 
+        if data.get("bmi", 0) > 30:
             critical.append("bmi")
             logger.info("  ✓ BMI > 30")
-        
+
         logger.info(f"🔍 Facteurs critiques: {len(critical)}/5 → {critical}")
 
-        # Classification avec seuils BAS
-        if prob_stroke >= 0.05:
-            level = "HIGH"
-            logger.info("🎯 Classification: HIGH (prob ≥ 5%)")
-        elif prob_stroke >= 0.03:
-            level = "MEDIUM"
-            logger.info("🎯 Classification: MEDIUM (prob ≥ 3%)")
-        else:
-            level = "LOW"
-            logger.info("🎯 Classification: LOW (prob < 3%)")
-
-        # 🚨 Upgrade automatique si ≥3 facteurs
-        if len(critical) >= 3 and level != "HIGH":
-            logger.warning(f"⚠️ UPGRADE: {level} → HIGH ({len(critical)} facteurs)")
-            level = "HIGH"
-        
+        # 🔥 Nouveaux seuils + upgrade
+        level = classify_risk(prob_stroke, len(critical))
         logger.info(f"✅ Niveau FINAL: {level}")
+
+        # 🔥 Score pondéré
+        score = compute_risk_score(prob_stroke, data)
 
         # Couleurs
         color_map = {
-            "HIGH": ("#ef4444", "Élevé"),
+            "HIGH":   ("#ef4444", "Élevé"),
             "MEDIUM": ("#f59e0b", "Modéré"),
-            "LOW": ("#22c55e", "Faible")
+            "LOW":    ("#22c55e", "Faible")
         }
         color, label = color_map[level]
 
@@ -171,8 +219,9 @@ def health():
 def debug():
     return jsonify({
         "status": "alive",
-        "thresholds": {"HIGH": "≥5%", "MEDIUM": "≥3%", "LOW": "<3%"},
-        "upgrade_rule": "≥3 facteurs critiques → HIGH"
+        "thresholds": {"HIGH": "≥25%", "MEDIUM": "≥10%", "LOW": "<10%"},
+        "upgrade_rule": "≥3 facteurs critiques → HIGH",
+        "scoring": "prob*100 + bonus clinique (max 100)"
     }), 200
 
 if __name__ == "__main__":

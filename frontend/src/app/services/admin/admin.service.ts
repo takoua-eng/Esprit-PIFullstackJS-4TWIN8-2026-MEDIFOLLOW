@@ -15,7 +15,7 @@ export interface AdminUser {
   providedIn: 'root',
 })
 export class AdminService {
-  private apiUrl = `http://localhost:3000/admin/users`; // adapte selon ton backend
+  private apiUrl = `${environment.apiUrl}/admin/users`; // adapte selon ton backend
 
   constructor(private http: HttpClient) {}
 

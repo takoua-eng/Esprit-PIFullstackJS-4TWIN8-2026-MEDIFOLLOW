@@ -74,7 +74,7 @@ if (!this.coordinatorId) {
 
   loadPrediction(): void {
     this.loading = true;
-    this.http.get<PredictionResponse>(`http://localhost:3000/coordinator/${this.coordinatorId}/prediction`).subscribe({
+    this.http.get<PredictionResponse>(`${environment.apiUrl}/coordinator/${this.coordinatorId}/prediction`).subscribe({
       next: (data) => { this.prediction = data; this.loading = false; this.runAiAnalysis(); },
       error: (err) => { console.error('Prediction error', err); this.loading = false; },
     });

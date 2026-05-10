@@ -15,6 +15,7 @@ import { VitalsApiService } from 'src/app/services/vitals-api.service';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 import { Router } from '@angular/router';
 import { CUSTOM_ELEMENTS_SCHEMA, NO_ERRORS_SCHEMA } from '@angular/core';
+import { environment } from 'src/environments/environment';
 
 describe('AdminDashboardComponent', () => {
   let component: AdminDashboardComponent;
@@ -101,10 +102,10 @@ describe('AdminDashboardComponent', () => {
   it('should initialize KPIs correctly after ngOnInit', () => {
     // ngOnInit is already called by fixture.detectChanges() in beforeEach
     const httpMock = TestBed.inject(HttpTestingController);
-    httpMock.match(`http://localhost:3000/coordinator/auditor/reminders-overview`).forEach(req => req.flush({ stats: {}, reminders: [] }));
-    httpMock.match(`http://localhost:3000/questionnaire-responses`).forEach(req => req.flush([]));
-    httpMock.match(`http://localhost:3000/coordinator/auditor/service-staff`).forEach(req => req.flush([]));
-    httpMock.match(`http://localhost:3000/coordinator/auditor/patients-overview`).forEach(req => req.flush([]));
+    httpMock.match(`${environment.apiUrl}/coordinator/auditor/reminders-overview`).forEach(req => req.flush({ stats: {}, reminders: [] }));
+    httpMock.match(`${environment.apiUrl}/questionnaire-responses`).forEach(req => req.flush([]));
+    httpMock.match(`${environment.apiUrl}/coordinator/auditor/service-staff`).forEach(req => req.flush([]));
+    httpMock.match(`${environment.apiUrl}/coordinator/auditor/patients-overview`).forEach(req => req.flush([]));
 
     expect(mockUsersService.getAllUsers).toHaveBeenCalled();
     expect(mockAlertsService.getAlerts).toHaveBeenCalled();
@@ -135,7 +136,7 @@ describe('AdminDashboardComponent', () => {
     component.generateAiReport('daily');
     expect(component.aiReportLoading).toBeTrue();
 
-    const req = httpMock.expectOne(`http://localhost:3000/coordinator/admin/ai-report`);
+    const req = httpMock.expectOne(`${environment.apiUrl}/coordinator/admin/ai-report`);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({ type: 'daily' });
 

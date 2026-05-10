@@ -244,7 +244,7 @@ export class UserManagementComponent implements OnInit, AfterViewInit {
   }
 
   getPhoto(user: UserRow): string {
-    return user.photo ? `http://localhost:3000/uploads/${user.photo}` : '';
+    return user.photo ? `${environment.apiUrl}/uploads/${user.photo}` : '';
   }
 
   getInitials(user: UserRow): string {

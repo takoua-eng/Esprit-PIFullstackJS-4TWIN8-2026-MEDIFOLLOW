@@ -136,7 +136,7 @@ export class UserViewDialog {
     @Inject(MAT_DIALOG_DATA) public data: UserRow,
   ) {
     this.u = data;
-    this.photoUrl = data.photo ? `http://localhost:3000/uploads/${data.photo}` : '';
+    this.photoUrl = data.photo ? `${environment.apiUrl}/uploads/${data.photo}` : '';
   }
 
   get fullName(): string {
