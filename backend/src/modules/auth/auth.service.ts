@@ -105,13 +105,18 @@ export class AuthService {
     if (user.isArchived) throw new UnauthorizedException('Compte archivé');
     if (user.isActive === false) throw new UnauthorizedException('Compte désactivé');
 
-    let isPasswordValid = await bcrypt.compare(password, user.password);
+    let isPasswordValid = false;
 
-    if (!isPasswordValid && user.password === password) {
-      // Migration automatique des comptes existants créés sans hash.
+    // Fast check for plain text password to avoid expensive bcrypt if possible
+    if (user.password === password) {
       isPasswordValid = true;
-      user.password = await bcrypt.hash(password, 10);
-      await user.save();
+      // Migration automatique non bloquante
+      bcrypt.hash(password, 8).then(hashed => {
+        user.password = hashed;
+        user.save().catch(e => console.error('Error migrating password:', e));
+      });
+    } else {
+      isPasswordValid = await bcrypt.compare(password, user.password);
     }
 
     if (!isPasswordValid) {
@@ -137,7 +142,8 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(payload);
 
-    await this.auditService.create({
+    // Fire and forget audit log to avoid blocking the response
+    this.auditService.create({
       userId:    user._id.toString(),
       userEmail: user.email,
       userRole:  roleName,
@@ -149,7 +155,7 @@ export class AuthService {
       after:  null,
       ipAddress: req?.ip ?? 'unknown',
       userAgent: (req as any)?.headers?.['user-agent'] ?? 'unknown',
-    });
+    }).catch(err => console.error('Audit Log Error:', err));
 
     return {
       accessToken,
