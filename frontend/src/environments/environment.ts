@@ -1,5 +1,4 @@
 export const environment = {
   production: false,
-  apiUrl: 'http://localhost:3000'
-  
+  apiUrl: 'https://esprit-pifullstackjs-4twin8-2026-ey1u.onrender.com'
 };

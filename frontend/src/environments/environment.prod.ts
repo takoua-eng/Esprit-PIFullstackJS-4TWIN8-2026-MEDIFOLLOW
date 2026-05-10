@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://medifollow-backend-n8f5.onrender.com'
+  apiUrl: 'https://esprit-pifullstackjs-4twin8-2026-ey1u.onrender.com'
 };
